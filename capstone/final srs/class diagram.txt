@@ -1,0 +1,243 @@
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: '#e0f2fe'
+    primaryBorderColor: '#0284c7'
+    lineColor: '#000000'
+    secondaryColor: '#fef3c7'
+    tertiaryColor: '#fce7f3'
+    secondaryBorderColor: '#0284c7'
+    tertiaryBorderColor: '#0284c7'
+    primaryTextColor: '#000000'
+    secondaryTextColor: '#000000'
+    tertiaryTextColor: '#000000'
+---
+classDiagram
+direction TB
+
+class User {
+  -int userID
+  -string username
+  -string passwordHash
+  -string role
+  -string status
+  +login()
+  +logout()
+  +changePassword()
+  +updateProfile()
+}
+
+class Employee {
+  -int employeeID
+  -string firstName
+  -string lastName
+  -string phone
+  -string email
+  -string position
+  +processOrder()
+  +updateInventory()
+  +manageReservation()
+}
+
+class Customer {
+  -int customerID
+  -string firstName
+  -string lastName
+  -string phone
+  -string email
+  -int loyaltyPoints
+  +placeOrder()
+  +makeReservation()
+  +submitFeedback()
+  +viewOrderHistory()
+}
+
+class Category {
+  -int categoryID
+  -string categoryName
+  -string description
+  +addCategory()
+  +editCategory()
+  +deleteCategory()
+}
+
+class Product {
+  -int productID
+  -string productName
+  -string description
+  -float price
+  -boolean availability
+  +addProduct()
+  +updateProduct()
+  +deleteProduct()
+  +checkAvailability()
+}
+
+class Order {
+  -int orderID
+  -date orderDate
+  -float totalAmount
+  -string status
+  +createOrder()
+  +calculateTotal()
+  +cancelOrder()
+  +updateStatus()
+}
+
+class OrderItem {
+  -int orderItemID
+  -int quantity
+  -float unitPrice
+  -float subtotal
+  +calculateSubtotal()
+}
+
+class Reservation {
+  -int reservationID
+  -date reservationDate
+  -time reservationTime
+  -int guests
+  -string status
+  +createReservation()
+  +modifyReservation()
+  +cancelReservation()
+}
+
+class DiningTable {
+  -int tableID
+  -int tableNumber
+  -int capacity
+  -string status
+  +assignTable()
+  +updateStatus()
+}
+
+class Inventory {
+  -int inventoryID
+  -int quantity
+  -int reorderLevel
+  -datetime lastUpdated
+  +updateStock()
+  +checkStock()
+  +generateReorderAlert()
+}
+
+class Supplier {
+  -int supplierID
+  -string supplierName
+  -string phone
+  -string email
+  +addSupplier()
+  +updateSupplier()
+}
+
+class Payment {
+  -int paymentID
+  -string paymentMethod
+  -string paymentStatus
+  -string transactionReference
+  +processPayment()
+  +generateReceipt()
+}
+
+class Feedback {
+  -int feedbackID
+  -int rating
+  -string comments
+  -datetime submittedDate
+  +submitFeedback()
+}
+
+class SalesPrediction {
+  -int predictionID
+  -date predictionDate
+  -float predictedSales
+  -float confidenceScore
+  -string modelVersion
+  +analyseSales()
+  +predictDemand()
+  +generateForecast()
+  +recommendInventory()
+}
+
+class Report {
+  -int reportID
+  -string reportType
+  -date generatedDate
+  +generateSalesReport()
+  +generateInventoryReport()
+  +exportReport()
+}
+
+class AuditLog {
+  -int logID
+  -string action
+  -datetime timestamp
+  -string ipAddress
+  +recordActivity()
+  +retrieveLogs()
+}
+
+User <|-- Employee : is a
+User "1" --> "0..*" AuditLog : generates
+
+Customer "1" --> "0..*" Order : places
+Order "1" --> "1..*" OrderItem : contains
+OrderItem "0..*" --> "1" Product : refers to
+Category "1" --> "0..*" Product : categorizes
+
+Customer "1" --> "0..*" Reservation : makes
+Reservation "0..*" --> "1" DiningTable : assigned to
+
+Supplier "1" --> "0..*" Inventory : supplies
+Inventory "0..*" --> "1" Product : stocks
+
+Order "1" --> "1" Payment : paid via
+Customer "1" --> "0..*" Feedback : provides
+Order "1" --> "0..*" Feedback : receives
+
+Order "1" --> "0..*" SalesPrediction : forecasts
+SalesPrediction "1" --> "0..*" Report : generates
+
+class Recipe {
+  -int recipeID
+  -float quantityRequired
+  +addIngredient()
+  +calculateCost()
+}
+
+class Discount {
+  -int discountID
+  -string code
+  -float percentage
+  -date validUntil
+  +validateCode()
+  +applyDiscount()
+}
+
+class Timesheet {
+  -int timesheetID
+  -datetime clockIn
+  -datetime clockOut
+  -string status
+  +recordClockIn()
+  +recordClockOut()
+  +calculateHours()
+}
+
+class LoyaltyTransaction {
+  -int transactionID
+  -int pointsEarned
+  -int pointsRedeemed
+  -datetime transactionDate
+  +addPoints()
+  +redeemPoints()
+}
+
+Product "1" --> "0..*" Recipe : requires
+Inventory "1" --> "0..*" Recipe : used in
+Order "0..*" --> "0..1" Discount : applies
+Employee "1" --> "0..*" Timesheet : logs
+Customer "1" --> "0..*" LoyaltyTransaction : accumulates
+Order "1" --> "0..1" LoyaltyTransaction : awards
