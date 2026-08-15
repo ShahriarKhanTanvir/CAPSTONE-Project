@@ -1,0 +1,215 @@
+
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: '#e0f2fe'
+    primaryBorderColor: '#0284c7'
+    lineColor: '#ea580c'
+    secondaryColor: '#fef3c7'
+    tertiaryColor: '#fce7f3'
+    secondaryBorderColor: '#0284c7'
+    tertiaryBorderColor: '#0284c7'
+    primaryTextColor: '#000000'
+    secondaryTextColor: '#000000'
+    tertiaryTextColor: '#000000'
+---
+erDiagram
+direction TB
+Roles {
+int role_id PK ""  
+string role_name  ""  
+string description  ""  
+}
+
+Users {
+int user_id PK ""  
+string username  ""  
+string password_hash  ""  
+int role_id FK ""  
+string status  ""  
+datetime last_login  ""  
+}
+
+Employees {
+int employee_id PK ""  
+int user_id FK ""  
+string first_name  ""  
+string last_name  ""  
+string phone  ""  
+string email  ""  
+string position  ""  
+date hire_date  ""  
+}
+
+AuditLogs {
+int log_id PK ""  
+int user_id FK ""  
+string action  ""  
+string table_name  ""  
+datetime timestamp  ""  
+string ip_address  ""  
+}
+
+Customers {
+int customer_id PK ""  
+string first_name  ""  
+string last_name  ""  
+string phone  ""  
+string email  ""  
+int loyalty_points  ""  
+}
+
+Reservations {
+int reservation_id PK ""  
+int customer_id FK ""  
+int table_id FK ""  
+date reservation_date  ""  
+time reservation_time  ""  
+int number_of_guests  ""  
+string status  ""  
+}
+
+Feedback {
+int feedback_id PK ""  
+int customer_id FK ""  
+int order_id FK ""  
+int rating  ""  
+string comments  ""  
+datetime submitted_at  ""  
+}
+
+DiningTables {
+int table_id PK ""  
+int table_number  ""  
+int capacity  ""  
+string status  ""  
+}
+
+OrderItems {
+int order_item_id PK ""  
+int order_id FK ""  
+int product_id FK ""  
+int quantity  ""  
+float unit_price  ""  
+float subtotal  ""  
+}
+
+Payments {
+int payment_id PK ""  
+int order_id FK ""  
+string payment_method  ""  
+string payment_status  ""  
+datetime payment_date  ""  
+string transaction_reference  ""  
+}
+
+Categories {
+int category_id PK ""  
+string category_name  ""  
+string description  ""  
+}
+
+Products {
+int product_id PK ""  
+int category_id FK ""  
+string product_name  ""  
+string description  ""  
+float price  ""  
+boolean availability  ""  
+string image  ""  
+}
+
+Inventory {
+int inventory_id PK ""  
+int product_id FK ""  
+int supplier_id FK ""  
+int quantity  ""  
+int reorder_level  ""  
+datetime last_updated  ""  
+}
+
+Suppliers {
+int supplier_id PK ""  
+string supplier_name  ""  
+string contact_person  ""  
+string phone  ""  
+string email  ""  
+string address  ""  
+}
+
+SalesPredictions {
+int prediction_id PK ""  
+int product_id FK ""  
+date prediction_date  ""  
+float predicted_sales  ""  
+float confidence_score  ""  
+string model_version  ""  
+datetime generated_at  ""  
+}
+
+Orders {
+int order_id PK ""  
+int customer_id FK ""  
+int employee_id FK ""  
+int payment_id FK ""  
+float total_amount  ""  
+string order_status  ""  
+datetime created_at  ""  
+}
+
+Roles||--o{Users:"has"
+Users||--||Employees:"is"
+Users||--o{AuditLogs:"tracks security for"
+Customers||--o{Orders:"places"
+Customers||--o{Reservations:"makes"
+Customers||--o{Feedback:"provides"
+Employees||--o{Orders:"processes"
+DiningTables||--o{Reservations:"assigned to"
+Orders||--o{OrderItems:"contains"
+Orders||--||Payments:"paid via"
+Orders||--o{Feedback:"receives"
+Categories||--o{Products:"categorizes"
+Products||--o{OrderItems:"included in"
+Products||--o{Inventory:"stocked as"
+Suppliers||--o{Inventory:"supplies"
+Products||--o{SalesPredictions:"forecasts demand for"
+
+Recipes {
+int recipe_id PK ""  
+int product_id FK ""  
+int inventory_id FK ""  
+float quantity_required ""  
+}
+
+Discounts {
+int discount_id PK ""  
+string code ""  
+float discount_percentage ""  
+date start_date ""  
+date end_date ""  
+}
+
+Timesheets {
+int timesheet_id PK ""  
+int employee_id FK ""  
+datetime clock_in ""  
+datetime clock_out ""  
+string status ""  
+}
+
+LoyaltyTransactions {
+int transaction_id PK ""  
+int customer_id FK ""  
+int order_id FK ""  
+int points_earned ""  
+int points_redeemed ""  
+datetime transaction_date ""  
+}
+
+Products||--o{Recipes:"requires"
+Inventory||--o{Recipes:"used in"
+Orders||--o|Discounts:"applies"
+Employees||--o{Timesheets:"logs"
+Customers||--o{LoyaltyTransactions:"accumulates"
+Orders||--o|LoyaltyTransactions:"awards"
