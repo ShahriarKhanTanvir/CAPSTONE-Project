@@ -557,6 +557,8 @@ const defaultPermissions = {
   admin: {
     pos: true,
     kds: true,
+    waitstaff: true,
+    customer_tracker: true,
     tables: true,
     reservations: true,
     menu: true,
@@ -573,6 +575,8 @@ const defaultPermissions = {
   manager: {
     pos: true,
     kds: true,
+    waitstaff: true,
+    customer_tracker: true,
     tables: true,
     reservations: true,
     menu: true,
@@ -589,9 +593,11 @@ const defaultPermissions = {
   cashier: {
     pos: true,
     kds: true,
+    waitstaff: true,
+    customer_tracker: true,
     tables: true,
     reservations: true,
-    menu: false,
+    menu: true,
     inventory: true,
     suppliers: false,
     discounts: true,
@@ -602,9 +608,29 @@ const defaultPermissions = {
     access: false,
     audit: false
   },
+  kitchen: {
+    pos: false,
+    kds: true,
+    waitstaff: false,
+    customer_tracker: false,
+    tables: false,
+    reservations: false,
+    menu: false,
+    inventory: true,
+    suppliers: false,
+    discounts: false,
+    customers: false,
+    employees: false,
+    feedback: true,
+    dashboard: false,
+    access: false,
+    audit: false
+  },
   barista: {
     pos: false,
     kds: true,
+    waitstaff: false,
+    customer_tracker: false,
     tables: false,
     reservations: false,
     menu: false,
@@ -620,13 +646,33 @@ const defaultPermissions = {
   },
   waitstaff: {
     pos: true,
-    kds: true,
+    kds: false,
+    waitstaff: true,
+    customer_tracker: false,
     tables: true,
     reservations: true,
-    menu: false,
+    menu: true,
     inventory: false,
     suppliers: false,
     discounts: false,
+    customers: true,
+    employees: false,
+    feedback: true,
+    dashboard: false,
+    access: false,
+    audit: false
+  },
+  customer: {
+    pos: true,
+    kds: false,
+    waitstaff: false,
+    customer_tracker: true,
+    tables: false,
+    reservations: true,
+    menu: true,
+    inventory: false,
+    suppliers: false,
+    discounts: true,
     customers: true,
     employees: false,
     feedback: true,
@@ -949,6 +995,10 @@ function applyRoleToUI(role) {
     if (nameEl) nameEl.textContent = 'Alex Vance';
     if (badgeEl) badgeEl.textContent = 'Store Manager';
     if (avatarEl) avatarEl.textContent = 'AV';
+  } else if (role === 'kitchen') {
+    if (nameEl) nameEl.textContent = 'Marco Rossi';
+    if (badgeEl) badgeEl.textContent = 'Head Chef';
+    if (avatarEl) avatarEl.textContent = 'MR';
   } else if (role === 'barista') {
     if (nameEl) nameEl.textContent = 'Liam O\'Connor';
     if (badgeEl) badgeEl.textContent = 'Head Barista';
@@ -957,12 +1007,15 @@ function applyRoleToUI(role) {
     if (nameEl) nameEl.textContent = 'Chloe Bennett';
     if (badgeEl) badgeEl.textContent = 'Wait Staff';
     if (avatarEl) avatarEl.textContent = 'CB';
+  } else if (role === 'customer') {
+    if (nameEl) nameEl.textContent = 'Sophia Reed';
+    if (badgeEl) badgeEl.textContent = 'Loyalty Customer';
+    if (avatarEl) avatarEl.textContent = 'SR';
   } else {
     if (nameEl) nameEl.textContent = 'Sarah Lin';
     if (badgeEl) badgeEl.textContent = 'Lead Cashier';
     if (avatarEl) avatarEl.textContent = 'SL';
   }
-
 }
 
 window.applyRolePermissionsUI = function() {
@@ -1019,8 +1072,16 @@ window.applyRolePermissionsUI = function() {
   const isAccessAllowed = (currentMod === 'access') ? (role === 'admin') : (perms[currentMod] !== false);
 
   if (!isAccessAllowed) {
-    const allowedMod = Object.keys(perms).find(k => perms[k] && (k !== 'access' || role === 'admin')) || 'pos';
-    AppState.activeModule = allowedMod;
+    if (role === 'customer') {
+      AppState.activeModule = 'pos';
+    } else if (role === 'kitchen' || role === 'barista') {
+      AppState.activeModule = 'kds';
+    } else if (role === 'waitstaff') {
+      AppState.activeModule = 'waitstaff';
+    } else {
+      const allowedMod = Object.keys(perms).find(k => perms[k] && (k !== 'access' || role === 'admin')) || 'pos';
+      AppState.activeModule = allowedMod;
+    }
   }
 };
 
@@ -4015,7 +4076,9 @@ function renderAccessView(container) {
 
   const modulesList = [
     { key: 'pos', name: 'Point of Sale (POS)' },
-    { key: 'kds', name: 'Order Tracking (KDS)' },
+    { key: 'kds', name: 'Kitchen & Barista KDS' },
+    { key: 'waitstaff', name: 'Wait Staff Monitor' },
+    { key: 'customer_tracker', name: 'Customer Live Tracker' },
     { key: 'tables', name: 'Table Management' },
     { key: 'reservations', name: 'Reservations' },
     { key: 'menu', name: 'Menu & Modifiers' },
@@ -4025,7 +4088,8 @@ function renderAccessView(container) {
     { key: 'customers', name: 'Customers & Loyalty' },
     { key: 'employees', name: 'Staff & Attendance' },
     { key: 'feedback', name: 'Customer Feedback' },
-    { key: 'dashboard', name: 'Dashboard & Financial Reports' }
+    { key: 'dashboard', name: 'Dashboard & Financial Reports' },
+    { key: 'audit', name: 'Audit & Compliance Logs' }
   ];
 
   if (!DB.rolePermissions) {
@@ -4051,8 +4115,10 @@ function renderAccessView(container) {
               <th>Admin</th>
               <th>Manager</th>
               <th>Cashier</th>
+              <th>Kitchen</th>
               <th>Barista</th>
               <th>Wait Staff</th>
+              <th>Customer</th>
             </tr>
           </thead>
           <tbody id="permissions-matrix-body">
@@ -4074,6 +4140,12 @@ function renderAccessView(container) {
                 </td>
                 <td>
                   <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="kitchen" data-module="${mod.key}" ${perms.kitchen && perms.kitchen[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.kitchen && perms.kitchen[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.kitchen && perms.kitchen[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <input type="checkbox" data-role="barista" data-module="${mod.key}" ${perms.barista && perms.barista[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
                     <span class="badge ${perms.barista && perms.barista[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.barista && perms.barista[mod.key] ? 'Full Access' : 'Restricted'}</span>
                   </label>
@@ -4082,6 +4154,12 @@ function renderAccessView(container) {
                   <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <input type="checkbox" data-role="waitstaff" data-module="${mod.key}" ${perms.waitstaff && perms.waitstaff[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
                     <span class="badge ${perms.waitstaff && perms.waitstaff[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.waitstaff && perms.waitstaff[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="customer" data-module="${mod.key}" ${perms.customer && perms.customer[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.customer && perms.customer[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.customer && perms.customer[mod.key] ? 'Full Access' : 'Restricted'}</span>
                   </label>
                 </td>
               </tr>

@@ -699,13 +699,14 @@ $csrfToken = getCSRFToken();
         <div class="form-group" style="margin-bottom:16px;">
           <label style="font-weight:600; margin-bottom:6px; display:block;">Select Account / Role</label>
           <select id="role-popup-select" class="form-select" style="width:100%; padding:12px 14px; font-size:15px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream); appearance:auto;">
-            <option value="admin">Admin (Full Control)</option>
-            <option value="manager">Manager (Operations & Staff)</option>
-            <option value="cashier" selected>Cashier (POS & Sales)</option>
-            <option value="barista">Barista (KDS & Queue)</option>
-            <option value="waitstaff">Wait Staff (Table Service)</option>
+            <option value="admin">⚡ Admin (Full Control)</option>
+            <option value="manager">📊 Manager (Operations & Staff)</option>
+            <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
+            <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
+            <option value="barista">☕ Barista (Beverages KDS)</option>
+            <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
+            <option value="customer">👤 Customer (Live Tracker & Menu)</option>
           </select>
-
         </div>
 
         <div class="form-group" style="margin-bottom:16px;">
