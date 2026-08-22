@@ -45,6 +45,13 @@ const API = {
       return await res.json();
     } catch { return { status: 'offline' }; }
   },
+    async fetchBootstrap() {
+    try {
+      const res = await fetch(`${API_BASE}/bootstrap.php`);
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch { return null; }
+  },
   async fetchCategories() {
     try {
       const res = await fetch(`${API_BASE}/menu/categories.php`);
@@ -1050,27 +1057,85 @@ window.confirmRoleSelection = function() {
 
 async function syncBackendData() {
   try {
-    console.log('[Backend Sync] Fetching live data from:', API_BASE);
+    console.log('[Backend Sync] Instant bootstrap from:', API_BASE);
     
-    // Fetch all endpoints with individual fault tolerance
+    // 1. Try unified ultra-fast single roundtrip bootstrap endpoint (<50ms)
+    const bootData = await API.fetchBootstrap();
+    if (bootData) {
+      if (bootData.categories && bootData.categories.length) {
+        DB.menuCategories = bootData.categories.map(cat => ({
+          id: String(cat.category_id),
+          category_id: cat.category_id,
+          name: cat.category_name,
+          icon: getCategoryIcon(cat.category_name),
+          desc: cat.description || ''
+        }));
+      }
+
+      if (bootData.menu_items && bootData.menu_items.length) {
+        DB.menuItems = bootData.menu_items.map(item => {
+          const catIdStr = String(item.category_id || '1');
+          return {
+            id: String(item.product_id),
+            product_id: item.product_id,
+            catId: catIdStr,
+            category_id: item.category_id,
+            name: item.product_name,
+            desc: item.description || '',
+            price: parseFloat(item.base_price || item.price || 0),
+            image: item.image_url || '',
+            availability: item.is_available == 1,
+            hasModifiers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '13'].includes(catIdStr)
+          };
+        });
+      }
+
+      if (bootData.tables && bootData.tables.length) {
+        DB.tables = bootData.tables.map(t => ({
+          id: String(t.table_number || t.table_id),
+          table_id: t.table_id,
+          number: t.table_number,
+          seats: parseInt(t.capacity || 4),
+          capacity: parseInt(t.capacity || 4),
+          location: t.location || 'Main Floor',
+          status: t.status || 'available',
+          orderId: t.current_order_id ? `#ORD-${t.current_order_id}` : null
+        }));
+      }
+
+      if (bootData.discounts && bootData.discounts.length) {
+        DB.discounts = bootData.discounts.map(d => ({
+          id: String(d.discount_id),
+          code: d.discount_code,
+          name: d.discount_code,
+          type: d.discount_type,
+          value: parseFloat(d.discount_value || 0),
+          minSpend: parseFloat(d.min_order_amount || 0)
+        }));
+      }
+
+      if (bootData.next_order_num) {
+        AppState.cart.orderId = `#ORD-${bootData.next_order_num}`;
+      }
+
+      // Render view immediately with bootstrap data!
+      renderCurrentModule();
+      renderCartTableSelect();
+      updateKDSBadge();
+    }
+
+    // 2. Fetch secondary data in background without blocking UI
     const [
-      categoriesRes, menuItemsRes, inventoryRes, tablesRes, 
-      ordersRes, reservationsRes, customersRes, transactionsRes, 
-      discountsRes, feedbackRes, staffRes, savedPermissions, nextOrderNum
+      inventoryRes, ordersRes, reservationsRes, customersRes, 
+      transactionsRes, feedbackRes, staffRes
     ] = await Promise.allSettled([
-      API.fetchCategories(),
-      API.fetchMenuItems(),
       API.fetchInventory(),
-      API.fetchTables(),
       API.fetchOrders(),
       API.fetchReservations(),
       API.fetchCustomers(),
       API.fetchTransactions(),
-      API.fetchDiscounts(),
       API.fetchFeedback(),
-      API.fetchStaff(),
-      API.fetchState('rolePermissions'),
-      API.fetchNextOrderNum()
+      API.fetchStaff()
     ]);
 
     const categories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : null;
@@ -4934,12 +4999,21 @@ window.renderCustomerTrackerView = async function(container) {
   }
 };
 
-// ── Live Polling Engine (Every 2.5s when KDS, Waitstaff, or Customer Tracker is open) ────
-setInterval(() => {
+// ── Non-Blocking Smart Polling Engine (Every 3s with mutex lock) ────
+let isPollInProgress = false;
+setInterval(async () => {
+  if (isPollInProgress) return;
   if (['kds', 'waitstaff', 'customer_tracker'].includes(AppState.activeModule)) {
     const openModal = document.querySelector('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
     if (!openModal) {
-      renderCurrentModule();
+      isPollInProgress = true;
+      try {
+        await renderCurrentModule();
+      } catch (err) {
+        console.warn('[Poll Error]', err);
+      } finally {
+        isPollInProgress = false;
+      }
     }
   }
-}, 2500);
+}, 3000);

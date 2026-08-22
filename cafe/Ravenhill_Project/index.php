@@ -21,11 +21,6 @@ $csrfToken = getCSRFToken();
   <!-- Remixicon Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <!-- PDF Generation Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- PayPal Sandbox JavaScript SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AYJK7O3QBO-dlC1YlzWd8eujwC_mGTQjgwG2V6UiGgzIh3gdfFa1nviCwQ02LU7q6ZuwIGet0HjVelto&currency=AUD"></script>
 </head>
 <body class="theme-dark">
   <div id="app-container" class="app-layout">
@@ -774,7 +769,10 @@ $csrfToken = getCSRFToken();
     </div>
   </div>
 
-  <!-- socket.io optional -->
+  <!-- Deferred Non-Blocking Libraries -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://www.paypal.com/sdk/js?client-id=AYJK7O3QBO-dlC1YlzWd8eujwC_mGTQjgwG2V6UiGgzIh3gdfFa1nviCwQ02LU7q6ZuwIGet0HjVelto&currency=AUD"></script>
   <script src="app.js"></script>
 </body>
 </html>

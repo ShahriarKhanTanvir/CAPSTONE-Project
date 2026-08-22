@@ -20,8 +20,8 @@ function getDB() {
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
 
-        // 1. Try standard production / cPanel internal localhost connection
-        $hosts = ['localhost', '127.0.0.1'];
+        // 1. Try standard production / cPanel internal 127.0.0.1 connection first for zero DNS latency
+        $hosts = ['127.0.0.1', 'localhost'];
         $lastError = '';
 
         foreach ($hosts as $host) {
