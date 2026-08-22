@@ -21,6 +21,9 @@ $csrfToken = getCSRFToken();
   <!-- Remixicon Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <!-- PDF Generation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="theme-dark">
   <div id="app-container" class="app-layout">
@@ -476,9 +479,10 @@ $csrfToken = getCSRFToken();
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary flex-1" id="print-receipt-btn"><i class="ri-printer-line"></i> Print Thermal Receipt</button>
-        <button class="btn btn-primary" id="finish-receipt-btn">Done</button>
+      <div class="modal-footer" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-secondary flex-1" id="print-receipt-btn" style="min-width: 130px;"><i class="ri-printer-line"></i> Print Receipt</button>
+        <button class="btn btn-outline flex-1" id="download-pdf-receipt-btn" style="min-width: 140px; background: rgba(217, 107, 67, 0.15); border-color: var(--color-primary); color: #fff;"><i class="ri-file-pdf-line"></i> Download PDF</button>
+        <button class="btn btn-primary" id="finish-receipt-btn" style="min-width: 80px;">Done</button>
       </div>
     </div>
   </div>

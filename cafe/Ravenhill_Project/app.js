@@ -2424,17 +2424,29 @@ function completePaymentProcess() {
   renderCartUI();
   saveLocalDB();
   
-  // Set Receipt Action Handlers
-  document.getElementById('print-receipt-btn').onclick = () => window.print();
-  document.getElementById('finish-receipt-btn').onclick = () => {
-    document.getElementById('receipt-modal').classList.add('hidden');
-    // Sync all data after sale is complete
-    syncBackendData();
-  };
-  document.getElementById('close-receipt-btn').onclick = () => {
-    document.getElementById('receipt-modal').classList.add('hidden');
-    syncBackendData();
-  };
+  // Set Receipt Action Handlers (PDF & Print Ready)
+  const printBtn = document.getElementById('print-receipt-btn');
+  if (printBtn) {
+    printBtn.onclick = () => window.generateReceiptPDF(false);
+  }
+  const downloadPdfBtn = document.getElementById('download-pdf-receipt-btn');
+  if (downloadPdfBtn) {
+    downloadPdfBtn.onclick = () => window.generateReceiptPDF(true);
+  }
+  const finishBtn = document.getElementById('finish-receipt-btn');
+  if (finishBtn) {
+    finishBtn.onclick = () => {
+      document.getElementById('receipt-modal').classList.add('hidden');
+      syncBackendData();
+    };
+  }
+  const closeRecBtn = document.getElementById('close-receipt-btn');
+  if (closeRecBtn) {
+    closeRecBtn.onclick = () => {
+      document.getElementById('receipt-modal').classList.add('hidden');
+      syncBackendData();
+    };
+  }
 }
 
 // Customer Modal
@@ -3988,3 +4000,76 @@ window.exportReportsToCSV = function() {
   document.body.removeChild(link);
 };
 
+
+// PDF Receipt Generator (FR36 - Download & Print-Ready PDF)
+window.generateReceiptPDF = async function(shouldDownload = true) {
+  const receiptEl = document.getElementById('thermal-receipt-content');
+  if (!receiptEl) return;
+
+  const orderId = document.getElementById('rec-order-id')?.textContent || 'Receipt';
+  const cleanOrderId = orderId.replace(/[^a-zA-Z0-9_-]/g, '');
+
+  try {
+    if (window.html2canvas && window.jspdf) {
+      const { jsPDF } = window.jspdf;
+      
+      // Temporarily set high contrast white background for clean rasterization
+      const origBg = receiptEl.style.backgroundColor;
+      const origColor = receiptEl.style.color;
+      receiptEl.style.backgroundColor = '#ffffff';
+      receiptEl.style.color = '#000000';
+
+      const canvas = await html2canvas(receiptEl, {
+        scale: 3, // 300 DPI equivalent for ultra-crisp vector-like thermal print
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+
+      receiptEl.style.backgroundColor = origBg;
+      receiptEl.style.color = origColor;
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // 80mm POS thermal receipt format
+      const imgWidth = 80;
+      const pageHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [imgWidth, Math.max(pageHeight + 4, 100)]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 2, imgWidth, pageHeight);
+
+      if (shouldDownload) {
+        pdf.save(`Ravenhill_Receipt_${cleanOrderId}.pdf`);
+      } else {
+        // Direct print popup
+        const blob = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(blob);
+        const printIframe = document.createElement('iframe');
+        printIframe.style.position = 'fixed';
+        printIframe.style.right = '0';
+        printIframe.style.bottom = '0';
+        printIframe.style.width = '0';
+        printIframe.style.height = '0';
+        printIframe.style.border = '0';
+        printIframe.src = blobUrl;
+        document.body.appendChild(printIframe);
+        printIframe.onload = () => {
+          setTimeout(() => {
+            printIframe.contentWindow.focus();
+            printIframe.contentWindow.print();
+          }, 300);
+        };
+      }
+    } else {
+      window.print();
+    }
+  } catch (err) {
+    console.error('[PDF Receipt] Generation notice:', err);
+    window.print();
+  }
+};
