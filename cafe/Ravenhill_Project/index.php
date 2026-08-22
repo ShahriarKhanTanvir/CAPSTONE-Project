@@ -24,6 +24,8 @@ $csrfToken = getCSRFToken();
   <!-- PDF Generation Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- PayPal Sandbox JavaScript SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AYJK7O3QBO-dlC1YlzWd8eujwC_mGTQjgwG2V6UiGgzIh3gdfFa1nviCwQ02LU7q6ZuwIGet0HjVelto&currency=AUD"></script>
 </head>
 <body class="theme-dark">
   <div id="app-container" class="app-layout">
@@ -351,6 +353,10 @@ $csrfToken = getCSRFToken();
                 <i class="ri-cash-line"></i>
                 <span>Cash Tender</span>
               </button>
+              <button class="pay-tab" data-method="paypal">
+                <i class="ri-paypal-line"></i>
+                <span>PayPal</span>
+              </button>
               <button class="pay-tab" data-method="loyalty">
                 <i class="ri-vip-crown-line"></i>
                 <span>Loyalty Points</span>
@@ -388,6 +394,27 @@ $csrfToken = getCSRFToken();
                 <div class="change-due-box">
                   <span>Change Due:</span>
                   <strong id="cash-change-due">$0.00</strong>
+                </div>
+              </div>
+
+              <!-- PayPal Panel -->
+              <div id="tender-panel-paypal" class="tender-panel hidden">
+                <div class="paypal-terminal-box">
+                  <div class="paypal-brand-row">
+                    <div class="paypal-logo-wrap">
+                      <i class="ri-paypal-fill"></i>
+                    </div>
+                    <div>
+                      <h4>PayPal Sandbox Checkout</h4>
+                      <p>Instant digital wallet & debit/credit card processing</p>
+                    </div>
+                  </div>
+                  <div class="paypal-amount-display">
+                    <span>Payable Amount:</span>
+                    <strong id="paypal-amount-due">$0.00 AUD</strong>
+                  </div>
+                  <div id="paypal-button-container" class="paypal-button-container"></div>
+                  <div id="paypal-status-box" class="paypal-status-box hidden"></div>
                 </div>
               </div>
 

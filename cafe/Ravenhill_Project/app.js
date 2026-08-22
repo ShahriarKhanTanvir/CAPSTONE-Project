@@ -129,6 +129,31 @@ const API = {
       return data.success ? data.data : null;
     } catch { return null; }
   },
+    async createPayPalOrder(orderId, amount) {
+    try {
+      const res = await fetch(`${API_BASE}/payments/paypal.php?action=create_order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, amount: amount })
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async capturePayPalOrder(paypalOrderId, orderId, amount, cashier) {
+    try {
+      const res = await fetch(`${API_BASE}/payments/paypal.php?action=capture_order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paypal_order_id: paypalOrderId,
+          order_id: orderId,
+          amount: amount,
+          cashier: cashier
+        })
+      });
+      return await res.json();
+    } catch { return null; }
+  },
   async createOrder(orderPayload) {
     try {
       const res = await fetch(`${API_BASE}/orders/orders.php`, {
@@ -2186,7 +2211,17 @@ function setupPaymentModal() {
       
       document.getElementById('tender-panel-eftpos').classList.toggle('hidden', method !== 'eftpos');
       document.getElementById('tender-panel-cash').classList.toggle('hidden', method !== 'cash');
+      document.getElementById('tender-panel-paypal').classList.toggle('hidden', method !== 'paypal');
       document.getElementById('tender-panel-loyalty').classList.toggle('hidden', method !== 'loyalty');
+
+      const confirmBtn = document.getElementById('confirm-payment-btn');
+      if (confirmBtn) {
+        confirmBtn.style.display = method === 'paypal' ? 'none' : 'inline-flex';
+      }
+
+      if (method === 'paypal') {
+        renderPayPalButtons();
+      }
     });
   });
 
@@ -2252,6 +2287,13 @@ function openPaymentModal() {
   }
 
   document.getElementById('pay-modal-total').textContent = `$${total.toFixed(2)}`;
+  const paypalDueEl = document.getElementById('paypal-amount-due');
+  if (paypalDueEl) paypalDueEl.textContent = `$${total.toFixed(2)} AUD`;
+  
+  const activePayTab = document.querySelector('.pay-tab.active');
+  if (activePayTab && activePayTab.getAttribute('data-method') === 'paypal') {
+    renderPayPalButtons();
+  }
 
   // Populate mini items list
   const miniList = document.getElementById('pay-modal-items-list');

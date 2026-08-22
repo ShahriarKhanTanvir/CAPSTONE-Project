@@ -48,6 +48,15 @@ $methods = [
         'description'   => 'Redeem 100 points per $1 discount'
     ],
     [
+        'id'            => 'paypal',
+        'name'          => 'PayPal Sandbox Checkout',
+        'icon'          => 'ri-paypal-line',
+        'requires_ref'  => true,
+        'allows_change' => false,
+        'surcharge_rate'=> 0.0,
+        'description'   => 'Instant PayPal Sandbox digital wallet and card checkout'
+    ],
+    [
         'id'            => 'gift_card',
         'name'          => 'Ravenhill Gift Card / Voucher',
         'icon'          => 'ri-gift-line',
