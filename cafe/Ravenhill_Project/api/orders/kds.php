@@ -1,126 +1,264 @@
 <?php
 /**
- * kds.php
- * FR30: Kitchen display integration
+ * kds.php - Role-Based Multi-Station Kitchen Display System Engine
+ * Ravenhill Coffee POS & Management System
  *
  * Routes:
- *   GET    /api/orders/kds.php                   — Fetch active kitchen queue (pending & preparing orders with items, elapsed seconds, modifiers)
- *   POST   /api/orders/kds.php?id=123&action=bump— Bump/advance order to next stage (pending -> preparing -> ready -> completed)
+ *   GET  /api/orders/kds.php?station=kitchen   — Food queue for Kitchen Staff
+ *   GET  /api/orders/kds.php?station=barista   — Beverage queue for Barista with batch counts
+ *   GET  /api/orders/kds.php?station=all       — Full queue for Expo / Cashier / Manager
+ *   POST /api/orders/kds.php?action=bump_ticket&ticket_id=123 — Bump ticket (pending -> preparing -> ready -> collected)
+ *   POST /api/orders/kds.php?action=recall_ticket&ticket_id=123 — Recall recently bumped ticket
  */
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/auth_check.php';
 
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
 $db     = getDB();
 $method = $_SERVER['REQUEST_METHOD'];
-$id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $action = $_GET['action'] ?? null;
+$ticketId = isset($_GET['ticket_id']) ? (int)$_GET['ticket_id'] : null;
+$stationParam = isset($_GET['station']) ? strtolower(trim($_GET['station'])) : 'all';
 
-// ── OPTIONS preflight ──────────────────────────────────────────────────────
 if ($method === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-// ── GET: Active KDS Queue ──────────────────────────────────────────────────
+// ── GET: Active KDS Station Queue ──────────────────────────────────────────
 if ($method === 'GET') {
-    // Fetch pending, preparing, and ready orders
-    $stmt = $db->prepare("
-        SELECT o.order_id, o.order_status, o.order_type, o.table_number, o.notes, o.created_at,
-               TIMESTAMPDIFF(SECOND, o.created_at, NOW()) AS elapsed_seconds,
+    $whereStation = "";
+    $params = [];
+
+    if ($stationParam === 'kitchen' || $stationParam === 'barista') {
+        $whereStation = "AND st.station = ?";
+        $params[] = $stationParam;
+    }
+
+    // Fetch active station tickets (pending, preparing, ready)
+    $sql = "
+        SELECT st.ticket_id, st.order_id, st.station, st.status AS ticket_status, 
+               st.target_prep_minutes, st.started_at, st.ready_at, st.created_at,
+               TIMESTAMPDIFF(SECOND, st.created_at, NOW()) AS elapsed_seconds,
+               o.order_status AS master_order_status, o.order_type, o.table_number, o.notes AS order_notes,
                CONCAT(c.first_name, ' ', COALESCE(c.last_name, '')) AS customer_name,
                CONCAT(e.first_name, ' ', COALESCE(e.last_name, '')) AS server_name
-        FROM Orders o
+        FROM StationTickets st
+        INNER JOIN Orders o ON st.order_id = o.order_id
         LEFT JOIN Customers c ON o.customer_id = c.customer_id
         LEFT JOIN Employees e ON o.employee_id = e.employee_id
-        WHERE o.order_status IN ('pending', 'preparing', 'ready')
+        WHERE st.status IN ('pending', 'preparing', 'ready')
+        $whereStation
         ORDER BY 
-            CASE o.order_status 
+            CASE st.status 
                 WHEN 'preparing' THEN 1 
                 WHEN 'pending' THEN 2 
                 WHEN 'ready' THEN 3 
                 ELSE 4 
             END,
-            o.created_at ASC
-    ");
-    $stmt->execute();
-    $orders = $stmt->fetchAll();
+            st.created_at ASC
+    ";
 
-    // Fetch items for each active order
-    foreach ($orders as &$order) {
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $batchSummary = [
+        'oat_milk'     => 0,
+        'almond_milk'  => 0,
+        'soy_milk'     => 0,
+        'full_cream'   => 0,
+        'decaf'        => 0,
+        'extra_shots'  => 0
+    ];
+
+    foreach ($tickets as &$ticket) {
+        $tId = (int)$ticket['ticket_id'];
+        $oId = (int)$ticket['order_id'];
+        $tStation = $ticket['station'];
+
+        // Fetch line items for this ticket
         $itemsStmt = $db->prepare("
             SELECT oi.order_item_id, oi.product_id, oi.quantity, oi.item_notes, oi.customisations_json,
-                   p.product_name, cat.category_name
+                   p.product_name, cat.category_name, COALESCE(cat.target_station, 'barista') AS target_station
             FROM OrderItems oi
             LEFT JOIN Products p ON oi.product_id = p.product_id
             LEFT JOIN Categories cat ON p.category_id = cat.category_id
-            WHERE oi.order_id = ?
+            WHERE (oi.ticket_id = ? OR (oi.ticket_id IS NULL AND oi.order_id = ? AND (cat.target_station = ? OR (cat.target_station IS NULL AND ? = 'barista'))))
         ");
-        $itemsStmt->execute([$order['order_id']]);
-        $items = $itemsStmt->fetchAll();
+        $itemsStmt->execute([$tId, $oId, $tStation, $tStation]);
+        $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($items as &$item) {
             $customs = !empty($item['customisations_json']) ? json_decode($item['customisations_json'], true) : [];
             $customTags = [];
-            foreach ($customs as $c) {
-                $customTags[] = $c['option_name'];
+            
+            if (is_array($customs)) {
+                foreach ($customs as $c) {
+                    $optName = $c['option_name'] ?? '';
+                    $customTags[] = $optName;
+
+                    // Barista batch counters
+                    if ($tStation === 'barista') {
+                        if (stripos($optName, 'oat') !== false) $batchSummary['oat_milk'] += (int)$item['quantity'];
+                        if (stripos($optName, 'almond') !== false) $batchSummary['almond_milk'] += (int)$item['quantity'];
+                        if (stripos($optName, 'soy') !== false) $batchSummary['soy_milk'] += (int)$item['quantity'];
+                        if (stripos($optName, 'decaf') !== false) $batchSummary['decaf'] += (int)$item['quantity'];
+                        if (stripos($optName, 'extra shot') !== false || stripos($optName, 'double') !== false) $batchSummary['extra_shots'] += (int)$item['quantity'];
+                    }
+                }
             }
+
             $item['customisations'] = $customs;
             $item['kds_highlight']  = count($customTags) > 0 ? implode(' • ', $customTags) : 'Standard';
         }
 
-        $order['items']           = $items;
-        $order['elapsed_seconds'] = (int)$order['elapsed_seconds'];
-        $order['elapsed_minutes'] = (int)floor($order['elapsed_seconds'] / 60);
-        $order['urgency']         = $order['elapsed_minutes'] > 10 ? 'high' : ($order['elapsed_minutes'] > 5 ? 'medium' : 'normal');
+        $ticket['items']           = $items;
+        $ticket['elapsed_seconds'] = (int)$ticket['elapsed_seconds'];
+        $ticket['elapsed_minutes'] = (int)floor($ticket['elapsed_seconds'] / 60);
+        $ticket['urgency']         = $ticket['elapsed_minutes'] > 7 ? 'high' : ($ticket['elapsed_minutes'] > 3 ? 'medium' : 'normal');
+
+        // Also fetch sibling ticket statuses for master status indicator
+        $sibStmt = $db->prepare("SELECT station, status FROM StationTickets WHERE order_id = ?");
+        $sibStmt->execute([$oId]);
+        $ticket['station_statuses'] = $sibStmt->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 
     sendResponse(true, 'KDS queue retrieved.', [
-        'active_tickets_count' => count($orders),
-        'tickets'              => $orders
+        'station'              => $stationParam,
+        'active_tickets_count' => count($tickets),
+        'batch_summary'        => $batchSummary,
+        'tickets'              => $tickets
     ]);
 }
 
-// ── POST: Bump Order to Next State ─────────────────────────────────────────
-if ($method === 'POST' && $action === 'bump') {
-    if (!$id) {
-        sendResponse(false, 'Order ID is required to bump ticket.', null, 422);
+// ── POST: Bump Ticket ───────────────────────────────────────────────────────
+if ($method === 'POST' && ($action === 'bump_ticket' || $action === 'bump')) {
+    if (!$ticketId) {
+        $raw = file_get_contents('php://input');
+        $b = json_decode($raw, true) ?? [];
+        $ticketId = (int)($b['ticket_id'] ?? $_GET['id'] ?? 0);
     }
 
-    $stmt = $db->prepare("SELECT order_id, order_status FROM Orders WHERE order_id = ?");
-    $stmt->execute([$id]);
-    $order = $stmt->fetch();
-
-    if (!$order) {
-        sendResponse(false, 'Order not found.', null, 404);
+    if (!$ticketId) {
+        sendResponse(false, 'ticket_id is required.', null, 422);
     }
 
-    $current = $order['order_status'];
+    $stmt = $db->prepare("SELECT ticket_id, order_id, station, status FROM StationTickets WHERE ticket_id = ?");
+    $stmt->execute([$ticketId]);
+    $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$ticket) {
+        sendResponse(false, 'Ticket not found.', null, 404);
+    }
+
+    $current = $ticket['status'];
+    $orderId = (int)$ticket['order_id'];
     $next = 'pending';
 
     if ($current === 'pending') {
         $next = 'preparing';
+        $db->prepare("UPDATE StationTickets SET status = 'preparing', started_at = NOW() WHERE ticket_id = ?")->execute([$ticketId]);
     } elseif ($current === 'preparing') {
         $next = 'ready';
+        $db->prepare("UPDATE StationTickets SET status = 'ready', ready_at = NOW() WHERE ticket_id = ?")->execute([$ticketId]);
     } elseif ($current === 'ready') {
-        $next = 'completed';
+        $next = 'collected';
+        $db->prepare("UPDATE StationTickets SET status = 'collected', collected_at = NOW() WHERE ticket_id = ?")->execute([$ticketId]);
     } else {
-        sendResponse(false, "Order is already in state: $current", null, 400);
+        sendResponse(false, "Ticket is already in state: $current", null, 400);
     }
 
-    // Call orders.php logic / update status
-    if ($next === 'completed') {
-        $db->prepare("UPDATE Orders SET order_status = 'completed', completed_at = NOW() WHERE order_id = ?")->execute([$id]);
-    } else {
-        $db->prepare("UPDATE Orders SET order_status = ? WHERE order_id = ?")->execute([$next, $id]);
+    // Recalculate Master Order Status from all sibling tickets
+    $allStmt = $db->prepare("SELECT status FROM StationTickets WHERE order_id = ?");
+    $allStmt->execute([$orderId]);
+    $allStatuses = $allStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $masterStatus = 'pending';
+    if (count($allStatuses) > 0) {
+        $allCollected = true;
+        $allReadyOrHigher = true;
+        $anyPreparing = false;
+
+        foreach ($allStatuses as $st) {
+            if ($st !== 'collected') $allCollected = false;
+            if ($st !== 'ready' && $st !== 'collected') $allReadyOrHigher = false;
+            if ($st === 'preparing' || $st === 'ready') $anyPreparing = true;
+        }
+
+        if ($allCollected) {
+            $masterStatus = 'completed';
+            $db->prepare("UPDATE Orders SET order_status = 'completed', completed_at = NOW() WHERE order_id = ?")->execute([$orderId]);
+        } elseif ($allReadyOrHigher) {
+            $masterStatus = 'ready';
+            $db->prepare("UPDATE Orders SET order_status = 'ready' WHERE order_id = ?")->execute([$orderId]);
+        } elseif ($anyPreparing) {
+            $masterStatus = 'preparing';
+            $db->prepare("UPDATE Orders SET order_status = 'preparing' WHERE order_id = ?")->execute([$orderId]);
+        } else {
+            $masterStatus = 'pending';
+            $db->prepare("UPDATE Orders SET order_status = 'pending' WHERE order_id = ?")->execute([$orderId]);
+        }
     }
 
     sendResponse(true, "Ticket bumped to $next.", [
-        'order_id'        => $id,
-        'previous_status' => $current,
-        'new_status'      => $next
+        'ticket_id'           => $ticketId,
+        'order_id'            => $orderId,
+        'station'             => $ticket['station'],
+        'previous_status'     => $current,
+        'new_status'          => $next,
+        'master_order_status' => $masterStatus
     ]);
 }
 
-sendResponse(false, 'Method not allowed.', null, 405);
+// ── POST: Recall Ticket ─────────────────────────────────────────────────────
+if ($method === 'POST' && $action === 'recall_ticket') {
+    if (!$ticketId) {
+        $raw = file_get_contents('php://input');
+        $b = json_decode($raw, true) ?? [];
+        $ticketId = (int)($b['ticket_id'] ?? 0);
+    }
+
+    if (!$ticketId) {
+        sendResponse(false, 'ticket_id is required for recall.', null, 422);
+    }
+
+    $stmt = $db->prepare("SELECT ticket_id, order_id, station, status FROM StationTickets WHERE ticket_id = ?");
+    $stmt->execute([$ticketId]);
+    $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$ticket) {
+        sendResponse(false, 'Ticket not found.', null, 404);
+    }
+
+    $current = $ticket['status'];
+    $orderId = (int)$ticket['order_id'];
+    $prev = 'pending';
+
+    if ($current === 'collected') {
+        $prev = 'ready';
+    } elseif ($current === 'ready') {
+        $prev = 'preparing';
+    } elseif ($current === 'preparing') {
+        $prev = 'pending';
+    } else {
+        sendResponse(false, "Cannot recall ticket from state: $current", null, 400);
+    }
+
+    $db->prepare("UPDATE StationTickets SET status = ? WHERE ticket_id = ?")->execute([$prev, $ticketId]);
+    $db->prepare("UPDATE Orders SET order_status = 'preparing' WHERE order_id = ?")->execute([$orderId]);
+
+    sendResponse(true, "Ticket recalled to $prev.", [
+        'ticket_id'   => $ticketId,
+        'order_id'    => $orderId,
+        'new_status'  => $prev
+    ]);
+}
+
+sendResponse(false, 'Method not allowed or invalid action.', null, 405);

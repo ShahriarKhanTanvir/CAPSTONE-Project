@@ -162,11 +162,12 @@ $csrfToken = getCSRFToken();
           <div class="role-selector-container">
             <span class="role-label">Active Role:</span>
             <select id="user-role-select" class="role-select">
-              <option value="admin">Admin (Full Control)</option>
-              <option value="manager">Manager (Operations & Staff)</option>
-              <option value="cashier" selected>Cashier (POS & Sales)</option>
-              <option value="barista">Barista (KDS & Queue)</option>
-              <option value="waitstaff">Wait Staff (Table Service)</option>
+              <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
+              <option value="barista">☕ Barista (Beverages KDS)</option>
+              <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
+              <option value="customer">👤 Customer (Live Tracker)</option>
+              <option value="manager">📊 Manager (Operations & Staff)</option>
+              <option value="admin">⚡ Admin (Full Control)</option>
             </select>
           </div>
 

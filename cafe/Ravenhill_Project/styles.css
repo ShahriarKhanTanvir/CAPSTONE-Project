@@ -2002,3 +2002,282 @@ select option, .form-select option, .form-select-sm option {
     background: transparent !important;
   }
 }
+
+
+/* ==========================================================================
+   MULTI-STATION KDS & CUSTOMER TRACKING STYLES (FR30 / ROLES)
+   ========================================================================== */
+
+/* Station Filter Tabs */
+.kds-station-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-canvas);
+  padding: 4px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.kds-station-tab {
+  padding: 8px 16px;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-cream-muted);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.kds-station-tab:hover {
+  color: var(--color-cream);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.kds-station-tab.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Barista Batch Summary Header */
+.kds-batch-summary-bar {
+  background: rgba(217, 107, 67, 0.1);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--border-radius-lg);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.batch-item-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  border-radius: var(--border-radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-cream);
+}
+
+.batch-item-badge strong {
+  color: var(--color-primary-light);
+  font-size: 14px;
+}
+
+/* KDS Ticket Card Urgency & Visuals */
+.kds-ticket-card.urgency-high {
+  border-color: var(--color-danger) !important;
+  animation: pulseBorder 1.5s infinite;
+}
+
+@keyframes pulseBorder {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.kds-station-badge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.kds-station-badge.barista { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; }
+.kds-station-badge.kitchen { background: rgba(234, 88, 12, 0.2); color: #fb923c; border: 1px solid #ea580c; }
+
+.kds-highlight-tag {
+  display: inline-block;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: #fde047;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   CUSTOMER LIVE ORDER TRACKER VIEW
+   ========================================================================== */
+.customer-tracker-shell {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+.customer-tracker-hero {
+  background: linear-gradient(135deg, rgba(217, 107, 67, 0.18) 0%, rgba(26, 21, 19, 0.95) 100%);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--border-radius-lg);
+  padding: 28px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.customer-pickup-token {
+  display: inline-block;
+  font-size: 38px;
+  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  color: var(--color-primary-light);
+  background: var(--bg-canvas);
+  border: 2px dashed var(--color-primary);
+  padding: 4px 28px;
+  border-radius: var(--border-radius-pill);
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+.customer-status-hero-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  color: #fff;
+}
+
+.customer-status-hero-sub {
+  font-size: 14px;
+  color: var(--color-cream-muted);
+  margin: 0;
+}
+
+/* 4-Step Progress Stepper */
+.tracker-stepper {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 28px 10px 10px 10px;
+}
+
+.tracker-stepper::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  right: 30px;
+  height: 4px;
+  background: var(--color-border);
+  z-index: 1;
+}
+
+.tracker-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.step-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-canvas);
+  border: 3px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--color-cream-muted);
+  transition: all var(--transition-fast);
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-cream-muted);
+  text-align: center;
+}
+
+.tracker-step.active .step-icon-circle {
+  background: var(--color-primary);
+  border-color: #fff;
+  color: #fff;
+  box-shadow: 0 0 16px rgba(217, 107, 67, 0.6);
+  transform: scale(1.15);
+}
+.tracker-step.active .step-label {
+  color: #fff;
+  font-weight: 800;
+}
+
+.tracker-step.done .step-icon-circle {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+.tracker-step.done .step-label {
+  color: var(--color-success);
+}
+
+/* Station Breakdown Cards */
+.station-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.station-status-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.station-status-card.ready {
+  border-color: var(--color-success);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.station-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.station-card-icon.barista { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.station-card-icon.kitchen { background: rgba(234, 88, 12, 0.15); color: #fb923c; }
+
+.station-card-info h4 { margin: 0 0 2px 0; font-size: 15px; color: #fff; }
+.station-card-info p { margin: 0; font-size: 12px; color: var(--color-cream-muted); }
+.station-card-info .status-badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Customer Order Items Card */
+.customer-items-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 20px;
+}

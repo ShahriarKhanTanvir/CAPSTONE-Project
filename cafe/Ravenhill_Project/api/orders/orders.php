@@ -241,7 +241,9 @@ if ($method === 'POST' && !$action) {
         ]);
         $orderId = (int)$db->lastInsertId();
 
-        // Insert Line Items (FR26)
+        // Insert Line Items and categorize by Station (FR26 / Multi-Station KDS)
+        $stationItems = ['barista' => [], 'kitchen' => []];
+
         $itemIns = $db->prepare("
             INSERT INTO OrderItems (order_id, product_id, quantity, unit_price, subtotal, customisations_json, item_notes)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -256,6 +258,36 @@ if ($method === 'POST' && !$action) {
                 $d['customisations_json'],
                 $d['item_notes']
             ]);
+            $insertedItemId = (int)$db->lastInsertId();
+
+            // Fetch product's category target station
+            $catStmt = $db->prepare("
+                SELECT COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS target_station
+                FROM Products p
+                LEFT JOIN Categories cat ON p.category_id = cat.category_id
+                WHERE p.product_id = ?
+            ");
+            $catStmt->execute([$d['product_id']]);
+            $catRow = $catStmt->fetch(PDO::FETCH_ASSOC);
+            $station = ($catRow && $catRow['target_station'] === 'kitchen') ? 'kitchen' : 'barista';
+
+            $stationItems[$station][] = $insertedItemId;
+        }
+
+        // Create StationTickets for each station that has items
+        foreach ($stationItems as $st => $itemIds) {
+            if (count($itemIds) > 0) {
+                $targetMinutes = ($st === 'kitchen') ? 12 : 4;
+                $tStmt = $db->prepare("
+                    INSERT INTO StationTickets (order_id, station, status, target_prep_minutes, created_at)
+                    VALUES (?, ?, ?, ?, NOW())
+                ");
+                $tStmt->execute([$orderId, $st, $initialStatus, $targetMinutes]);
+                $ticketId = (int)$db->lastInsertId();
+
+                $inClause = implode(',', array_map('intval', $itemIds));
+                $db->exec("UPDATE OrderItems SET ticket_id = $ticketId WHERE order_item_id IN ($inClause)");
+            }
         }
 
         // If table number given, auto mark table as occupied

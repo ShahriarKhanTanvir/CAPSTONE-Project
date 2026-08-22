@@ -109,6 +109,38 @@ const API = {
       } catch { return null; }
     }
   },
+    async fetchStationTickets(station = 'all') {
+    try {
+      const res = await fetch(`${API_BASE}/orders/kds.php?station=${encodeURIComponent(station)}`);
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch { return null; }
+  },
+  async bumpStationTicket(ticketId) {
+    try {
+      const res = await fetch(`${API_BASE}/orders/kds.php?action=bump_ticket&ticket_id=${ticketId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async recallStationTicket(ticketId) {
+    try {
+      const res = await fetch(`${API_BASE}/orders/kds.php?action=recall_ticket&ticket_id=${ticketId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async fetchCustomerOrder(orderId = null) {
+    try {
+      const url = orderId ? `${API_BASE}/orders/customer_order.php?order_id=${orderId}` : `${API_BASE}/orders/customer_order.php?latest=1`;
+      const res = await fetch(url);
+      return await res.json();
+    } catch { return null; }
+  },
   async fetchOrders() {
     try {
       const res = await fetch(`${API_BASE}/orders/orders.php`);
@@ -1605,6 +1637,9 @@ function renderCurrentModule() {
       break;
     case 'kds':
       renderKDSView(container);
+      break;
+    case 'customer_tracker':
+      renderCustomerTrackerView(container);
       break;
     case 'tables':
       renderTablesView(container);
@@ -4369,3 +4404,398 @@ window.completePaymentProcessWithDetails = function(customMethod, customRef) {
   renderCartUI();
   saveLocalDB();
 };
+
+
+// ============================================================================
+// AUDIO CHIMES ENGINE (Web Audio API - Zero External Dependencies)
+// ============================================================================
+window.playAudioChime = function(type = 'new_order') {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+
+    if (type === 'new_order') {
+      // Pleasant Ascending 3-tone Chime: C5 (523.25Hz) -> E5 (659.25Hz) -> G5 (783.99Hz)
+      const freqs = [523.25, 659.25, 783.99];
+      freqs.forEach((f, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.12);
+
+        gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.12);
+        gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + idx * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.12);
+        osc.stop(ctx.currentTime + idx * 0.12 + 0.38);
+      });
+    } else if (type === 'ready') {
+      // Bell Ding: A5 (880Hz) -> C6 (1046.5Hz)
+      const freqs = [880, 1046.5];
+      freqs.forEach((f, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.14);
+
+        gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.14);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + idx * 0.14 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.14 + 0.45);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.14);
+        osc.stop(ctx.currentTime + idx * 0.14 + 0.5);
+      });
+    } else if (type === 'recall') {
+      // Gentle Reversion Ding: 659.25Hz -> 523.25Hz
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(523.25, ctx.currentTime + 0.2);
+
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.28);
+    }
+  } catch (err) {
+    console.warn('[Audio Chime Notice]', err);
+  }
+};
+
+// ============================================================================
+// MULTI-STATION KDS VIEW (BARISTA & KITCHEN QUEUES)
+// ============================================================================
+window.renderKDSView = async function(container) {
+  // Determine active station filter based on role or state
+  if (!AppState.kdsStationFilter) {
+    if (AppState.activeRole === 'kitchen') AppState.kdsStationFilter = 'kitchen';
+    else if (AppState.activeRole === 'barista') AppState.kdsStationFilter = 'barista';
+    else AppState.kdsStationFilter = 'all';
+  }
+
+  const activeStation = AppState.kdsStationFilter;
+  const isManagerOrAdmin = ['admin', 'manager', 'cashier'].includes(AppState.activeRole);
+
+  const kdsLayout = document.createElement('div');
+  kdsLayout.className = 'kds-container';
+
+  kdsLayout.innerHTML = `
+    <div class="kds-filter-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      ${isManagerOrAdmin ? `
+        <div class="kds-station-tabs">
+          <button class="kds-station-tab ${activeStation === 'all' ? 'active' : ''}" onclick="setKDSStationFilter('all')">
+            <i class="ri-dashboard-line"></i> All Stations (Expo)
+          </button>
+          <button class="kds-station-tab ${activeStation === 'barista' ? 'active' : ''}" onclick="setKDSStationFilter('barista')">
+            <i class="ri-cup-line"></i> ☕ Barista (Drinks)
+          </button>
+          <button class="kds-station-tab ${activeStation === 'kitchen' ? 'active' : ''}" onclick="setKDSStationFilter('kitchen')">
+            <i class="ri-restaurant-line"></i> 🍳 Kitchen (Food)
+          </button>
+        </div>
+      ` : `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="kds-station-badge ${activeStation === 'kitchen' ? 'kitchen' : 'barista'}" style="font-size:14px; padding:6px 14px;">
+            ${activeStation === 'kitchen' ? '🍳 Kitchen Display Station' : '☕ Barista Coffee Bar'}
+          </span>
+        </div>
+      `}
+
+      <div class="kds-stat-pills" id="kds-stat-pills-row">
+        <span class="kds-stat-pill"><i class="ri-time-line text-warning"></i> Pending: <strong id="kds-pending-stat">0</strong></span>
+        <span class="kds-stat-pill"><i class="ri-fire-line text-info"></i> Preparing: <strong id="kds-prep-stat">0</strong></span>
+        <span class="kds-stat-pill"><i class="ri-check-double-line text-success"></i> Ready: <strong id="kds-ready-stat">0</strong></span>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary btn-sm" onclick="playAudioChime('new_order')" title="Test Chime Sound"><i class="ri-volume-up-line"></i> Sound Test</button>
+        <button class="btn btn-primary btn-sm" onclick="renderCurrentModule()"><i class="ri-refresh-line"></i> Refresh</button>
+      </div>
+    </div>
+
+    <div id="kds-batch-summary-container"></div>
+    <div class="kds-grid" id="kds-tickets-grid"></div>
+  `;
+
+  container.appendChild(kdsLayout);
+
+  // Fetch station tickets from REST API
+  const grid = document.getElementById('kds-tickets-grid');
+  const batchContainer = document.getElementById('kds-batch-summary-container');
+
+  try {
+    const res = await API.fetchStationTickets(activeStation);
+    if (res && res.tickets) {
+      // Update statistics
+      const pendingCount = res.tickets.filter(t => t.ticket_status === 'pending').length;
+      const prepCount = res.tickets.filter(t => t.ticket_status === 'preparing').length;
+      const readyCount = res.tickets.filter(t => t.ticket_status === 'ready').length;
+
+      document.getElementById('kds-pending-stat').textContent = pendingCount;
+      document.getElementById('kds-prep-stat').textContent = prepCount;
+      document.getElementById('kds-ready-stat').textContent = readyCount;
+
+      // Render Barista Batch Summary Header if in barista or all station
+      if (res.batch_summary && (activeStation === 'barista' || activeStation === 'all')) {
+        const bs = res.batch_summary;
+        const totalMilks = bs.oat_milk + bs.almond_milk + bs.soy_milk + bs.full_cream;
+        if (totalMilks > 0 || bs.extra_shots > 0 || bs.decaf > 0) {
+          batchContainer.innerHTML = `
+            <div class="kds-batch-summary-bar">
+              <span style="font-size:13px; font-weight:800; color:var(--color-cream);"><i class="ri-cup-fill" style="color:var(--color-primary-light);"></i> Active Drink Batching:</span>
+              ${bs.oat_milk > 0 ? `<span class="batch-item-badge">🥛 Oat Milk: <strong>${bs.oat_milk}x</strong></span>` : ''}
+              ${bs.almond_milk > 0 ? `<span class="batch-item-badge">🌰 Almond: <strong>${bs.almond_milk}x</strong></span>` : ''}
+              ${bs.soy_milk > 0 ? `<span class="batch-item-badge">🌱 Soy: <strong>${bs.soy_milk}x</strong></span>` : ''}
+              ${bs.full_cream > 0 ? `<span class="batch-item-badge">🥛 Full Cream: <strong>${bs.full_cream}x</strong></span>` : ''}
+              ${bs.decaf > 0 ? `<span class="batch-item-badge">☕ Decaf: <strong>${bs.decaf}x</strong></span>` : ''}
+              ${bs.extra_shots > 0 ? `<span class="batch-item-badge">⚡ Extra Shots: <strong>${bs.extra_shots}x</strong></span>` : ''}
+            </div>
+          `;
+        }
+      }
+
+      // Render Cards
+      if (res.tickets.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
+            <i class="ri-checkbox-circle-line" style="font-size:48px; color:var(--color-success);"></i>
+            <h3 style="margin:12px 0 4px 0;">All ${activeStation.toUpperCase()} Tickets Cleared!</h3>
+            <p style="color:var(--color-cream-muted);">Queue is empty. New incoming orders will automatically chime.</p>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = res.tickets.map(ticket => {
+          const isUrgent = ticket.urgency === 'high';
+          const mins = ticket.elapsed_minutes || 0;
+          const status = ticket.ticket_status;
+          const station = ticket.station;
+
+          let actionBtn = '';
+          if (status === 'pending') {
+            actionBtn = `<button class="btn btn-primary btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'preparing')"><i class="ri-play-fill"></i> Start ${station === 'barista' ? 'Brewing' : 'Cooking'}</button>`;
+          } else if (status === 'preparing') {
+            actionBtn = `<button class="btn btn-success btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'ready')"><i class="ri-check-line"></i> Mark Ready at ${station === 'barista' ? 'Bar' : 'Pass'}</button>`;
+          } else if (status === 'ready') {
+            actionBtn = `<button class="btn btn-outline btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'collected')"><i class="ri-checkbox-circle-line"></i> Complete & Clear</button>`;
+          }
+
+          const recallBtn = status !== 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="recallStationTicketAction(${ticket.ticket_id})" title="Recall / Undo"><i class="ri-history-line"></i></button>` : '';
+
+          return `
+            <div class="kds-ticket-card status-${status} ${isUrgent ? 'urgency-high' : ''}">
+              <div class="kds-ticket-header">
+                <div>
+                  <span class="kds-ticket-id">#ORD-${ticket.order_id}</span>
+                  <span class="kds-station-badge ${station}">${station}</span>
+                  <span class="badge ${ticket.order_type === 'dine_in' ? 'badge-primary' : 'badge-gold'}" style="margin-left:4px;">
+                    ${ticket.order_type === 'dine_in' ? 'Table ' + (ticket.table_number || '?') : 'Takeaway'}
+                  </span>
+                </div>
+                <span class="kds-timer ${isUrgent ? 'text-danger' : ''}"><i class="ri-time-line"></i> ${mins}m ago</span>
+              </div>
+
+              <div class="kds-ticket-body">
+                <div style="font-size:12px; color:var(--color-cream-muted);"><i class="ri-user-line"></i> ${ticket.customer_name || 'Guest'}</div>
+                
+                <div style="margin-top:6px; display:flex; flex-direction:column; gap:8px;">
+                  ${ticket.items.map(item => `
+                    <div class="kds-item-row">
+                      <span class="kds-item-qty">${item.quantity}x</span>
+                      <div class="kds-item-details">
+                        <div class="kds-item-name">${item.product_name}</div>
+                        ${item.kds_highlight !== 'Standard' ? `<div class="kds-highlight-tag">${item.kds_highlight}</div>` : ''}
+                        ${item.item_notes ? `<div style="font-size:11px; color:#f87171; margin-top:2px;"><i class="ri-error-warning-line"></i> ${item.item_notes}</div>` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="kds-ticket-footer">
+                ${actionBtn}
+                ${recallBtn}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    console.error('[KDS Render Error]', err);
+  }
+};
+
+window.setKDSStationFilter = function(st) {
+  AppState.kdsStationFilter = st;
+  renderCurrentModule();
+};
+
+window.bumpStationTicketAction = async function(ticketId, nextState) {
+  try {
+    const res = await API.bumpStationTicket(ticketId);
+    if (res && res.success) {
+      if (nextState === 'ready') playAudioChime('ready');
+      else playAudioChime('new_order');
+      renderCurrentModule();
+    }
+  } catch (e) {
+    console.error('[Bump Ticket Error]', e);
+  }
+};
+
+window.recallStationTicketAction = async function(ticketId) {
+  try {
+    const res = await API.recallStationTicket(ticketId);
+    if (res && res.success) {
+      playAudioChime('recall');
+      renderCurrentModule();
+    }
+  } catch (e) {
+    console.error('[Recall Ticket Error]', e);
+  }
+};
+
+// ============================================================================
+// CUSTOMER LIVE ORDER TRACKER VIEW (FR-CUSTOMER ROLE)
+// ============================================================================
+window.renderCustomerTrackerView = async function(container) {
+  const shell = document.createElement('div');
+  shell.className = 'customer-tracker-shell';
+
+  shell.innerHTML = `
+    <div id="customer-tracker-content">
+      <div style="text-align:center; padding:40px 0;"><i class="ri-loader-4-line ri-spin" style="font-size:32px; color:var(--color-primary-light);"></i><p>Loading your order status...</p></div>
+    </div>
+  `;
+  container.appendChild(shell);
+
+  try {
+    const res = await API.fetchCustomerOrder();
+    const trackerEl = document.getElementById('customer-tracker-content');
+    if (!trackerEl) return;
+
+    if (!res || !res.success || !res.data) {
+      trackerEl.innerHTML = `
+        <div class="customer-tracker-hero" style="text-align:center; padding:50px 20px;">
+          <i class="ri-cup-line" style="font-size:48px; color:var(--color-primary-light);"></i>
+          <h3 style="margin:12px 0 6px 0; color:#fff;">Welcome to Ravenhill Coffee Roasters!</h3>
+          <p style="color:var(--color-cream-muted); margin-bottom:20px;">No active orders found for this session. Explore our specialty coffee menu below.</p>
+          <button class="btn btn-primary" onclick="switchModule('menu')"><i class="ri-restaurant-menu-line"></i> Browse Cafe Menu</button>
+        </div>
+      `;
+      return;
+    }
+
+    const o = res.data;
+    const step = o.step_index; // 1: Placed, 2: Preparing, 3: Ready, 4: Completed
+    const bb = o.station_breakdown?.barista;
+    const kb = o.station_breakdown?.kitchen;
+
+    trackerEl.innerHTML = `
+      <!-- Hero Pickup Token Card -->
+      <div class="customer-tracker-hero">
+        <span class="customer-pickup-token">${o.pickup_number}</span>
+        <h2 class="customer-status-hero-title">${o.status_message}</h2>
+        <p class="customer-status-hero-sub">
+          Order for <strong>${o.customer_name}</strong> • ${o.order_type === 'dine_in' ? 'Table ' + (o.table_number || '?') : 'Takeaway'} • Placed ${o.elapsed_minutes}m ago
+        </p>
+
+        <!-- 4-Step Animated Visual Progress Stepper -->
+        <div class="tracker-stepper">
+          <div class="tracker-step ${step >= 1 ? (step === 1 ? 'active' : 'done') : ''}">
+            <div class="step-icon-circle"><i class="ri-file-list-3-line"></i></div>
+            <span class="step-label">Order Placed</span>
+          </div>
+          <div class="tracker-step ${step >= 2 ? (step === 2 ? 'active' : 'done') : ''}">
+            <div class="step-icon-circle"><i class="ri-fire-line"></i></div>
+            <span class="step-label">In Preparation</span>
+          </div>
+          <div class="tracker-step ${step >= 3 ? (step === 3 ? 'active' : 'done') : ''}">
+            <div class="step-icon-circle"><i class="ri-notification-3-line"></i></div>
+            <span class="step-label">Ready for Pickup</span>
+          </div>
+          <div class="tracker-step ${step >= 4 ? 'done' : ''}">
+            <div class="step-icon-circle"><i class="ri-checkbox-circle-line"></i></div>
+            <span class="step-label">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Station Breakdown Status Cards -->
+      <div class="station-status-grid">
+        ${bb && bb.has_items ? `
+          <div class="station-status-card ${bb.status === 'ready' ? 'ready' : ''}">
+            <div class="station-card-icon barista"><i class="ri-cup-fill"></i></div>
+            <div class="station-card-info">
+              <h4>Barista Coffee Bar</h4>
+              <p>${bb.label}</p>
+              <span class="status-badge ${bb.status === 'ready' ? 'badge-success' : 'badge-info'}">
+                ${bb.status.toUpperCase()}
+              </span>
+            </div>
+          </div>
+        ` : ''}
+
+        ${kb && kb.has_items ? `
+          <div class="station-status-card ${kb.status === 'ready' ? 'ready' : ''}">
+            <div class="station-card-icon kitchen"><i class="ri-restaurant-fill"></i></div>
+            <div class="station-card-info">
+              <h4>Kitchen Food Station</h4>
+              <p>${kb.label}</p>
+              <span class="status-badge ${kb.status === 'ready' ? 'badge-success' : 'badge-warning'}">
+                ${kb.status.toUpperCase()}
+              </span>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Items Ordered Breakdown -->
+      <div class="customer-items-card">
+        <h4 style="margin:0 0 14px 0; color:#fff; display:flex; justify-content:space-between;">
+          <span>Items in this Order</span>
+          <span style="color:var(--color-primary-light);">$${(o.total_amount || 0).toFixed(2)} AUD</span>
+        </h4>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${(o.items || []).map(i => `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); padding-bottom:8px;">
+              <div>
+                <strong style="color:var(--color-cream); font-size:14px;">${i.quantity}x ${i.product_name}</strong>
+                <span class="kds-station-badge ${i.station}" style="font-size:10px; margin-left:6px;">${i.station}</span>
+                ${i.customisations && i.customisations.length ? `
+                  <div style="font-size:12px; color:var(--color-cream-muted); margin-top:2px;">
+                    ${i.customisations.map(c => c.option_name).join(' • ')}
+                  </div>
+                ` : ''}
+              </div>
+              <span style="font-weight:700; color:var(--color-cream);">$${(parseFloat(i.subtotal) || 0).toFixed(2)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    console.error('[Customer Tracker Error]', err);
+  }
+};
+
+// ── Live Polling Engine (Every 2.5s when KDS or Customer Tracker is open) ────
+setInterval(() => {
+  if (AppState.activeModule === 'kds' || AppState.activeModule === 'customer_tracker') {
+    // Only refresh if no modals are open
+    const openModal = document.querySelector('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
+    if (!openModal) {
+      renderCurrentModule();
+    }
+  }
+}, 2500);
