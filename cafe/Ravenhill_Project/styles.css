@@ -2281,3 +2281,191 @@ select option, .form-select option, .form-select-sm option {
   border-radius: var(--border-radius-lg);
   padding: 20px;
 }
+
+
+/* ==========================================================================
+   WAIT STAFF & SEPARATE KITCHEN/BARISTA WORKFLOWS (FR30 / ROLES)
+   ========================================================================== */
+
+/* Wait Staff Order Grid */
+.waitstaff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.waitstaff-card {
+  background: var(--bg-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+}
+
+.waitstaff-card.ready-to-serve {
+  border-color: var(--color-success) !important;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
+  animation: readyPulse 2s infinite;
+}
+
+@keyframes readyPulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.waitstaff-card-header {
+  padding: 14px 18px;
+  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.waitstaff-table-badge {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-cream);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waitstaff-card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.waitstaff-station-section {
+  background: var(--bg-canvas);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  padding: 12px;
+}
+
+.waitstaff-station-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.waitstaff-station-header.kitchen { color: #fb923c; }
+.waitstaff-station-header.barista { color: #60a5fa; }
+
+.waitstaff-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.waitstaff-card-footer {
+  padding: 12px 16px;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  gap: 8px;
+}
+
+/* KDS Status Stage Buttons */
+.kds-stage-btn-group {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.kds-stage-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--bg-canvas);
+  color: var(--color-cream-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.kds-stage-btn:hover {
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.kds-stage-btn.active.stage-pending {
+  background: var(--color-warning);
+  color: #000;
+  border-color: var(--color-warning);
+}
+
+.kds-stage-btn.active.stage-preparing {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.kds-stage-btn.active.stage-ready {
+  background: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+}
+
+/* Special Instructions Callout */
+.special-notes-callout {
+  background: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+  padding: 4px 8px;
+  border-radius: 0 4px 4px 0;
+  color: #fca5a5;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Customer Tracking Itemized Lists */
+.customer-category-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.customer-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 12px;
+}
+
+.customer-category-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

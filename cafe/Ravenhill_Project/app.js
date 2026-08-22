@@ -116,6 +116,24 @@ const API = {
       return data.success ? data.data : null;
     } catch { return null; }
   },
+    async serveOrder(orderId) {
+    try {
+      const res = await fetch(`${API_BASE}/orders/kds.php?action=serve_order&order_id=${orderId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async setStationTicketStatus(ticketId, status) {
+    try {
+      const res = await fetch(`${API_BASE}/orders/kds.php?action=set_status&ticket_id=${ticketId}&status=${encodeURIComponent(status)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await res.json();
+    } catch { return null; }
+  },
   async bumpStationTicket(ticketId) {
     try {
       const res = await fetch(`${API_BASE}/orders/kds.php?action=bump_ticket&ticket_id=${ticketId}`, {
@@ -1637,6 +1655,9 @@ function renderCurrentModule() {
       break;
     case 'kds':
       renderKDSView(container);
+      break;
+    case 'waitstaff':
+      renderWaitStaffDashboard(container);
       break;
     case 'customer_tracker':
       renderCustomerTrackerView(container);
@@ -4473,15 +4494,13 @@ window.playAudioChime = function(type = 'new_order') {
 };
 
 // ============================================================================
-// MULTI-STATION KDS VIEW (BARISTA & KITCHEN QUEUES)
+// 1. KITCHEN & BARISTA SEPARATED DASHBOARDS (FR30)
 // ============================================================================
 window.renderKDSView = async function(container) {
-  // Determine active station filter based on role or state
-  if (!AppState.kdsStationFilter) {
-    if (AppState.activeRole === 'kitchen') AppState.kdsStationFilter = 'kitchen';
-    else if (AppState.activeRole === 'barista') AppState.kdsStationFilter = 'barista';
-    else AppState.kdsStationFilter = 'all';
-  }
+  // Determine station
+  if (AppState.activeRole === 'kitchen') AppState.kdsStationFilter = 'kitchen';
+  else if (AppState.activeRole === 'barista') AppState.kdsStationFilter = 'barista';
+  else if (!AppState.kdsStationFilter) AppState.kdsStationFilter = 'kitchen';
 
   const activeStation = AppState.kdsStationFilter;
   const isManagerOrAdmin = ['admin', 'manager', 'cashier'].includes(AppState.activeRole);
@@ -4493,32 +4512,32 @@ window.renderKDSView = async function(container) {
     <div class="kds-filter-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
       ${isManagerOrAdmin ? `
         <div class="kds-station-tabs">
-          <button class="kds-station-tab ${activeStation === 'all' ? 'active' : ''}" onclick="setKDSStationFilter('all')">
-            <i class="ri-dashboard-line"></i> All Stations (Expo)
+          <button class="kds-station-tab ${activeStation === 'kitchen' ? 'active' : ''}" onclick="setKDSStationFilter('kitchen')">
+            <i class="ri-restaurant-line"></i> 🍳 Kitchen Dashboard (Food Only)
           </button>
           <button class="kds-station-tab ${activeStation === 'barista' ? 'active' : ''}" onclick="setKDSStationFilter('barista')">
-            <i class="ri-cup-line"></i> ☕ Barista (Drinks)
+            <i class="ri-cup-line"></i> ☕ Barista Dashboard (Drinks Only)
           </button>
-          <button class="kds-station-tab ${activeStation === 'kitchen' ? 'active' : ''}" onclick="setKDSStationFilter('kitchen')">
-            <i class="ri-restaurant-line"></i> 🍳 Kitchen (Food)
+          <button class="kds-station-tab ${activeStation === 'all' ? 'active' : ''}" onclick="setKDSStationFilter('all')">
+            <i class="ri-dashboard-line"></i> All Stations (Expo)
           </button>
         </div>
       ` : `
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="kds-station-badge ${activeStation === 'kitchen' ? 'kitchen' : 'barista'}" style="font-size:14px; padding:6px 14px;">
-            ${activeStation === 'kitchen' ? '🍳 Kitchen Display Station' : '☕ Barista Coffee Bar'}
+          <span class="kds-station-badge ${activeStation === 'kitchen' ? 'kitchen' : 'barista'}" style="font-size:15px; font-weight:800; padding:8px 16px;">
+            ${activeStation === 'kitchen' ? '🍳 Kitchen Dashboard — Food Items Only' : '☕ Barista Dashboard — Coffee & Drinks Only'}
           </span>
         </div>
       `}
 
       <div class="kds-stat-pills" id="kds-stat-pills-row">
-        <span class="kds-stat-pill"><i class="ri-time-line text-warning"></i> Pending: <strong id="kds-pending-stat">0</strong></span>
+        <span class="kds-stat-pill"><i class="ri-time-line text-warning"></i> New: <strong id="kds-pending-stat">0</strong></span>
         <span class="kds-stat-pill"><i class="ri-fire-line text-info"></i> Preparing: <strong id="kds-prep-stat">0</strong></span>
         <span class="kds-stat-pill"><i class="ri-check-double-line text-success"></i> Ready: <strong id="kds-ready-stat">0</strong></span>
       </div>
 
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-secondary btn-sm" onclick="playAudioChime('new_order')" title="Test Chime Sound"><i class="ri-volume-up-line"></i> Sound Test</button>
+        <button class="btn btn-secondary btn-sm" onclick="playAudioChime('new_order')" title="Test Audio Sound"><i class="ri-volume-up-line"></i> Sound</button>
         <button class="btn btn-primary btn-sm" onclick="renderCurrentModule()"><i class="ri-refresh-line"></i> Refresh</button>
       </div>
     </div>
@@ -4529,7 +4548,6 @@ window.renderKDSView = async function(container) {
 
   container.appendChild(kdsLayout);
 
-  // Fetch station tickets from REST API
   const grid = document.getElementById('kds-tickets-grid');
   const batchContainer = document.getElementById('kds-batch-summary-container');
 
@@ -4545,11 +4563,11 @@ window.renderKDSView = async function(container) {
       document.getElementById('kds-prep-stat').textContent = prepCount;
       document.getElementById('kds-ready-stat').textContent = readyCount;
 
-      // Render Barista Batch Summary Header if in barista or all station
+      // Render Barista Batch Summary Header
       if (res.batch_summary && (activeStation === 'barista' || activeStation === 'all')) {
         const bs = res.batch_summary;
         const totalMilks = bs.oat_milk + bs.almond_milk + bs.soy_milk + bs.full_cream;
-        if (totalMilks > 0 || bs.extra_shots > 0 || bs.decaf > 0) {
+        if (totalMilks > 0 || bs.extra_shots > 0 || bs.decaf > 0 || bs.extra_hot > 0) {
           batchContainer.innerHTML = `
             <div class="kds-batch-summary-bar">
               <span style="font-size:13px; font-weight:800; color:var(--color-cream);"><i class="ri-cup-fill" style="color:var(--color-primary-light);"></i> Active Drink Batching:</span>
@@ -4559,18 +4577,18 @@ window.renderKDSView = async function(container) {
               ${bs.full_cream > 0 ? `<span class="batch-item-badge">🥛 Full Cream: <strong>${bs.full_cream}x</strong></span>` : ''}
               ${bs.decaf > 0 ? `<span class="batch-item-badge">☕ Decaf: <strong>${bs.decaf}x</strong></span>` : ''}
               ${bs.extra_shots > 0 ? `<span class="batch-item-badge">⚡ Extra Shots: <strong>${bs.extra_shots}x</strong></span>` : ''}
+              ${bs.extra_hot > 0 ? `<span class="batch-item-badge">🔥 Extra Hot: <strong>${bs.extra_hot}x</strong></span>` : ''}
             </div>
           `;
         }
       }
 
-      // Render Cards
       if (res.tickets.length === 0) {
         grid.innerHTML = `
           <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
             <i class="ri-checkbox-circle-line" style="font-size:48px; color:var(--color-success);"></i>
-            <h3 style="margin:12px 0 4px 0;">All ${activeStation.toUpperCase()} Tickets Cleared!</h3>
-            <p style="color:var(--color-cream-muted);">Queue is empty. New incoming orders will automatically chime.</p>
+            <h3 style="margin:12px 0 4px 0;">All ${activeStation === 'kitchen' ? 'Kitchen' : 'Barista'} Tickets Cleared!</h3>
+            <p style="color:var(--color-cream-muted);">Queue is empty. Incoming orders will chime automatically.</p>
           </div>
         `;
       } else {
@@ -4580,23 +4598,11 @@ window.renderKDSView = async function(container) {
           const status = ticket.ticket_status;
           const station = ticket.station;
 
-          let actionBtn = '';
-          if (status === 'pending') {
-            actionBtn = `<button class="btn btn-primary btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'preparing')"><i class="ri-play-fill"></i> Start ${station === 'barista' ? 'Brewing' : 'Cooking'}</button>`;
-          } else if (status === 'preparing') {
-            actionBtn = `<button class="btn btn-success btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'ready')"><i class="ri-check-line"></i> Mark Ready at ${station === 'barista' ? 'Bar' : 'Pass'}</button>`;
-          } else if (status === 'ready') {
-            actionBtn = `<button class="btn btn-outline btn-sm flex-1" onclick="bumpStationTicketAction(${ticket.ticket_id}, 'collected')"><i class="ri-checkbox-circle-line"></i> Complete & Clear</button>`;
-          }
-
-          const recallBtn = status !== 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="recallStationTicketAction(${ticket.ticket_id})" title="Recall / Undo"><i class="ri-history-line"></i></button>` : '';
-
           return `
             <div class="kds-ticket-card status-${status} ${isUrgent ? 'urgency-high' : ''}">
               <div class="kds-ticket-header">
                 <div>
                   <span class="kds-ticket-id">#ORD-${ticket.order_id}</span>
-                  <span class="kds-station-badge ${station}">${station}</span>
                   <span class="badge ${ticket.order_type === 'dine_in' ? 'badge-primary' : 'badge-gold'}" style="margin-left:4px;">
                     ${ticket.order_type === 'dine_in' ? 'Table ' + (ticket.table_number || '?') : 'Takeaway'}
                   </span>
@@ -4607,14 +4613,14 @@ window.renderKDSView = async function(container) {
               <div class="kds-ticket-body">
                 <div style="font-size:12px; color:var(--color-cream-muted);"><i class="ri-user-line"></i> ${ticket.customer_name || 'Guest'}</div>
                 
-                <div style="margin-top:6px; display:flex; flex-direction:column; gap:8px;">
+                <div style="margin-top:6px; display:flex; flex-direction:column; gap:10px;">
                   ${ticket.items.map(item => `
                     <div class="kds-item-row">
                       <span class="kds-item-qty">${item.quantity}x</span>
                       <div class="kds-item-details">
-                        <div class="kds-item-name">${item.product_name}</div>
+                        <div class="kds-item-name" style="font-size:15px; font-weight:700;">${item.product_name}</div>
                         ${item.kds_highlight !== 'Standard' ? `<div class="kds-highlight-tag">${item.kds_highlight}</div>` : ''}
-                        ${item.item_notes ? `<div style="font-size:11px; color:#f87171; margin-top:2px;"><i class="ri-error-warning-line"></i> ${item.item_notes}</div>` : ''}
+                        ${item.item_notes ? `<div class="special-notes-callout"><i class="ri-alert-line"></i> Note: ${item.item_notes}</div>` : ''}
                       </div>
                     </div>
                   `).join('')}
@@ -4622,8 +4628,20 @@ window.renderKDSView = async function(container) {
               </div>
 
               <div class="kds-ticket-footer">
-                ${actionBtn}
-                ${recallBtn}
+                <div class="kds-stage-btn-group">
+                  <button class="kds-stage-btn ${status === 'pending' ? 'active stage-pending' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'pending')">
+                    New
+                  </button>
+                  <button class="kds-stage-btn ${status === 'preparing' ? 'active stage-preparing' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'preparing')">
+                    <i class="ri-fire-line"></i> Preparing
+                  </button>
+                  <button class="kds-stage-btn ${status === 'ready' ? 'active stage-ready' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'ready')">
+                    <i class="ri-check-line"></i> Ready
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'collected')" title="Served & Close">
+                    <i class="ri-checkbox-circle-line"></i>
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -4635,38 +4653,170 @@ window.renderKDSView = async function(container) {
   }
 };
 
-window.setKDSStationFilter = function(st) {
-  AppState.kdsStationFilter = st;
-  renderCurrentModule();
-};
-
-window.bumpStationTicketAction = async function(ticketId, nextState) {
+window.setTicketDirectStatus = async function(ticketId, targetStatus) {
   try {
-    const res = await API.bumpStationTicket(ticketId);
+    const res = await API.setStationTicketStatus(ticketId, targetStatus);
     if (res && res.success) {
-      if (nextState === 'ready') playAudioChime('ready');
+      if (targetStatus === 'ready') playAudioChime('ready');
+      else if (targetStatus === 'collected') playAudioChime('served');
       else playAudioChime('new_order');
       renderCurrentModule();
     }
   } catch (e) {
-    console.error('[Bump Ticket Error]', e);
-  }
-};
-
-window.recallStationTicketAction = async function(ticketId) {
-  try {
-    const res = await API.recallStationTicket(ticketId);
-    if (res && res.success) {
-      playAudioChime('recall');
-      renderCurrentModule();
-    }
-  } catch (e) {
-    console.error('[Recall Ticket Error]', e);
+    console.error('[Set Ticket Status Error]', e);
   }
 };
 
 // ============================================================================
-// CUSTOMER LIVE ORDER TRACKER VIEW (FR-CUSTOMER ROLE)
+// 2. WAIT STAFF DASHBOARD (FULL ORDER MONITOR & SERVING CONTROLS)
+// ============================================================================
+window.renderWaitStaffDashboard = async function(container) {
+  const wsLayout = document.createElement('div');
+  wsLayout.className = 'kds-container';
+
+  wsLayout.innerHTML = `
+    <div class="kds-filter-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="kds-station-badge" style="background:rgba(34, 197, 94, 0.2); color:#22c55e; border:1px solid #22c55e; font-size:15px; font-weight:800; padding:8px 16px;">
+          🤵 Wait Staff Dashboard — Full Order Service
+        </span>
+      </div>
+
+      <div class="kds-stat-pills">
+        <span class="kds-stat-pill"><i class="ri-time-line text-warning"></i> Active Orders: <strong id="ws-active-count">0</strong></span>
+        <span class="kds-stat-pill" style="background:rgba(34, 197, 94, 0.15); border-color:#22c55e; color:#22c55e;">
+          <i class="ri-notification-3-line"></i> Ready to Serve: <strong id="ws-ready-count">0</strong>
+        </span>
+      </div>
+
+      <div>
+        <button class="btn btn-primary btn-sm" onclick="renderCurrentModule()"><i class="ri-refresh-line"></i> Refresh</button>
+      </div>
+    </div>
+
+    <div class="waitstaff-grid" id="waitstaff-orders-grid"></div>
+  `;
+
+  container.appendChild(wsLayout);
+
+  const grid = document.getElementById('waitstaff-orders-grid');
+
+  try {
+    const res = await (await fetch(`${API_BASE}/orders/kds.php?station=waitstaff`)).json();
+    if (res && res.success && res.data) {
+      const orders = res.data.orders || [];
+      document.getElementById('ws-active-count').textContent = orders.length;
+      document.getElementById('ws-ready-count').textContent = res.data.ready_to_serve_count || 0;
+
+      const readyBadge = document.getElementById('waitstaff-ready-count');
+      if (readyBadge) {
+        readyBadge.textContent = res.data.ready_to_serve_count || 0;
+        readyBadge.classList.toggle('hidden', (res.data.ready_to_serve_count || 0) === 0);
+      }
+
+      if (orders.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
+            <i class="ri-check-double-line" style="font-size:48px; color:var(--color-success);"></i>
+            <h3 style="margin:12px 0 4px 0;">All Tables Served!</h3>
+            <p style="color:var(--color-cream-muted);">No orders currently waiting for collection.</p>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = orders.map(ord => {
+          const isReady = ord.is_ready_to_serve;
+          const kStatus = ord.kitchen_status;
+          const bStatus = ord.barista_status;
+
+          return `
+            <div class="waitstaff-card ${isReady ? 'ready-to-serve' : ''}">
+              <div class="waitstaff-card-header">
+                <div>
+                  <div class="waitstaff-table-badge">
+                    <i class="ri-restaurant-line" style="color:var(--color-primary-light);"></i>
+                    ${ord.order_type === 'dine_in' ? 'Table ' + (ord.table_number || '?') : 'Takeaway'}
+                    <span style="font-size:12px; color:var(--color-cream-muted); font-weight:600; margin-left:6px;">(#ORD-${ord.order_id})</span>
+                  </div>
+                  <div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;">
+                    Guest: ${ord.customer_name || 'Walk-in'} • Wait: ${ord.elapsed_minutes}m
+                  </div>
+                </div>
+                ${isReady ? `
+                  <span class="badge badge-success" style="font-size:12px; padding:6px 12px; font-weight:800; animation:pulse 1s infinite;">
+                    <i class="ri-notification-3-fill"></i> READY TO SERVE
+                  </span>
+                ` : `
+                  <span class="badge badge-warning" style="font-size:11px;">${ord.master_status.toUpperCase()}</span>
+                `}
+              </div>
+
+              <div class="waitstaff-card-body">
+                <!-- Kitchen Food Breakdown -->
+                ${ord.food_items && ord.food_items.length ? `
+                  <div class="waitstaff-station-section">
+                    <div class="waitstaff-station-header kitchen">
+                      <span>🍳 Kitchen (Food)</span>
+                      <span class="badge ${kStatus === 'ready' ? 'badge-success' : (kStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
+                        ${kStatus === 'ready' ? 'Ready at Pass' : (kStatus === 'preparing' ? 'Cooking' : 'In Queue')}
+                      </span>
+                    </div>
+                    ${ord.food_items.map(f => `
+                      <div class="waitstaff-item-row">
+                        <span><strong>${f.quantity}x</strong> ${f.product_name}</span>
+                        ${f.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#fb923c;">${f.notes_highlight}</span>` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+
+                <!-- Barista Drink Breakdown -->
+                ${ord.drink_items && ord.drink_items.length ? `
+                  <div class="waitstaff-station-section">
+                    <div class="waitstaff-station-header barista">
+                      <span>☕ Barista (Drinks)</span>
+                      <span class="badge ${bStatus === 'ready' ? 'badge-success' : (bStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
+                        ${bStatus === 'ready' ? 'Ready at Bar' : (bStatus === 'preparing' ? 'Brewing' : 'In Queue')}
+                      </span>
+                    </div>
+                    ${ord.drink_items.map(d => `
+                      <div class="waitstaff-item-row">
+                        <span><strong>${d.quantity}x</strong> ${d.product_name}</span>
+                        ${d.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#60a5fa;">${d.notes_highlight}</span>` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="waitstaff-card-footer">
+                <button class="btn btn-success w-100" onclick="serveOrderAction(${ord.order_id})" style="font-size:14px; font-weight:800; padding:12px;">
+                  <i class="ri-check-double-line"></i> Mark Order as Served & Complete
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    console.error('[Wait Staff Dashboard Error]', err);
+  }
+};
+
+window.serveOrderAction = async function(orderId) {
+  try {
+    const res = await API.serveOrder(orderId);
+    if (res && res.success) {
+      playAudioChime('served');
+      renderCurrentModule();
+    }
+  } catch (e) {
+    console.error('[Serve Order Error]', e);
+  }
+};
+
+// ============================================================================
+// 3. CUSTOMER LIVE ORDER TRACKING VIEW (ITEMIZED FOOD & DRINKS)
 // ============================================================================
 window.renderCustomerTrackerView = async function(container) {
   const shell = document.createElement('div');
@@ -4674,7 +4824,7 @@ window.renderCustomerTrackerView = async function(container) {
 
   shell.innerHTML = `
     <div id="customer-tracker-content">
-      <div style="text-align:center; padding:40px 0;"><i class="ri-loader-4-line ri-spin" style="font-size:32px; color:var(--color-primary-light);"></i><p>Loading your order status...</p></div>
+      <div style="text-align:center; padding:40px 0;"><i class="ri-loader-4-line ri-spin" style="font-size:32px; color:var(--color-primary-light);"></i><p>Loading your live order status...</p></div>
     </div>
   `;
   container.appendChild(shell);
@@ -4689,7 +4839,7 @@ window.renderCustomerTrackerView = async function(container) {
         <div class="customer-tracker-hero" style="text-align:center; padding:50px 20px;">
           <i class="ri-cup-line" style="font-size:48px; color:var(--color-primary-light);"></i>
           <h3 style="margin:12px 0 6px 0; color:#fff;">Welcome to Ravenhill Coffee Roasters!</h3>
-          <p style="color:var(--color-cream-muted); margin-bottom:20px;">No active orders found for this session. Explore our specialty coffee menu below.</p>
+          <p style="color:var(--color-cream-muted); margin-bottom:20px;">No active orders found for this session.</p>
           <button class="btn btn-primary" onclick="switchModule('menu')"><i class="ri-restaurant-menu-line"></i> Browse Cafe Menu</button>
         </div>
       `;
@@ -4698,8 +4848,6 @@ window.renderCustomerTrackerView = async function(container) {
 
     const o = res.data;
     const step = o.step_index; // 1: Placed, 2: Preparing, 3: Ready, 4: Completed
-    const bb = o.station_breakdown?.barista;
-    const kb = o.station_breakdown?.kitchen;
 
     trackerEl.innerHTML = `
       <!-- Hero Pickup Token Card -->
@@ -4707,7 +4855,7 @@ window.renderCustomerTrackerView = async function(container) {
         <span class="customer-pickup-token">${o.pickup_number}</span>
         <h2 class="customer-status-hero-title">${o.status_message}</h2>
         <p class="customer-status-hero-sub">
-          Order for <strong>${o.customer_name}</strong> • ${o.order_type === 'dine_in' ? 'Table ' + (o.table_number || '?') : 'Takeaway'} • Placed ${o.elapsed_minutes}m ago
+          Order for <strong>${o.customer_name}</strong> • ${o.order_type === 'dine_in' ? 'Table ' + (o.table_number || '?') : 'Takeaway'} • Est. Wait: ~${o.estimated_wait} mins
         </p>
 
         <!-- 4-Step Animated Visual Progress Stepper -->
@@ -4726,73 +4874,69 @@ window.renderCustomerTrackerView = async function(container) {
           </div>
           <div class="tracker-step ${step >= 4 ? 'done' : ''}">
             <div class="step-icon-circle"><i class="ri-checkbox-circle-line"></i></div>
-            <span class="step-label">Completed</span>
+            <span class="step-label">Served</span>
           </div>
         </div>
       </div>
 
-      <!-- Station Breakdown Status Cards -->
-      <div class="station-status-grid">
-        ${bb && bb.has_items ? `
-          <div class="station-status-card ${bb.status === 'ready' ? 'ready' : ''}">
-            <div class="station-card-icon barista"><i class="ri-cup-fill"></i></div>
-            <div class="station-card-info">
-              <h4>Barista Coffee Bar</h4>
-              <p>${bb.label}</p>
-              <span class="status-badge ${bb.status === 'ready' ? 'badge-success' : 'badge-info'}">
-                ${bb.status.toUpperCase()}
-              </span>
+      <!-- Food Section -->
+      ${o.food_items && o.food_items.length ? `
+        <div class="customer-category-card">
+          <div class="customer-category-header">
+            <div class="customer-category-title">
+              <span>🍔 Food Items (Kitchen)</span>
             </div>
+            <span class="badge ${o.station_breakdown?.kitchen?.status === 'ready' ? 'badge-success' : 'badge-info'}" style="font-size:12px; padding:4px 10px;">
+              ${o.station_breakdown?.kitchen?.label || 'In Queue'}
+            </span>
           </div>
-        ` : ''}
-
-        ${kb && kb.has_items ? `
-          <div class="station-status-card ${kb.status === 'ready' ? 'ready' : ''}">
-            <div class="station-card-icon kitchen"><i class="ri-restaurant-fill"></i></div>
-            <div class="station-card-info">
-              <h4>Kitchen Food Station</h4>
-              <p>${kb.label}</p>
-              <span class="status-badge ${kb.status === 'ready' ? 'badge-success' : 'badge-warning'}">
-                ${kb.status.toUpperCase()}
-              </span>
-            </div>
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- Items Ordered Breakdown -->
-      <div class="customer-items-card">
-        <h4 style="margin:0 0 14px 0; color:#fff; display:flex; justify-content:space-between;">
-          <span>Items in this Order</span>
-          <span style="color:var(--color-primary-light);">$${(o.total_amount || 0).toFixed(2)} AUD</span>
-        </h4>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          ${(o.items || []).map(i => `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); padding-bottom:8px;">
-              <div>
-                <strong style="color:var(--color-cream); font-size:14px;">${i.quantity}x ${i.product_name}</strong>
-                <span class="kds-station-badge ${i.station}" style="font-size:10px; margin-left:6px;">${i.station}</span>
-                ${i.customisations && i.customisations.length ? `
-                  <div style="font-size:12px; color:var(--color-cream-muted); margin-top:2px;">
-                    ${i.customisations.map(c => c.option_name).join(' • ')}
-                  </div>
-                ` : ''}
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${o.food_items.map(f => `
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); padding-bottom:8px;">
+                <div>
+                  <strong style="color:var(--color-cream); font-size:14px;">${f.quantity}x ${f.product_name}</strong>
+                  ${f.mods_text ? `<div style="font-size:12px; color:var(--color-cream-muted);">${f.mods_text}</div>` : ''}
+                </div>
+                <span class="badge ${f.status_code === 'ready' ? 'badge-success' : 'badge-primary'}">${f.status}</span>
               </div>
-              <span style="font-weight:700; color:var(--color-cream);">$${(parseFloat(i.subtotal) || 0).toFixed(2)}</span>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </div>
-      </div>
+      ` : ''}
+
+      <!-- Drinks Section -->
+      ${o.drink_items && o.drink_items.length ? `
+        <div class="customer-category-card">
+          <div class="customer-category-header">
+            <div class="customer-category-title">
+              <span>☕ Beverages (Barista)</span>
+            </div>
+            <span class="badge ${o.station_breakdown?.barista?.status === 'ready' ? 'badge-success' : 'badge-info'}" style="font-size:12px; padding:4px 10px;">
+              ${o.station_breakdown?.barista?.label || 'In Queue'}
+            </span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${o.drink_items.map(d => `
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); padding-bottom:8px;">
+                <div>
+                  <strong style="color:var(--color-cream); font-size:14px;">${d.quantity}x ${d.product_name}</strong>
+                  ${d.mods_text ? `<div style="font-size:12px; color:var(--color-cream-muted);">${d.mods_text}</div>` : ''}
+                </div>
+                <span class="badge ${d.status_code === 'ready' ? 'badge-success' : 'badge-primary'}">${d.status}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
     `;
   } catch (err) {
     console.error('[Customer Tracker Error]', err);
   }
 };
 
-// ── Live Polling Engine (Every 2.5s when KDS or Customer Tracker is open) ────
+// ── Live Polling Engine (Every 2.5s when KDS, Waitstaff, or Customer Tracker is open) ────
 setInterval(() => {
-  if (AppState.activeModule === 'kds' || AppState.activeModule === 'customer_tracker') {
-    // Only refresh if no modals are open
+  if (['kds', 'waitstaff', 'customer_tracker'].includes(AppState.activeModule)) {
     const openModal = document.querySelector('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
     if (!openModal) {
       renderCurrentModule();

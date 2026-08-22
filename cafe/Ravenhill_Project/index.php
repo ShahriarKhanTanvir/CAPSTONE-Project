@@ -51,8 +51,17 @@ $csrfToken = getCSRFToken();
           </a>
           <a href="#" class="nav-item" data-module="kds">
             <i class="ri-fire-line"></i>
-            <span>Order Tracking (KDS)</span>
+            <span>Kitchen / Barista KDS</span>
             <span class="badge badge-warning" id="kds-pending-count">0</span>
+          </a>
+          <a href="#" class="nav-item" data-module="waitstaff">
+            <i class="ri-user-star-line"></i>
+            <span>Wait Staff Monitor</span>
+            <span class="badge badge-success hidden" id="waitstaff-ready-count">0</span>
+          </a>
+          <a href="#" class="nav-item" data-module="customer_tracker">
+            <i class="ri-smartphone-line"></i>
+            <span>Customer Tracker</span>
           </a>
           <a href="#" class="nav-item" data-module="tables">
             <i class="ri-layout-grid-line"></i>
@@ -163,8 +172,9 @@ $csrfToken = getCSRFToken();
             <span class="role-label">Active Role:</span>
             <select id="user-role-select" class="role-select">
               <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
-              <option value="barista">☕ Barista (Beverages KDS)</option>
               <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
+              <option value="barista">☕ Barista (Beverages KDS)</option>
+              <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
               <option value="customer">👤 Customer (Live Tracker)</option>
               <option value="manager">📊 Manager (Operations & Staff)</option>
               <option value="admin">⚡ Admin (Full Control)</option>

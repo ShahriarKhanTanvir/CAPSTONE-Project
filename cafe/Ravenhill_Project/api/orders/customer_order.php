@@ -1,6 +1,6 @@
 <?php
 /**
- * customer_order.php - Live Order Tracking API for Customer Role & Display
+ * customer_order.php - Live Customer Order Tracking Engine
  * Ravenhill Coffee POS & Management System
  *
  * Routes:
@@ -63,23 +63,6 @@ $ticketStmt = $db->prepare("
 $ticketStmt->execute([$orderId]);
 $tickets = $ticketStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Items
-$itemsStmt = $db->prepare("
-    SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, oi.customisations_json,
-           p.product_name, cat.category_name, COALESCE(cat.target_station, 'barista') as station
-    FROM OrderItems oi
-    LEFT JOIN Products p ON oi.product_id = p.product_id
-    LEFT JOIN Categories cat ON p.category_id = cat.category_id
-    WHERE oi.order_id = ?
-");
-$itemsStmt->execute([$orderId]);
-$items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-foreach ($items as &$item) {
-    $item['customisations'] = !empty($item['customisations_json']) ? json_decode($item['customisations_json'], true) : [];
-}
-
-// Calculate Detailed Customer Status & Progress Stepper
 $baristaStatus = 'none';
 $kitchenStatus = 'none';
 
@@ -88,29 +71,71 @@ foreach ($tickets as $t) {
     if ($t['station'] === 'kitchen') $kitchenStatus = $t['status'];
 }
 
-$displayStatus = 'received';
-$statusMessage = 'Order received — We are prepping your ticket.';
-$stepIndex = 1; // 1: Placed, 2: Preparing, 3: Ready for Pickup, 4: Completed
+// Fetch Line Items with Station tagging
+$itemsStmt = $db->prepare("
+    SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, oi.customisations_json, oi.item_notes,
+           p.product_name, cat.category_name,
+           COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) as station
+    FROM OrderItems oi
+    LEFT JOIN Products p ON oi.product_id = p.product_id
+    LEFT JOIN Categories cat ON p.category_id = cat.category_id
+    WHERE oi.order_id = ?
+");
+$itemsStmt->execute([$orderId]);
+$rawItems = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-if ($order['order_status'] === 'completed' || ($baristaStatus === 'collected' && $kitchenStatus === 'collected')) {
+$foodItems = [];
+$drinkItems = [];
+
+foreach ($rawItems as $item) {
+    $customs = !empty($item['customisations_json']) ? json_decode($item['customisations_json'], true) : [];
+    $customTags = [];
+    if (is_array($customs)) {
+        foreach ($customs as $c) {
+            $customTags[] = $c['option_name'] ?? '';
+        }
+    }
+    $item['customisations'] = $customs;
+    $item['mods_text'] = count($customTags) > 0 ? implode(' • ', $customTags) : '';
+
+    if ($item['station'] === 'kitchen') {
+        $item['status'] = ($kitchenStatus === 'ready' || $kitchenStatus === 'collected') ? 'Ready for Collection' : ($kitchenStatus === 'preparing' ? 'Preparing' : 'In Queue');
+        $item['status_code'] = $kitchenStatus;
+        $foodItems[] = $item;
+    } else {
+        $item['status'] = ($baristaStatus === 'ready' || $baristaStatus === 'collected') ? 'Ready for Collection' : ($baristaStatus === 'preparing' ? 'Preparing' : 'In Queue');
+        $item['status_code'] = $baristaStatus;
+        $drinkItems[] = $item;
+    }
+}
+
+// Calculate Customer Overall Message and Progress Stepper
+$displayStatus = 'received';
+$statusMessage = 'Your order has been received and sent to the bar & kitchen.';
+$stepIndex = 1; // 1: Placed, 2: Preparing, 3: Ready for Pickup, 4: Completed
+$estimatedWait = 5; // Default minutes
+
+if ($kitchenStatus !== 'none') $estimatedWait = 12;
+
+if ($order['order_status'] === 'completed' || ($baristaStatus === 'collected' && ($kitchenStatus === 'collected' || $kitchenStatus === 'none'))) {
     $displayStatus = 'completed';
-    $statusMessage = 'Order complete! Thank you for visiting Ravenhill Coffee.';
+    $statusMessage = 'Your order has been served. Enjoy your meal and coffee!';
     $stepIndex = 4;
-} elseif ($order['order_status'] === 'ready' || ($baristaStatus === 'ready' && ($kitchenStatus === 'ready' || $kitchenStatus === 'none'))) {
+} elseif ($order['order_status'] === 'ready' || (($baristaStatus === 'ready' || $baristaStatus === 'collected') && ($kitchenStatus === 'ready' || $kitchenStatus === 'none'))) {
     $displayStatus = 'ready_for_pickup';
-    $statusMessage = 'All items ready for pickup! Please collect at the counter.';
+    $statusMessage = 'All items are ready for pickup! Please collect at the counter.';
     $stepIndex = 3;
 } elseif ($baristaStatus === 'ready' && $kitchenStatus === 'preparing') {
     $displayStatus = 'partially_ready';
-    $statusMessage = 'Coffee is ready at the bar! Your food is on the grill.';
+    $statusMessage = 'Your coffee is ready for pickup! Food is sizzling on the kitchen grill.';
     $stepIndex = 2;
 } elseif ($kitchenStatus === 'ready' && $baristaStatus === 'preparing') {
     $displayStatus = 'partially_ready';
-    $statusMessage = 'Food is ready! Barista is finishing your coffee.';
+    $statusMessage = 'Your food is ready! The barista is finishing your drinks.';
     $stepIndex = 2;
 } elseif ($order['order_status'] === 'preparing' || $baristaStatus === 'preparing' || $kitchenStatus === 'preparing') {
     $displayStatus = 'preparing';
-    $statusMessage = 'Brewing coffee & cooking food fresh in the kitchen.';
+    $statusMessage = 'Your order is being prepared fresh right now.';
     $stepIndex = 2;
 }
 
@@ -122,6 +147,7 @@ sendResponse(true, 'Customer order tracking state retrieved.', [
     'customer_name'     => $order['customer_name'] ?: 'Guest',
     'created_at'        => $order['created_at'],
     'elapsed_minutes'   => (int)floor((int)$order['elapsed_seconds'] / 60),
+    'estimated_wait'    => max(1, $estimatedWait - (int)floor((int)$order['elapsed_seconds'] / 60)),
     'step_index'        => $stepIndex,
     'display_status'    => $displayStatus,
     'status_message'    => $statusMessage,
@@ -129,14 +155,15 @@ sendResponse(true, 'Customer order tracking state retrieved.', [
         'barista' => [
             'has_items' => $baristaStatus !== 'none',
             'status'    => $baristaStatus,
-            'label'     => $baristaStatus === 'ready' ? 'Ready at Barista Counter' : ($baristaStatus === 'preparing' ? 'Crafting at Espresso Machine' : 'In Drink Queue')
+            'label'     => $baristaStatus === 'ready' ? 'Ready for Collection' : ($baristaStatus === 'preparing' ? 'Preparing at Coffee Bar' : 'In Drink Queue')
         ],
         'kitchen' => [
             'has_items' => $kitchenStatus !== 'none',
             'status'    => $kitchenStatus,
-            'label'     => $kitchenStatus === 'ready' ? 'Ready at Pass' : ($kitchenStatus === 'preparing' ? 'Sizzling on Kitchen Grill' : 'In Kitchen Queue')
+            'label'     => $kitchenStatus === 'ready' ? 'Ready for Collection' : ($kitchenStatus === 'preparing' ? 'Preparing in Kitchen' : 'In Food Queue')
         ]
     ],
-    'items'             => $items,
+    'food_items'        => $foodItems,
+    'drink_items'       => $drinkItems,
     'total_amount'      => (float)$order['total_amount']
 ]);
