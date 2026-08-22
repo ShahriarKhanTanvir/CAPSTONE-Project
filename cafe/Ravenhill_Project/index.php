@@ -171,6 +171,13 @@ $csrfToken = getCSRFToken();
             <span class="shift-timer" id="shift-clock-timer">Shift: 04h 15m</span>
           </div>
 
+          <!-- Topbar Cart Toggle Button -->
+          <button class="topbar-cart-btn" id="topbar-cart-toggle-btn" onclick="toggleCartDrawer()" title="View Current Order Cart & Checkout" aria-label="View Current Order Cart">
+            <i class="ri-shopping-cart-2-line"></i>
+            <span class="topbar-cart-text">Cart</span>
+            <span class="topbar-cart-badge" id="topbar-cart-count">0</span>
+          </button>
+
           <!-- Role Selector Dropdown -->
           <div class="role-selector-container">
             <label for="user-role-select" class="role-label">Role:</label>
@@ -360,7 +367,7 @@ $csrfToken = getCSRFToken();
     <div class="modal-card modal-lg">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h3>Payment Processing</h3>
+          <h3>Payment Processing & Checkout</h3>
           <span class="modal-subtitle">Select payment tender type for Sale <strong id="pay-modal-order-id">#ORD-9042</strong></span>
         </div>
         <button class="icon-btn modal-close" id="close-payment-btn"><i class="ri-close-line"></i></button>
@@ -370,11 +377,15 @@ $csrfToken = getCSRFToken();
         <div class="payment-layout">
           <!-- Payment Method Selector -->
           <div class="payment-methods-column">
-            <label class="section-label">Payment Method</label>
+            <label class="section-label">Select Tender Method</label>
             <div class="payment-tabs">
               <button class="pay-tab active" data-method="eftpos">
+                <i class="ri-wireless-charging-line"></i>
+                <span>EFTPOS Tap</span>
+              </button>
+              <button class="pay-tab" data-method="card">
                 <i class="ri-bank-card-line"></i>
-                <span>EFTPOS / Card</span>
+                <span>Credit / Debit</span>
               </button>
               <button class="pay-tab" data-method="cash">
                 <i class="ri-cash-line"></i>
@@ -384,9 +395,13 @@ $csrfToken = getCSRFToken();
                 <i class="ri-paypal-line"></i>
                 <span>PayPal</span>
               </button>
+              <button class="pay-tab" data-method="split">
+                <i class="ri-pie-chart-line"></i>
+                <span>Split Bill</span>
+              </button>
               <button class="pay-tab" data-method="loyalty">
                 <i class="ri-vip-crown-line"></i>
-                <span>Loyalty Points</span>
+                <span>Loyalty Pts</span>
               </button>
             </div>
 
@@ -396,10 +411,57 @@ $csrfToken = getCSRFToken();
               <!-- EFTPOS Panel -->
               <div id="tender-panel-eftpos" class="tender-panel">
                 <div class="eftpos-terminal-box">
-                  <i class="ri-wireless-charging-line pulse"></i>
-                  <h4>EFTPOS Terminal Ready</h4>
-                  <p>Present card, phone, or smartwatch on terminal unit #01</p>
-                  <div class="terminal-status-badge"><i class="ri-check-line"></i> Connected to Tyro EFTPOS</div>
+                  <div class="terminal-screen-sim">
+                    <div class="terminal-spinner"><i class="ri-wireless-charging-line pulse" style="font-size:36px; color:var(--color-primary);"></i></div>
+                    <h4>EFTPOS Terminal Ready</h4>
+                    <p>Present contactless card, Apple Pay, or Google Pay on terminal #01</p>
+                    <div class="terminal-amount-tag">AUD <span id="eftpos-amount-display">$0.00</span></div>
+                  </div>
+                  <div class="terminal-status-badge"><i class="ri-check-line"></i> Integrated Tyro EFTPOS (Lane 1 Online)</div>
+                </div>
+              </div>
+
+              <!-- Credit / Debit Card Panel -->
+              <div id="tender-panel-card" class="tender-panel hidden">
+                <div class="card-checkout-box">
+                  <div class="credit-card-preview">
+                    <div class="card-chip"><i class="ri-sim-card-line"></i></div>
+                    <div class="card-number-display" id="card-preview-number">•••• •••• •••• 4242</div>
+                    <div class="card-bottom-row">
+                      <div>
+                        <span class="card-label">CARDHOLDER</span>
+                        <div class="card-name-display" id="card-preview-name">VALUED CUSTOMER</div>
+                      </div>
+                      <div>
+                        <span class="card-label">EXPIRES</span>
+                        <div class="card-expiry-display" id="card-preview-exp">12/28</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card-form-grid" style="margin-top:14px; display:grid; gap:10px;">
+                    <div class="form-group">
+                      <label style="font-size:12px;">Cardholder Name</label>
+                      <input type="text" id="card-name-input" class="form-input" placeholder="Name on card" value="Sophia Reed">
+                    </div>
+                    <div class="form-group">
+                      <label style="font-size:12px;">Card Number</label>
+                      <div class="input-prefix-group">
+                        <span class="prefix"><i class="ri-bank-card-fill"></i></span>
+                        <input type="text" id="card-number-input" class="form-input" placeholder="4532 •••• •••• 4242" value="4532 8821 9012 4242">
+                      </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                      <div class="form-group">
+                        <label style="font-size:12px;">Expiry (MM/YY)</label>
+                        <input type="text" id="card-exp-input" class="form-input" placeholder="MM/YY" value="09/28">
+                      </div>
+                      <div class="form-group">
+                        <label style="font-size:12px;">CVV / CVC</label>
+                        <input type="password" id="card-cvv-input" class="form-input" placeholder="•••" maxlength="4" value="882">
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -413,14 +475,42 @@ $csrfToken = getCSRFToken();
                   </div>
                 </div>
                 <div class="quick-cash-buttons">
-                  <button class="btn btn-outline quick-cash-btn" data-val="exact">Exact</button>
-                  <button class="btn btn-outline quick-cash-btn" data-val="10">$10.00</button>
-                  <button class="btn btn-outline quick-cash-btn" data-val="20">$20.00</button>
-                  <button class="btn btn-outline quick-cash-btn" data-val="50">$50.00</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="exact">Exact</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="5">$5.00</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="10">$10.00</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="20">$20.00</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="50">$50.00</button>
+                  <button type="button" class="btn btn-outline quick-cash-btn" data-val="100">$100.00</button>
                 </div>
                 <div class="change-due-box">
-                  <span>Change Due:</span>
+                  <span>Change Due to Customer:</span>
                   <strong id="cash-change-due">$0.00</strong>
+                </div>
+              </div>
+
+              <!-- Split Bill Panel -->
+              <div id="tender-panel-split" class="tender-panel hidden">
+                <div class="split-bill-box">
+                  <label class="section-label">Split Evenly Among Guests</label>
+                  <div class="split-count-selector">
+                    <button type="button" class="split-btn active" data-split="2">2 Ways</button>
+                    <button type="button" class="split-btn" data-split="3">3 Ways</button>
+                    <button type="button" class="split-btn" data-split="4">4 Ways</button>
+                    <button type="button" class="split-btn" data-split="custom">Custom</button>
+                  </div>
+                  <div class="split-breakdown-card">
+                    <div class="split-per-person">
+                      <span id="split-shares-label">Share (1 of 2):</span>
+                      <strong id="split-per-person-amount">$0.00</strong>
+                    </div>
+                    <div class="split-progress-bar">
+                      <div class="split-progress-fill" id="split-progress-fill" style="width:0%;"></div>
+                    </div>
+                    <div class="split-status-text" id="split-status-text">0 of 2 shares paid ($0.00 of $0.00)</div>
+                  </div>
+                  <button type="button" class="btn btn-secondary w-100" id="pay-single-share-btn">
+                    <i class="ri-check-line"></i> Pay Current Share (<span id="pay-share-val">$0.00</span>)
+                  </button>
                 </div>
               </div>
 
@@ -432,8 +522,8 @@ $csrfToken = getCSRFToken();
                       <i class="ri-paypal-fill"></i>
                     </div>
                     <div>
-                      <h4>PayPal Sandbox Checkout</h4>
-                      <p>Instant digital wallet & debit/credit card processing</p>
+                      <h4>PayPal Instant Checkout</h4>
+                      <p>Digital wallet, debit/credit cards, and Pay in 4</p>
                     </div>
                   </div>
                   <div class="paypal-amount-display">
@@ -453,7 +543,7 @@ $csrfToken = getCSRFToken();
                     <span class="points-worth" id="pay-modal-pts-worth">Worth $22.50 AUD</span>
                   </div>
                   <p class="text-sm">Loyalty points can be redeemed at 20 Pts = $1.00 AUD.</p>
-                  <button class="btn btn-secondary w-100" id="redeem-points-pay-btn">Redeem Points for Sale</button>
+                  <button type="button" class="btn btn-secondary w-100" id="redeem-points-pay-btn">Redeem Points for Sale</button>
                 </div>
               </div>
 
@@ -463,16 +553,33 @@ $csrfToken = getCSRFToken();
           <!-- Order Summary Sidebar inside Payment -->
           <div class="payment-summary-column">
             <div class="pay-summary-card">
-              <h4>Order Breakdown</h4>
+              <h4>Order Summary</h4>
               <div class="pay-items-mini" id="pay-modal-items-list">
                 <!-- Mini items list -->
               </div>
-              <div class="pay-totals-mini">
+
+              <!-- Gratuity / Tip Selection -->
+              <div class="tip-selector-wrapper" style="margin-top:12px; padding-top:10px; border-top:1px solid var(--color-border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-size:11px; font-weight:700; color:var(--color-cream-muted);">ADD GRATUITY / TIP</span>
+                  <span id="tip-amount-display" style="font-size:12px; font-weight:800; color:var(--color-accent-gold);">$0.00</span>
+                </div>
+                <div class="tip-pills-row" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px;">
+                  <button type="button" class="tip-pill active" data-tip="0">0%</button>
+                  <button type="button" class="tip-pill" data-tip="5">5%</button>
+                  <button type="button" class="tip-pill" data-tip="10">10%</button>
+                  <button type="button" class="tip-pill" data-tip="15">15%</button>
+                  <button type="button" class="tip-pill" data-tip="20">20%</button>
+                </div>
+              </div>
+
+              <div class="pay-totals-mini" style="margin-top:12px;">
                 <div class="row"><span>Subtotal:</span> <span id="pay-modal-subtotal">$0.00</span></div>
-                <div class="row"><span>GST (10%):</span> <span id="pay-modal-gst">$0.00</span></div>
-                <div class="row text-discount" id="pay-modal-discount-row"><span>Discount:</span> <span id="pay-modal-discount">-$0.00</span></div>
+                <div class="row"><span>GST (10% Included):</span> <span id="pay-modal-gst">$0.00</span></div>
+                <div class="row text-discount" id="pay-modal-discount-row"><span>Discount Applied:</span> <span id="pay-modal-discount">-$0.00</span></div>
+                <div class="row" id="pay-modal-tip-row" style="color:var(--color-accent-gold);"><span>Tip / Gratuity:</span> <span id="pay-modal-tip">$0.00</span></div>
                 <hr>
-                <div class="row total-large"><span>Total Due:</span> <strong id="pay-modal-total">$0.00</strong></div>
+                <div class="row total-large"><span>Total Payable:</span> <strong id="pay-modal-total">$0.00</strong></div>
               </div>
             </div>
           </div>
@@ -480,9 +587,9 @@ $csrfToken = getCSRFToken();
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-outline btn-lg" id="cancel-payment-btn">Cancel</button>
-        <button class="btn btn-success btn-lg flex-1" id="confirm-payment-btn">
-          <i class="ri-check-double-line"></i> Complete Payment & Print Receipt
+        <button type="button" class="btn btn-outline btn-lg" id="cancel-payment-btn">Cancel</button>
+        <button type="button" class="btn btn-success btn-lg flex-1" id="confirm-payment-btn">
+          <i class="ri-check-double-line"></i> Authorise Payment & Complete Sale
         </button>
       </div>
     </div>
@@ -492,7 +599,7 @@ $csrfToken = getCSRFToken();
   <div class="modal-backdrop hidden" id="receipt-modal">
     <div class="modal-card modal-sm">
       <div class="modal-header">
-        <h3>Sales Receipt</h3>
+        <h3>Sales Receipt & Tax Invoice</h3>
         <button class="icon-btn modal-close" id="close-receipt-btn"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
@@ -521,9 +628,10 @@ $csrfToken = getCSRFToken();
             <div class="r-row"><span>Subtotal:</span><span id="rec-subtotal">$0.00</span></div>
             <div class="r-row"><span>GST Included (10%):</span><span id="rec-gst">$0.00</span></div>
             <div class="r-row" id="rec-discount-row"><span>Discount:</span><span id="rec-discount">-$0.00</span></div>
+            <div class="r-row" id="rec-tip-row"><span>Tip / Gratuity:</span><span id="rec-tip">$0.00</span></div>
             <div class="r-row r-total"><span>TOTAL AUD:</span><span id="rec-total">$0.00</span></div>
             <div class="r-row"><span>Tender (<span id="rec-tender-type">EFTPOS</span>):</span><span id="rec-tendered">$0.00</span></div>
-            <div class="r-row"><span>Change:</span><span id="rec-change">$0.00</span></div>
+            <div class="r-row"><span>Change Due:</span><span id="rec-change">$0.00</span></div>
           </div>
           <div class="receipt-divider">================================</div>
           <div class="receipt-footer">
@@ -532,11 +640,20 @@ $csrfToken = getCSRFToken();
             <div class="barcode-sim">||||| ||||||| |||| |||||||| |||</div>
           </div>
         </div>
+
+        <!-- Digital Sharing Form -->
+        <div class="receipt-share-section" style="margin-top:14px; padding-top:10px; border-top:1px solid var(--color-border-subtle);">
+          <label style="font-size:11px; font-weight:700; color:var(--color-cream-muted); display:block; margin-bottom:6px;">SEND DIGITAL RECEIPT</label>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="digital-receipt-target" class="form-input-sm" placeholder="Email or Mobile (04...)" style="flex:1;">
+            <button type="button" class="btn btn-secondary btn-sm" id="send-digital-receipt-btn"><i class="ri-send-plane-line"></i> Send</button>
+          </div>
+        </div>
       </div>
       <div class="modal-footer" style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn btn-secondary flex-1" id="print-receipt-btn" style="min-width: 130px;"><i class="ri-printer-line"></i> Print Receipt</button>
-        <button class="btn btn-outline flex-1" id="download-pdf-receipt-btn" style="min-width: 140px; background: rgba(217, 107, 67, 0.15); border-color: var(--color-primary); color: #fff;"><i class="ri-file-pdf-line"></i> Download PDF</button>
-        <button class="btn btn-primary" id="finish-receipt-btn" style="min-width: 80px;">Done</button>
+        <button type="button" class="btn btn-secondary flex-1" id="print-receipt-btn" style="min-width: 130px;"><i class="ri-printer-line"></i> Print Receipt</button>
+        <button type="button" class="btn btn-outline flex-1" id="download-pdf-receipt-btn" style="min-width: 140px; background: rgba(217, 107, 67, 0.15); border-color: var(--color-primary); color: #fff;"><i class="ri-file-pdf-line"></i> Download Receipt</button>
+        <button type="button" class="btn btn-primary" id="finish-receipt-btn" style="min-width: 80px;">Done</button>
       </div>
     </div>
   </div>

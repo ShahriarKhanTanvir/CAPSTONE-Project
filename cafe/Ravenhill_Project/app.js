@@ -2293,6 +2293,12 @@ function renderCartUI() {
   if (btnTotalEl) btnTotalEl.textContent = `$${finalTotal.toFixed(2)}`;
   if (checkoutBtn) checkoutBtn.disabled = AppState.cart.items.length === 0;
 
+  // Update Topbar Cart Badge
+  const topbarCartBadge = document.getElementById('topbar-cart-count');
+  if (topbarCartBadge) {
+    topbarCartBadge.textContent = totalItemCount;
+  }
+
   // Mobile Floating Cart Bar Sync
   const mobileCartBar = document.getElementById('mobile-cart-bar');
   const mobileCartCount = document.getElementById('mobile-cart-count');
@@ -2324,8 +2330,38 @@ function renderCartUI() {
   }
 }
 
+window.toggleCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (!drawer) return;
+  const isHidden = drawer.classList.contains('hidden');
+  if (isHidden) {
+    drawer.classList.remove('hidden');
+    drawer.classList.add('mobile-open');
+  } else {
+    drawer.classList.add('hidden');
+    drawer.classList.remove('mobile-open');
+  }
+};
+
+window.openMobileCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.remove('hidden');
+    drawer.classList.add('mobile-open');
+  }
+};
+
+window.closeMobileCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.add('hidden');
+    drawer.classList.remove('mobile-open');
+  }
+};
+
 window.updateCartQty = function(index, delta) {
   const item = AppState.cart.items[index];
+  if (!item) return;
   item.qty += delta;
   if (item.qty <= 0) {
     AppState.cart.items.splice(index, 1);
@@ -2860,12 +2896,18 @@ function recalculateCustomiserPrice() {
 }
 
 // Payment & Receipt Modal Logic
+let splitState = {
+  ways: 2,
+  paidCount: 0,
+  totalPaid: 0
+};
+
 function setupPaymentModal() {
   const modal = document.getElementById('payment-modal');
-  document.getElementById('close-payment-btn').addEventListener('click', () => modal.classList.add('hidden'));
-  document.getElementById('cancel-payment-btn').addEventListener('click', () => modal.classList.add('hidden'));
+  document.getElementById('close-payment-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
+  document.getElementById('cancel-payment-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
 
-  // Payment Tabs
+  // Payment Method Tabs
   const payTabs = document.querySelectorAll('.pay-tab');
   payTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -2873,35 +2915,69 @@ function setupPaymentModal() {
       tab.classList.add('active');
       const method = tab.getAttribute('data-method');
       
-      document.getElementById('tender-panel-eftpos').classList.toggle('hidden', method !== 'eftpos');
-      document.getElementById('tender-panel-cash').classList.toggle('hidden', method !== 'cash');
-      document.getElementById('tender-panel-paypal').classList.toggle('hidden', method !== 'paypal');
-      document.getElementById('tender-panel-loyalty').classList.toggle('hidden', method !== 'loyalty');
+      const panels = ['eftpos', 'card', 'cash', 'paypal', 'split', 'loyalty'];
+      panels.forEach(p => {
+        const el = document.getElementById(`tender-panel-${p}`);
+        if (el) el.classList.toggle('hidden', p !== method);
+      });
 
       const confirmBtn = document.getElementById('confirm-payment-btn');
       if (confirmBtn) {
         confirmBtn.style.display = 'inline-flex';
+        if (method === 'split') {
+          confirmBtn.innerHTML = `<i class="ri-check-double-line"></i> Finalise Split Sale`;
+        } else {
+          confirmBtn.innerHTML = `<i class="ri-check-double-line"></i> Authorise Payment & Complete Sale`;
+        }
       }
 
       if (method === 'paypal' && typeof window.renderPayPalButtons === 'function') {
         window.renderPayPalButtons();
       }
+      if (method === 'split') {
+        updateSplitBillDisplay();
+      }
     });
   });
 
+  // Credit Card Live Mockup Inputs
+  const cardNameInput = document.getElementById('card-name-input');
+  const cardNumInput = document.getElementById('card-number-input');
+  const cardExpInput = document.getElementById('card-exp-input');
+
+  if (cardNameInput) {
+    cardNameInput.addEventListener('input', (e) => {
+      const preview = document.getElementById('card-preview-name');
+      if (preview) preview.textContent = (e.target.value || 'VALUED CUSTOMER').toUpperCase();
+    });
+  }
+  if (cardNumInput) {
+    cardNumInput.addEventListener('input', (e) => {
+      const preview = document.getElementById('card-preview-number');
+      if (preview) {
+        let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+        let formatted = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+        preview.textContent = formatted || '•••• •••• •••• 4242';
+      }
+    });
+  }
+  if (cardExpInput) {
+    cardExpInput.addEventListener('input', (e) => {
+      const preview = document.getElementById('card-preview-exp');
+      if (preview) preview.textContent = e.target.value || '12/28';
+    });
+  }
+
   // Quick Cash Buttons
   const cashInput = document.getElementById('cash-tendered-input');
-  cashInput.addEventListener('input', updateCashChange);
+  if (cashInput) {
+    cashInput.addEventListener('input', updateCashChange);
+  }
 
   document.querySelectorAll('.quick-cash-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.getAttribute('data-val');
-      const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
-      let disc = 0;
-      if (AppState.cart.promoCode) {
-        disc = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
-      }
-      const due = Math.max(0, subtotal - disc);
+      const due = calculateCurrentPayableTotal();
 
       if (val === 'exact') {
         cashInput.value = due.toFixed(2);
@@ -2912,22 +2988,170 @@ function setupPaymentModal() {
     });
   });
 
+  // Gratuity / Tip Selector
+  AppState.cart.tipPercent = 0;
+  AppState.cart.tipAmount = 0;
+
+  document.querySelectorAll('.tip-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.tip-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const tipVal = parseInt(pill.getAttribute('data-tip') || '0');
+      AppState.cart.tipPercent = tipVal;
+      recalculatePayModalTotals();
+    });
+  });
+
+  // Split Bill Options
+  document.querySelectorAll('.split-btn').forEach(sbtn => {
+    sbtn.addEventListener('click', () => {
+      document.querySelectorAll('.split-btn').forEach(b => b.classList.remove('active'));
+      sbtn.classList.add('active');
+      const ways = sbtn.getAttribute('data-split');
+      if (ways === 'custom') {
+        const inputWays = prompt('Enter number of split shares (e.g. 5):', '5');
+        splitState.ways = Math.max(2, parseInt(inputWays) || 2);
+      } else {
+        splitState.ways = parseInt(ways) || 2;
+      }
+      splitState.paidCount = 0;
+      splitState.totalPaid = 0;
+      updateSplitBillDisplay();
+    });
+  });
+
+  const paySingleShareBtn = document.getElementById('pay-single-share-btn');
+  if (paySingleShareBtn) {
+    paySingleShareBtn.addEventListener('click', () => {
+      const totalDue = calculateCurrentPayableTotal();
+      const perPerson = totalDue / splitState.ways;
+      if (splitState.paidCount < splitState.ways) {
+        splitState.paidCount++;
+        splitState.totalPaid += perPerson;
+        updateSplitBillDisplay();
+        showToast(`Share ${splitState.paidCount} of ${splitState.ways} paid ($${perPerson.toFixed(2)})!`, 'success');
+        if (splitState.paidCount === splitState.ways) {
+          showToast('All split shares paid in full! Ready to complete sale.', 'success');
+        }
+      }
+    });
+  }
+
+  // Redeem Loyalty Points in Payment
+  const redeemPointsBtn = document.getElementById('redeem-points-pay-btn');
+  if (redeemPointsBtn) {
+    redeemPointsBtn.addEventListener('click', () => {
+      if (AppState.cart.customer) {
+        const pts = AppState.cart.customer.points || 0;
+        const discountVal = Math.min(pts / 20, calculateCurrentPayableTotal());
+        AppState.cart.promoCode = {
+          code: 'LOYALTY',
+          type: 'fixed',
+          val: discountVal,
+          description: `${Math.round(discountVal * 20)} Pts Redeemed`
+        };
+        showToast(`Redeemed ${Math.round(discountVal * 20)} points for $${discountVal.toFixed(2)} off!`, 'success');
+        recalculatePayModalTotals();
+      } else {
+        showToast('Please attach a loyalty customer first', 'warning');
+      }
+    });
+  }
+
+  // Digital Receipt Sender
+  const sendDigitalBtn = document.getElementById('send-digital-receipt-btn');
+  if (sendDigitalBtn) {
+    sendDigitalBtn.addEventListener('click', () => {
+      const target = document.getElementById('digital-receipt-target')?.value?.trim();
+      if (!target) {
+        showToast('Please enter an email or phone number', 'warning');
+        return;
+      }
+      showToast(`Digital tax invoice sent to ${target}!`, 'success');
+    });
+  }
+
   // Confirm Payment
-  document.getElementById('confirm-payment-btn').addEventListener('click', completePaymentProcess);
+  document.getElementById('confirm-payment-btn')?.addEventListener('click', completePaymentProcess);
+}
+
+function calculateCurrentPayableTotal() {
+  const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+  let discount = 0;
+  if (AppState.cart.promoCode) {
+    discount = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
+  }
+  const base = Math.max(0, subtotal - discount);
+  const tip = (base * (AppState.cart.tipPercent || 0)) / 100;
+  AppState.cart.tipAmount = tip;
+  return base + tip;
+}
+
+function recalculatePayModalTotals() {
+  const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+  let discount = 0;
+  if (AppState.cart.promoCode) {
+    discount = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
+  }
+  const base = Math.max(0, subtotal - discount);
+  const tip = (base * (AppState.cart.tipPercent || 0)) / 100;
+  AppState.cart.tipAmount = tip;
+  const total = base + tip;
+  const gst = total * 0.10;
+
+  const subtotalEl = document.getElementById('pay-modal-subtotal');
+  const gstEl = document.getElementById('pay-modal-gst');
+  const tipEl = document.getElementById('pay-modal-tip');
+  const tipDisplay = document.getElementById('tip-amount-display');
+  const totalEl = document.getElementById('pay-modal-total');
+  const eftposAmtEl = document.getElementById('eftpos-amount-display');
+  const paypalDueEl = document.getElementById('paypal-amount-due');
+
+  if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  if (gstEl) gstEl.textContent = `$${gst.toFixed(2)}`;
+  if (tipEl) tipEl.textContent = `$${tip.toFixed(2)}`;
+  if (tipDisplay) tipDisplay.textContent = `$${tip.toFixed(2)}`;
+  if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
+  if (eftposAmtEl) eftposAmtEl.textContent = `$${total.toFixed(2)}`;
+  if (paypalDueEl) paypalDueEl.textContent = `$${total.toFixed(2)} AUD`;
+
+  updateCashChange();
+  updateSplitBillDisplay();
+}
+
+function updateSplitBillDisplay() {
+  const totalDue = calculateCurrentPayableTotal();
+  const ways = splitState.ways || 2;
+  const perPerson = totalDue / ways;
+
+  const perPersonEl = document.getElementById('split-per-person-amount');
+  const shareLabelEl = document.getElementById('split-shares-label');
+  const fillEl = document.getElementById('split-progress-fill');
+  const statusEl = document.getElementById('split-status-text');
+  const shareValEl = document.getElementById('pay-share-val');
+
+  if (perPersonEl) perPersonEl.textContent = `$${perPerson.toFixed(2)}`;
+  if (shareLabelEl) shareLabelEl.textContent = `Share (${splitState.paidCount + 1 > ways ? ways : splitState.paidCount + 1} of ${ways}):`;
+  if (shareValEl) shareValEl.textContent = `$${perPerson.toFixed(2)}`;
+
+  const pct = Math.min(100, Math.round((splitState.paidCount / ways) * 100));
+  if (fillEl) fillEl.style.width = `${pct}%`;
+  if (statusEl) {
+    statusEl.textContent = `${splitState.paidCount} of ${ways} shares paid ($${splitState.totalPaid.toFixed(2)} of $${totalDue.toFixed(2)})`;
+  }
 }
 
 function updateCashChange() {
   const cashInput = document.getElementById('cash-tendered-input');
-  const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
-  let disc = 0;
-  if (AppState.cart.promoCode) {
-    disc = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
-  }
-  const due = Math.max(0, subtotal - disc);
+  if (!cashInput) return;
+  const due = calculateCurrentPayableTotal();
   const tendered = parseFloat(cashInput.value) || 0;
   const change = Math.max(0, tendered - due);
 
-  document.getElementById('cash-change-due').textContent = `$${change.toFixed(2)}`;
+  const changeDueEl = document.getElementById('cash-change-due');
+  if (changeDueEl) {
+    changeDueEl.textContent = `$${change.toFixed(2)}`;
+  }
 }
 
 function openPaymentModal() {
@@ -2944,46 +3168,59 @@ function openPaymentModal() {
   document.getElementById('pay-modal-gst').textContent = `$${gst.toFixed(2)}`;
   
   if (discount > 0) {
-    document.getElementById('pay-modal-discount-row').classList.remove('hidden');
-    document.getElementById('pay-modal-discount').textContent = `-$${discount.toFixed(2)}`;
+    document.getElementById('pay-modal-discount-row')?.classList.remove('hidden');
+    const discEl = document.getElementById('pay-modal-discount');
+    if (discEl) discEl.textContent = `-$${discount.toFixed(2)}`;
   } else {
-    document.getElementById('pay-modal-discount-row').classList.add('hidden');
+    document.getElementById('pay-modal-discount-row')?.classList.add('hidden');
   }
 
-  document.getElementById('pay-modal-total').textContent = `$${total.toFixed(2)}`;
-  const paypalDueEl = document.getElementById('paypal-amount-due');
-  if (paypalDueEl) paypalDueEl.textContent = `$${total.toFixed(2)} AUD`;
-  
-  const activePayTab = document.querySelector('.pay-tab.active');
-  if (activePayTab && activePayTab.getAttribute('data-method') === 'paypal') {
-    renderPayPalButtons();
+  // Loyalty Points in Modal
+  const ptsEl = document.getElementById('pay-modal-cust-pts');
+  const ptsWorthEl = document.getElementById('pay-modal-pts-worth');
+  if (AppState.cart.customer) {
+    const pts = AppState.cart.customer.points || 0;
+    if (ptsEl) ptsEl.textContent = `${pts} Pts`;
+    if (ptsWorthEl) ptsWorthEl.textContent = `Worth $${(pts / 20).toFixed(2)} AUD`;
+  } else {
+    if (ptsEl) ptsEl.textContent = `0 Pts`;
+    if (ptsWorthEl) ptsWorthEl.textContent = `Attach loyalty member`;
   }
 
   // Populate mini items list
   const miniList = document.getElementById('pay-modal-items-list');
-  miniList.innerHTML = AppState.cart.items.map(i => `
-    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-      <span>${i.qty}x ${i.item.name}</span>
-      <strong>$${i.totalPrice.toFixed(2)}</strong>
-    </div>
-  `).join('');
+  if (miniList) {
+    miniList.innerHTML = AppState.cart.items.map(i => `
+      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+        <span>${i.qty}x ${i.item.name}</span>
+        <strong>$${i.totalPrice.toFixed(2)}</strong>
+      </div>
+    `).join('');
+  }
 
-  document.getElementById('payment-modal').classList.remove('hidden');
+  // Reset split state
+  splitState.paidCount = 0;
+  splitState.totalPaid = 0;
+
+  recalculatePayModalTotals();
+  document.getElementById('payment-modal')?.classList.remove('hidden');
 }
 
 function completePaymentProcess() {
-  const activeTab = document.querySelector('.pay-tab.active').getAttribute('data-method');
+  const activeTab = document.querySelector('.pay-tab.active')?.getAttribute('data-method') || 'eftpos';
   const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
   let discount = 0;
   if (AppState.cart.promoCode) {
     discount = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
   }
-  const total = Math.max(0, subtotal - discount);
+  const base = Math.max(0, subtotal - discount);
+  const tip = AppState.cart.tipAmount || 0;
+  const total = base + tip;
 
   // Determine current cashier name
   const cashierName = document.getElementById('current-user-name')?.textContent || 'Staff';
 
-  // Push into Kitchen KDS Queue
+  // Push into Kitchen & Barista KDS Queue
   const orderCreatedAt = new Date().toISOString();
   const kdsNewOrder = {
     id: AppState.cart.orderId,
@@ -3016,6 +3253,7 @@ function completePaymentProcess() {
     subtotal,
     tax: total * 0.10,
     discount,
+    tip,
     total,
     paymentMethod: activeTab,
     createdAt: orderCreatedAt
@@ -3045,7 +3283,7 @@ function completePaymentProcess() {
           if (beanInv.id) API.updateInventoryStock(beanInv.id, beanInv.qty);
         }
       }
-      if (ci.item.recipe.milkMl && ci.milk.includes('Oat')) {
+      if (ci.item.recipe.milkMl && ci.milk && ci.milk.includes('Oat')) {
         const oatInv = DB.inventory.find(inv => inv.id === 'INV-03');
         if (oatInv) {
           const cur = oatInv.qty !== undefined ? oatInv.qty : (oatInv.stockQty || 0);
@@ -3092,39 +3330,73 @@ function completePaymentProcess() {
   });
 
   // Populate Printable Thermal Receipt
-  document.getElementById('rec-order-id').textContent = AppState.cart.orderId;
-  document.getElementById('rec-date').textContent = new Date().toLocaleString('en-AU');
-  document.getElementById('rec-type').textContent = `${AppState.cart.orderType === 'dine_in' ? 'Dine In (' + AppState.cart.tableId + ')' : 'Takeaway'}`;
-  document.getElementById('rec-cashier').textContent = cashierName;
-  document.getElementById('rec-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById('rec-gst').textContent = `$${(total * 0.10).toFixed(2)}`;
-  document.getElementById('rec-total').textContent = `$${total.toFixed(2)}`;
-  document.getElementById('rec-tender-type').textContent = activeTab.toUpperCase();
+  const recOrderEl = document.getElementById('rec-order-id');
+  const recDateEl = document.getElementById('rec-date');
+  const recTypeEl = document.getElementById('rec-type');
+  const recCashierEl = document.getElementById('rec-cashier');
+  const recSubtotalEl = document.getElementById('rec-subtotal');
+  const recGstEl = document.getElementById('rec-gst');
+  const recTipEl = document.getElementById('rec-tip');
+  const recTotalEl = document.getElementById('rec-total');
+  const recTenderTypeEl = document.getElementById('rec-tender-type');
+  const recTenderedEl = document.getElementById('rec-tendered');
+  const recChangeEl = document.getElementById('rec-change');
+
+  if (recOrderEl) recOrderEl.textContent = AppState.cart.orderId;
+  if (recDateEl) recDateEl.textContent = new Date().toLocaleString('en-AU');
+  if (recTypeEl) recTypeEl.textContent = `${AppState.cart.orderType === 'dine_in' ? 'Dine In (' + (AppState.cart.tableId || 'T-03') + ')' : 'Takeaway'}`;
+  if (recCashierEl) recCashierEl.textContent = cashierName;
+  if (recSubtotalEl) recSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  if (recGstEl) recGstEl.textContent = `$${(total * 0.10).toFixed(2)}`;
+  if (recTipEl) recTipEl.textContent = `$${tip.toFixed(2)}`;
+  if (recTotalEl) recTotalEl.textContent = `$${total.toFixed(2)}`;
+  if (recTenderTypeEl) recTenderTypeEl.textContent = activeTab.toUpperCase();
+
+  const cashInput = document.getElementById('cash-tendered-input');
+  const tenderedAmt = activeTab === 'cash' ? (parseFloat(cashInput?.value) || total) : total;
+  if (recTenderedEl) recTenderedEl.textContent = `$${tenderedAmt.toFixed(2)}`;
+  if (recChangeEl) recChangeEl.textContent = `$${Math.max(0, tenderedAmt - total).toFixed(2)}`;
 
   const recItems = document.getElementById('rec-items-list');
-  recItems.innerHTML = AppState.cart.items.map(i => `
-    <div class="r-item">
-      <span>${i.qty}x ${i.item.name}</span>
-      <span>$${i.totalPrice.toFixed(2)}</span>
-    </div>
-    <div class="r-sub">${i.size} | ${i.milk}</div>
-  `).join('');
+  if (recItems) {
+    recItems.innerHTML = AppState.cart.items.map(i => {
+      const modStr = (i.customisations && i.customisations.length > 0) ? i.customisations.map(c => c.option_name).join(', ') : '';
+      return `
+        <div class="r-item">
+          <span>${i.qty}x ${i.item.name}</span>
+          <span>$${i.totalPrice.toFixed(2)}</span>
+        </div>
+        ${modStr ? `<div class="r-sub" style="font-size:10px; color:#666; margin-bottom:3px;">${modStr}</div>` : ''}
+        ${i.notes ? `<div class="r-sub" style="font-size:10px; color:#888;">Note: ${i.notes}</div>` : ''}
+      `;
+    }).join('');
+  }
 
-  document.getElementById('payment-modal').classList.add('hidden');
-  document.getElementById('receipt-modal').classList.remove('hidden');
+  const savedOrderId = AppState.cart.orderId;
 
-  // Reset Cart & fetch next order number from backend
+  document.getElementById('payment-modal')?.classList.add('hidden');
+  document.getElementById('receipt-modal')?.classList.remove('hidden');
+
+  // Reset Cart & fetch next order number
   AppState.cart.items = [];
   AppState.cart.promoCode = null;
   AppState.cart.customer = null;
+  AppState.cart.tipPercent = 0;
+  AppState.cart.tipAmount = 0;
 
-  // Get next order number from backend (auto-increment)
+  // Auto-switch to Live Customer Tracker if in Customer Role
+  if (AppState.userRole === 'customer' || (AppState.currentUser && AppState.currentUser.role === 'customer')) {
+    showToast(`Order ${savedOrderId} Confirmed! Watching live preparation tracker.`, 'success');
+    switchModule('tracker');
+  } else {
+    showToast(`Payment successful for ${savedOrderId}! Order sent to KDS.`, 'success');
+  }
+
   API.fetchNextOrderNum().then(num => {
     if (num) {
       AppState.cart.orderId = `#ORD-${num}`;
     } else {
-      // Fallback: local increment
-      const nextNum = parseInt(AppState.cart.orderId.split('-')[1]) + 1;
+      const nextNum = parseInt(savedOrderId.split('-')[1] || '9000') + 1;
       AppState.cart.orderId = `#ORD-${nextNum}`;
     }
     renderCartUI();
@@ -3146,14 +3418,14 @@ function completePaymentProcess() {
   const finishBtn = document.getElementById('finish-receipt-btn');
   if (finishBtn) {
     finishBtn.onclick = () => {
-      document.getElementById('receipt-modal').classList.add('hidden');
+      document.getElementById('receipt-modal')?.classList.add('hidden');
       syncBackendData();
     };
   }
   const closeRecBtn = document.getElementById('close-receipt-btn');
   if (closeRecBtn) {
     closeRecBtn.onclick = () => {
-      document.getElementById('receipt-modal').classList.add('hidden');
+      document.getElementById('receipt-modal')?.classList.add('hidden');
       syncBackendData();
     };
   }

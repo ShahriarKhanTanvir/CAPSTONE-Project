@@ -705,6 +705,41 @@ select option, .form-select option, .form-select-sm option {
   background: var(--bg-dark);
 }
 
+.topbar-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  color: var(--color-cream);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  white-space: nowrap;
+}
+
+.topbar-cart-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-primary);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(217, 107, 67, 0.25);
+}
+
+.topbar-cart-badge {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--border-radius-pill);
+  line-height: 1;
+}
+
 .shift-widget {
   display: flex;
   align-items: center;
@@ -1828,46 +1863,229 @@ select option, .form-select option, .form-select-sm option {
 }
 
 .payment-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 16px;
 }
 
 .pay-tab {
-  flex: 1;
-  padding: 12px;
-  background: var(--bg-canvas);
-  border: 1px solid var(--color-border);
+  padding: 10px 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-md);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
+  color: var(--color-cream-muted);
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.pay-tab i { font-size: 22px; }
+.pay-tab i { font-size: 20px; }
+
+.pay-tab:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-primary-light);
+  color: var(--color-cream);
+}
 
 .pay-tab.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  box-shadow: 0 4px 12px rgba(217, 107, 67, 0.35);
 }
 
 .eftpos-terminal-box {
-  background: var(--bg-canvas);
-  border: 2px dashed var(--color-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
-  padding: 30px;
+  padding: 24px 16px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
-.eftpos-terminal-box i { font-size: 48px; color: var(--color-primary); }
+
+.terminal-screen-sim {
+  background: var(--bg-dark);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.terminal-amount-tag {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-primary-light);
+  background: rgba(217, 107, 67, 0.1);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(217, 107, 67, 0.3);
+}
+
+/* Credit Card Mockup */
+.card-checkout-box {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+}
+
+.credit-card-preview {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.card-chip {
+  font-size: 24px;
+  color: #fbbf24;
+  margin-bottom: 12px;
+}
+
+.card-number-display {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.card-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.card-label {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  display: block;
+}
+
+.card-name-display, .card-expiry-display {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Split Bill Box */
+.split-bill-box {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.split-count-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.split-btn {
+  padding: 8px 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-cream);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.split-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.split-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.split-breakdown-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 14px;
+}
+
+.split-per-person {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.split-per-person strong {
+  font-size: 18px;
+  color: var(--color-primary-light);
+}
+
+.split-progress-bar {
+  height: 8px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.split-progress-fill {
+  height: 100%;
+  background: var(--color-success);
+  transition: width 0.3s ease;
+}
+
+.split-status-text {
+  font-size: 11px;
+  color: var(--color-cream-muted);
+  text-align: center;
+}
+
+/* Tip / Gratuity Pills */
+.tip-pill {
+  padding: 6px 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-cream);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tip-pill:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.tip-pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
 
 /* PayPal Sandbox Tender Box */
 .paypal-terminal-box {
