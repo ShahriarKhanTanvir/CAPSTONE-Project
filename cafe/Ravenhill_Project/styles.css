@@ -44,9 +44,9 @@
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 20px rgba(217, 107, 67, 0.3);
 
-  /* Layout */
+  /* Layout & Responsive Metrics */
   --sidebar-width: 250px;
-  --topbar-height: 70px;
+  --topbar-height: 64px;
   --cart-width: 380px;
   --border-radius-sm: 8px;
   --border-radius-md: 12px;
@@ -54,7 +54,13 @@
   --border-radius-pill: 9999px;
   
   --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Safe Area Insets for Modern Mobile Devices */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 /* Reset & Global Base */
@@ -72,6 +78,7 @@ body {
   font-size: 14px;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -104,18 +111,51 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  touch-action: manipulation;
+}
+
+/* Accessibility: Skip Navigation Link */
+.skip-to-content {
+  position: absolute;
+  top: -120px;
+  left: 16px;
+  z-index: 10000;
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 12px 20px;
+  font-weight: 700;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 16px;
+  outline: 3px solid #ffffff;
+}
+
+/* Accessibility: Screen Reader Only Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* WCAG 2.1 Focus-visible & Touch Targets (UI/UX Pro Max Accessibility Priority 1 & 2) */
 :focus-visible {
   outline: 2px solid var(--color-primary) !important;
-  outline-offset: 2px !important;
+  outline-offset: 3px !important;
 }
 
 .btn, .icon-btn, .nav-item, .segment-btn {
-  min-height: 40px;
+  min-height: 44px;
 }
-
 
 /* Utility Classes */
 .hidden { display: none !important; }
@@ -127,15 +167,34 @@ button {
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 
+/* Universal Responsive Table Wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
 /* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: var(--border-radius-pill);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -145,6 +204,7 @@ button {
 .badge-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
 .badge-info { background: var(--color-info-bg); color: var(--color-info); border: 1px solid var(--color-info); }
 .badge-gold { background: var(--color-accent-gold-light); color: var(--color-accent-gold); border: 1px solid var(--color-accent-gold); }
+.badge-outline { background: transparent; color: var(--color-cream-muted); border: 1px solid var(--color-border); }
 
 /* Buttons */
 .btn {
@@ -362,25 +422,65 @@ select option, .form-select option, .form-select-sm option {
   padding-left: 38px;
 }
 
+/* Sidebar Backdrop Overlay for Mobile Drawers */
+.sidebar-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-sidebar-close {
+  display: none;
+  margin-left: auto;
+  color: var(--color-cream-muted);
+}
+.mobile-sidebar-close:hover {
+  color: #fff;
+  background: var(--bg-surface-elevated);
+}
+
 /* App Master Layout */
 .app-layout {
   display: flex;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background-color: var(--bg-dark);
+}
+
+/* Workspace Wrapper */
+.workspace-wrapper {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - var(--topbar-height));
+  height: calc(100dvh - var(--topbar-height));
+  overflow: hidden;
+  position: relative;
 }
 
 /* Sidebar */
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
+  height: 100dvh;
   background: var(--bg-canvas);
   border-right: 1px solid var(--color-border-subtle);
   display: flex;
   flex-direction: column;
   z-index: 20;
-  transition: margin-left var(--transition-normal);
+  transition: margin-left var(--transition-normal), transform var(--transition-normal);
 }
 
 .sidebar.collapsed {
@@ -2468,4 +2568,658 @@ select option, .form-select option, .form-select-sm option {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN & ACCESSIBILITY RULES (ALL DEVICES)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. FLOATING MOBILE CART BAR (POS WORKSPACE)
+   -------------------------------------------------------------------------- */
+.mobile-cart-bar {
+  display: none;
+}
+
+@keyframes slideUpCartBar {
+  from { transform: translateY(60px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   2. LARGE & ULTRA-WIDE SCREENS (>= 1440px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1440px) {
+  .pos-layout {
+    grid-template-columns: 1fr 420px;
+    gap: 20px;
+  }
+  .pos-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .kds-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .waitstaff-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+  }
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. LAPTOP & STANDARD DESKTOP (1024px - 1439px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .pos-layout {
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+  }
+  .pos-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .kds-grid {
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+  .waitstaff-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. TABLETS & MOBILE DEVICES (< 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  /* Off-Canvas Sidebar Drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 85vw);
+    z-index: 1000;
+    transform: translateX(-100%);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.85);
+    margin-left: 0 !important;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-sidebar-close {
+    display: flex;
+  }
+
+  /* Main Workspace View */
+  .workspace-wrapper {
+    height: calc(100vh - var(--topbar-height));
+    height: calc(100dvh - var(--topbar-height));
+  }
+
+  .workspace {
+    padding: 12px 14px;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  /* POS Layout Single Column */
+  .pos-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    padding-bottom: 70px;
+  }
+
+  .pos-main-panel {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Floating Mobile Cart Bar */
+  .mobile-cart-bar:not(.hidden) {
+    position: fixed;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    left: 12px;
+    right: 12px;
+    z-index: 900;
+    background: linear-gradient(135deg, var(--color-primary), #b85028);
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(217, 107, 67, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-weight: 700;
+    min-height: 48px;
+    animation: slideUpCartBar 0.3s ease;
+  }
+
+  .mobile-cart-bar-left,
+  .mobile-cart-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cart-pill-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .cart-open-hint {
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  /* Slide-Up Off-Canvas Cart Drawer */
+  .cart-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 88vh;
+    max-height: 88dvh;
+    height: 85vh;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    background: var(--bg-surface);
+  }
+
+  .cart-drawer.mobile-open {
+    transform: translateY(0);
+    display: flex !important;
+  }
+
+  /* Table Management Stack */
+  .tables-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .table-details-panel {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* Dashboard Charts Stacking */
+  .charts-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. TABLET DEVICES (768px - 1023px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pos-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+  }
+
+  .kds-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .waitstaff-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .payment-layout {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. ALL MOBILE SCREENS (<= 767px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* Topbar Mobile Adjustments */
+  .topbar {
+    height: 56px;
+    min-height: 56px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .topbar-left {
+    gap: 8px;
+  }
+
+  .page-title-group h1 {
+    font-size: 15px;
+  }
+
+  .page-subtitle {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 6px;
+  }
+
+  .global-search-box {
+    width: 130px;
+    transition: width 0.2s ease;
+  }
+  .global-search-box:focus-within {
+    width: 170px;
+  }
+  .global-search-box input {
+    padding: 6px 10px 6px 28px;
+    font-size: 12px;
+  }
+  .global-search-box i {
+    left: 8px;
+    font-size: 13px;
+  }
+
+  .shift-widget {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .role-selector-container {
+    padding: 3px 6px;
+  }
+  .role-select {
+    font-size: 11px;
+    max-width: 110px;
+  }
+
+  .user-profile-badge .user-details {
+    display: none;
+  }
+
+  /* POS Categories Mobile Horizontal Scroll */
+  .pos-categories-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .pos-categories-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-btn {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  /* POS Items Touch Grid */
+  .pos-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 10px;
+    padding: 2px 2px 75px 2px;
+  }
+
+  .menu-card {
+    padding: 10px;
+    border-radius: var(--border-radius-md);
+  }
+
+  .menu-card-image {
+    height: 105px;
+    margin-bottom: 8px;
+  }
+
+  .menu-card-info h4 {
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .menu-card-info p {
+    font-size: 11px;
+    margin-bottom: 6px;
+    -webkit-line-clamp: 1;
+  }
+
+  .menu-card-price {
+    font-size: 14px;
+  }
+
+  .add-item-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  /* KDS View Mobile */
+  .kds-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .kds-filter-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .kds-station-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .kds-station-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kds-station-tab {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .kds-stat-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .kds-stage-btn {
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  /* Wait Staff Dashboard Mobile */
+  .waitstaff-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .waitstaff-card-footer button {
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  /* Floor Plan Mobile */
+  .floorplan-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .table-box {
+    padding: 12px 10px;
+    min-height: 90px;
+  }
+
+  /* Dashboard KPIs Mobile */
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .kpi-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .kpi-info h3 {
+    font-size: 18px;
+  }
+
+  .kpi-info span {
+    font-size: 10px;
+  }
+
+  /* Modals Mobile Sizing */
+  .modal-backdrop,
+  .modal-overlay {
+    padding: 8px;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    margin: 0;
+    border-radius: var(--border-radius-md);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 12px 14px;
+  }
+
+  .payment-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .payment-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pay-tab {
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  /* Customer Tracker Mobile */
+  .customer-tracker-shell {
+    padding: 0 4px 40px 4px;
+  }
+
+  .customer-tracker-hero {
+    padding: 18px 14px;
+  }
+
+  .customer-pickup-token {
+    font-size: clamp(26px, 7vw, 36px);
+    padding: 2px 20px;
+  }
+
+  .customer-status-hero-title {
+    font-size: 19px;
+  }
+
+  .tracker-stepper::before {
+    display: none;
+  }
+
+  .tracker-stepper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0 6px 0;
+  }
+
+  .tracker-step {
+    flex-direction: row;
+    justify-content: flex-start;
+    background: var(--bg-canvas);
+    padding: 8px 10px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border-subtle);
+    gap: 8px;
+  }
+
+  .step-icon-circle {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 14px;
+  }
+
+  .step-label {
+    text-align: left;
+    font-size: 11px;
+  }
+
+  .station-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. COMPACT MOBILE SCREENS (320px - 575px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 575px) {
+  :root {
+    --sidebar-width: 280px;
+  }
+
+  body {
+    font-size: 13px;
+  }
+
+  /* Prevent iOS Safari 16px auto-zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .topbar-left .page-title-group {
+    max-width: 110px;
+  }
+
+  .page-title-group h1 {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .role-label {
+    display: none;
+  }
+
+  .role-select {
+    max-width: 90px;
+    font-size: 11px !important;
+  }
+
+  .shift-widget span {
+    font-size: 10px;
+  }
+
+  .pos-items-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .menu-card {
+    padding: 8px;
+  }
+
+  .menu-card-image {
+    height: 95px;
+  }
+
+  .menu-card-info h4 {
+    font-size: 12px;
+  }
+
+  .menu-card-price {
+    font-size: 13px;
+  }
+
+  .add-item-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .floorplan-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-cash-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .quick-cash-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .modal-footer button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. ACCESSIBILITY & PREFERENCES
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -10,7 +10,7 @@ $csrfToken = getCSRFToken();
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="csrf-token" content="<?php echo htmlspecialchars($csrfToken); ?>">
 
   <title>Ravenhill Coffee — POS & Shop Management System</title>
@@ -23,10 +23,16 @@ $csrfToken = getCSRFToken();
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-dark">
+  <!-- Skip to Main Content Link for Keyboard / Screen Reader Accessibility -->
+  <a href="#workspace-container" class="skip-to-content">Skip to main content</a>
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
   <div id="app-container" class="app-layout">
     
     <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
       <div class="sidebar-brand">
         <div class="brand-logo" style="overflow:hidden; border:2px solid var(--color-primary-light);">
           <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
@@ -35,6 +41,9 @@ $csrfToken = getCSRFToken();
           <span class="brand-title">RAVENHILL</span>
           <span class="brand-subtitle">Coffee Roasters • Melb CBD</span>
         </div>
+        <button class="icon-btn mobile-sidebar-close" id="mobile-sidebar-close-btn" aria-label="Close navigation sidebar">
+          <i class="ri-close-line"></i>
+        </button>
       </div>
 
       <div class="sidebar-nav-wrapper">
@@ -134,13 +143,13 @@ $csrfToken = getCSRFToken();
     </aside>
 
     <!-- Main Content Shell -->
-    <main class="main-wrapper">
+    <main class="main-wrapper" id="main-content" role="main">
       
       <!-- Top Navigation & Role Bar -->
-      <header class="topbar">
+      <header class="topbar" role="banner">
         <div class="topbar-left">
-          <button class="icon-btn sidebar-toggle" id="toggle-sidebar" title="Toggle Sidebar">
-            <i class="ri-menu-fold-line"></i>
+          <button class="icon-btn sidebar-toggle" id="toggle-sidebar" title="Toggle Sidebar" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <i class="ri-menu-fold-line" id="sidebar-toggle-icon"></i>
           </button>
           <div class="page-title-group">
             <h1 id="current-module-title">Point of Sale (POS)</h1>
@@ -157,15 +166,15 @@ $csrfToken = getCSRFToken();
 
 
           <!-- Active Shift Clock-In Widget -->
-          <div class="topbar-widget shift-widget" id="topbar-shift-status" onclick="openClockShiftModal()" style="cursor:pointer;" title="Click to manage staff shift attendance & clock in/out">
-            <i class="ri-time-line"></i>
+          <div class="topbar-widget shift-widget" id="topbar-shift-status" onclick="openClockShiftModal()" style="cursor:pointer;" title="Click to manage staff shift attendance & clock in/out" role="button" tabindex="0" aria-label="Manage Shift Attendance">
+            <i class="ri-time-line" aria-hidden="true"></i>
             <span class="shift-timer" id="shift-clock-timer">Shift: 04h 15m</span>
           </div>
 
           <!-- Role Selector Dropdown -->
           <div class="role-selector-container">
-            <span class="role-label">Active Role:</span>
-            <select id="user-role-select" class="role-select">
+            <label for="user-role-select" class="role-label">Role:</label>
+            <select id="user-role-select" class="role-select" aria-label="Select Active Role">
               <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
               <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
               <option value="barista">☕ Barista (Beverages KDS)</option>
@@ -179,12 +188,12 @@ $csrfToken = getCSRFToken();
 
           <!-- User Profile -->
           <div class="user-profile-badge" style="gap:8px;">
-            <div class="avatar" id="current-user-avatar">SL</div>
+            <div class="avatar" id="current-user-avatar" aria-label="User Avatar">SL</div>
             <div class="user-details">
               <span class="user-name" id="current-user-name">Sarah Lin</span>
               <span class="user-role-badge" id="current-user-role-badge">Lead Cashier</span>
             </div>
-            <button class="icon-btn-sm" id="lock-user-btn" onclick="openLoginModal()" title="Switch Account / Lock Session" style="margin-left:4px;">
+            <button class="icon-btn-sm" id="lock-user-btn" onclick="openLoginModal()" title="Switch Account / Lock Session" aria-label="Switch Account or Lock Session" style="margin-left:4px;">
               <i class="ri-lock-line"></i>
             </button>
           </div>
@@ -192,21 +201,33 @@ $csrfToken = getCSRFToken();
       </header>
 
       <!-- Dynamic Workspace View & Permanent Cart Drawer Wrapper -->
-      <div class="workspace-wrapper" style="display:flex; flex:1; height:calc(100vh - 64px); overflow:hidden;">
+      <div class="workspace-wrapper">
         <!-- Dynamic Workspace View Container -->
-        <div class="workspace" id="workspace-container" style="flex:1; height:100%; overflow-y:auto; padding:16px;">
+        <div class="workspace" id="workspace-container" tabindex="-1" role="region" aria-label="Main Workspace Content">
           <!-- Views will be injected dynamically via JS -->
         </div>
 
+        <!-- Floating Mobile Cart Bar (Visible on Mobile/Tablet when POS is active) -->
+        <button class="mobile-cart-bar hidden" id="mobile-cart-bar" onclick="openMobileCartDrawer()" aria-label="Open Current Sale Cart Drawer">
+          <div class="mobile-cart-bar-left">
+            <span class="cart-pill-icon"><i class="ri-shopping-cart-2-line"></i></span>
+            <span id="mobile-cart-count">0 items</span>
+          </div>
+          <div class="mobile-cart-bar-right">
+            <span id="mobile-cart-total">$0.00</span>
+            <span class="cart-open-hint">View Sale <i class="ri-arrow-up-s-line"></i></span>
+          </div>
+        </button>
+
         <!-- Slide-Out Order Cart Drawer Element -->
-        <aside class="cart-drawer hidden" id="cart-drawer">
+        <aside class="cart-drawer hidden" id="cart-drawer" role="complementary" aria-label="Current Sale Cart">
           <div class="cart-header">
             <div class="cart-title">
               <i class="ri-shopping-cart-2-line"></i>
               <span>Current Sale</span>
               <span class="cart-order-id" id="cart-order-number">#ORD-9042</span>
             </div>
-            <button class="icon-btn close-cart" id="close-cart-btn"><i class="ri-close-line"></i></button>
+            <button class="icon-btn close-cart" id="close-cart-btn" aria-label="Close sale cart"><i class="ri-close-line"></i></button>
           </div>
 
           <!-- Order Context: Order Type & Table Selection -->
@@ -723,8 +744,10 @@ $csrfToken = getCSRFToken();
           <i class="ri-lock-unlock-line"></i> Log In to Dashboard
         </button>
       </div>
+    </div>
+  </div>
   <!-- Thermal Printable Receipt Modal (FR36) -->
-  <div class="modal-overlay hidden" id="printable-receipt-modal" style="z-index:9999;">
+  <div class="modal-overlay hidden" id="printable-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-order-id" style="z-index:9999;">
     <div class="modal-content" style="max-width:400px; background:#fff; color:#000; font-family: 'Courier New', Courier, monospace; padding:24px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
       <div id="thermal-receipt-content" style="text-align:center;">
         <h2 style="font-size:20px; font-weight:800; margin-bottom:4px; text-transform:uppercase;">RAVENHILL COFFEE</h2>

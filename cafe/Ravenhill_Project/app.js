@@ -1588,8 +1588,6 @@ function setupKeyboardShortcuts() {
     }
   });
 }
-
-
 // Sidebar & Routing
 function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item');
@@ -1599,6 +1597,15 @@ function setupNavigation() {
       const moduleKey = item.getAttribute('data-module');
       if (moduleKey) {
         switchModule(moduleKey);
+        // Auto-close sidebar drawer on mobile/tablet screens
+        if (window.innerWidth < 1024) {
+          const sidebar = document.getElementById('sidebar');
+          const backdrop = document.getElementById('sidebar-backdrop');
+          const toggleBtn = document.getElementById('toggle-sidebar');
+          if (sidebar) sidebar.classList.remove('mobile-open');
+          if (backdrop) backdrop.classList.remove('active');
+          if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+        }
       }
     });
   });
@@ -1607,6 +1614,16 @@ function setupNavigation() {
 function switchModule(moduleKey) {
   AppState.activeModule = moduleKey;
   
+  // Auto-close mobile sidebar drawer
+  if (window.innerWidth < 1024) {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.remove('active');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+  }
+
   // Highlight active nav item
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.getAttribute('data-module') === moduleKey);
@@ -1616,6 +1633,8 @@ function switchModule(moduleKey) {
   const titleMap = {
     pos: { title: 'Point of Sale (POS)', sub: 'Process orders & quick transactions for Melbourne CBD shop' },
     kds: { title: 'Order Tracking & Kitchen Display (KDS)', sub: 'Live barista order queue & preparation timer' },
+    waitstaff: { title: 'Wait Staff Monitor', sub: 'Floor & table service status with ready-to-serve alerts' },
+    customer_tracker: { title: 'Customer Live Tracker', sub: 'Real-time multi-stage visual order progress' },
     tables: { title: 'Table Management', sub: 'Interactive CBD floor plan & table assignment' },
     reservations: { title: 'Reservation Management', sub: 'Table bookings & customer schedule' },
     menu: { title: 'Menu & Product Customisation', sub: 'Manage espresso items, prices & modifier rules' },
@@ -1626,20 +1645,33 @@ function switchModule(moduleKey) {
     employees: { title: 'Staff & Attendance Management', sub: 'Staff roster & clock-in timesheet simulator' },
     feedback: { title: 'Customer Feedback', sub: 'Customer reviews & service rating dashboard' },
     dashboard: { title: 'Dashboard & Reports', sub: 'Executive overview, sales revenue & shop performance' },
-    access: { title: 'User & Access Management', sub: 'Role permissions matrix & staff credentials' }
+    access: { title: 'User & Access Management', sub: 'Role permissions matrix & staff privileges' },
+    audit: { title: 'Audit Trail & Compliance Logs', sub: 'Activity logging, security actions & inventory changes' }
   };
 
   const info = titleMap[moduleKey] || { title: 'Ravenhill Management', sub: 'Shop Operations' };
   document.getElementById('current-module-title').textContent = info.title;
   document.getElementById('current-module-subtitle').textContent = info.sub;
 
-  // Toggle Cart Drawer visibility
+  // Toggle Cart Drawer & Mobile Cart Bar visibility
   const cartDrawer = document.getElementById('cart-drawer');
+  const mobileCartBar = document.getElementById('mobile-cart-bar');
   if (cartDrawer) {
     if (moduleKey === 'pos') {
-      cartDrawer.classList.remove('hidden');
+      if (window.innerWidth >= 1024) {
+        cartDrawer.classList.remove('hidden');
+      }
     } else {
       cartDrawer.classList.add('hidden');
+      cartDrawer.classList.remove('mobile-open');
+    }
+  }
+
+  if (mobileCartBar) {
+    if (moduleKey === 'pos') {
+      mobileCartBar.classList.remove('hidden');
+    } else {
+      mobileCartBar.classList.add('hidden');
     }
   }
 
@@ -1660,10 +1692,64 @@ function setupRoleSwitcher() {
 function setupSidebarToggle() {
   const btn = document.getElementById('toggle-sidebar');
   const sidebar = document.getElementById('sidebar');
-  btn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-  });
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const closeBtn = document.getElementById('mobile-sidebar-close-btn');
+
+  function openSidebar() {
+    if (sidebar) {
+      sidebar.classList.add('mobile-open');
+      sidebar.classList.remove('collapsed');
+    }
+    if (backdrop) backdrop.classList.add('active');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.remove('active');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  if (btn) {
+    btn.addEventListener('click', () => {
+      if (window.innerWidth < 1024) {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      } else {
+        if (sidebar) sidebar.classList.toggle('collapsed');
+      }
+    });
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeSidebar);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeSidebar);
+  }
 }
+
+window.openMobileCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.remove('hidden');
+    drawer.classList.add('mobile-open');
+  }
+};
+
+window.closeMobileCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.remove('mobile-open');
+    if (window.innerWidth < 1024) {
+      drawer.classList.add('hidden');
+    }
+  }
+};
 
 function setupGlobalSearch() {
   const input = document.getElementById('global-search-input');
@@ -2145,6 +2231,26 @@ function renderCartUI() {
   if (totalEl) totalEl.textContent = `$${finalTotal.toFixed(2)}`;
   if (btnTotalEl) btnTotalEl.textContent = `$${finalTotal.toFixed(2)}`;
   if (checkoutBtn) checkoutBtn.disabled = AppState.cart.items.length === 0;
+
+  // Mobile Floating Cart Bar Sync
+  const mobileCartBar = document.getElementById('mobile-cart-bar');
+  const mobileCartCount = document.getElementById('mobile-cart-count');
+  const mobileCartTotal = document.getElementById('mobile-cart-total');
+  const totalItemCount = AppState.cart.items.reduce((acc, i) => acc + (i.qty || 1), 0);
+
+  if (mobileCartCount) {
+    mobileCartCount.textContent = `${totalItemCount} item${totalItemCount === 1 ? '' : 's'}`;
+  }
+  if (mobileCartTotal) {
+    mobileCartTotal.textContent = `$${finalTotal.toFixed(2)}`;
+  }
+  if (mobileCartBar) {
+    if (AppState.activeModule === 'pos') {
+      mobileCartBar.classList.remove('hidden');
+    } else {
+      mobileCartBar.classList.add('hidden');
+    }
+  }
 
   // Customer Tag UI
   const custInfo = document.getElementById('cart-customer-info');
@@ -2858,6 +2964,10 @@ window.selectTableForDetail = function(tableId) {
       </div>
     </div>
   `;
+
+  if (window.innerWidth < 1024 && panel) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 };
 
 window.updateTableStatus = function(tableId, newStatus) {
@@ -2967,10 +3077,6 @@ window.deleteTableRecord = function(tableId) {
 // 8. RESERVATIONS MODULE
 // ==========================================
 
-// ==========================================
-// 8. RESERVATIONS MODULE
-// ==========================================
-
 window.syncTablesWithReservations = function() {
   if (!DB.tables || !DB.reservations) return;
   
@@ -3008,63 +3114,65 @@ function renderReservationsView(container) {
         </div>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Booking ID</th>
-            <th>Customer Name</th>
-            <th>Party Size</th>
-            <th>Assigned Table</th>
-            <th>Time Slot</th>
-            <th>Contact Phone</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.reservations.length === 0 ? `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td colspan="8" style="text-align:center; padding:40px 20px; color:var(--color-cream-muted);">
-                <i class="ri-calendar-event-line" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.6;"></i>
-                No table bookings scheduled for today. Click <strong>+ New Reservation</strong> to book a table.
-              </td>
+              <th>Booking ID</th>
+              <th>Customer Name</th>
+              <th>Party Size</th>
+              <th>Assigned Table</th>
+              <th>Time Slot</th>
+              <th>Contact Phone</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ` : DB.reservations.map((r, idx) => `
-            <tr>
-              <td><strong>${r.id}</strong></td>
-              <td>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <div style="width:28px; height:28px; border-radius:50%; background:var(--bg-canvas); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--color-primary);">
-                    ${r.customerName ? r.customerName.charAt(0) : 'G'}
+          </thead>
+          <tbody>
+            ${DB.reservations.length === 0 ? `
+              <tr>
+                <td colspan="8" style="text-align:center; padding:40px 20px; color:var(--color-cream-muted);">
+                  <i class="ri-calendar-event-line" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.6;"></i>
+                  No table bookings scheduled for today. Click <strong>+ New Reservation</strong> to book a table.
+                </td>
+              </tr>
+            ` : DB.reservations.map((r, idx) => `
+              <tr>
+                <td><strong>${r.id}</strong></td>
+                <td>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:var(--bg-canvas); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--color-primary);">
+                      ${r.customerName ? r.customerName.charAt(0) : 'G'}
+                    </div>
+                    <strong>${r.customerName}</strong>
                   </div>
-                  <strong>${r.customerName}</strong>
-                </div>
-              </td>
-              <td><span class="badge badge-outline">${r.partySize} Guests</span></td>
-              <td><strong style="color:var(--color-accent-gold);">${r.tableId}</strong></td>
-              <td><i class="ri-time-line" style="margin-right:4px; color:var(--color-cream-muted);"></i>${r.time}</td>
-              <td>${r.contact || 'N/A'}</td>
-              <td>
-                <span class="badge badge-${r.status==='Confirmed'?'success':r.status==='Seated'?'primary':'warning'}">
-                  ${r.status}
-                </span>
-              </td>
-              <td>
-                <div style="display:flex; gap:6px;">
-                  ${r.status !== 'Seated' ? `
-                    <button class="btn btn-primary btn-sm" onclick="seatReservation(${idx})" title="Seat Party & Open Sale">
-                      <i class="ri-user-follow-line"></i> Seat Party
+                </td>
+                <td><span class="badge badge-outline">${r.partySize} Guests</span></td>
+                <td><strong style="color:var(--color-accent-gold);">${r.tableId}</strong></td>
+                <td><i class="ri-time-line" style="margin-right:4px; color:var(--color-cream-muted);"></i>${r.time}</td>
+                <td>${r.contact || 'N/A'}</td>
+                <td>
+                  <span class="badge badge-${r.status==='Confirmed'?'success':r.status==='Seated'?'primary':'warning'}">
+                    ${r.status}
+                  </span>
+                </td>
+                <td>
+                  <div style="display:flex; gap:6px;">
+                    ${r.status !== 'Seated' ? `
+                      <button class="btn btn-primary btn-sm" onclick="seatReservation(${idx})" title="Seat Party & Open Sale">
+                        <i class="ri-user-follow-line"></i> Seat Party
+                      </button>
+                    ` : ''}
+                    <button class="btn btn-outline btn-sm" onclick="cancelReservation(${idx})" title="Cancel Reservation">
+                      <i class="ri-close-circle-line"></i> Cancel
                     </button>
-                  ` : ''}
-                  <button class="btn btn-outline btn-sm" onclick="cancelReservation(${idx})" title="Cancel Reservation">
-                    <i class="ri-close-circle-line"></i> Cancel
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3182,38 +3290,40 @@ function renderMenuView(container) {
         </div>
         <button class="btn btn-primary btn-sm" onclick="openAddMenuItemModal()"><i class="ri-add-line"></i> Add New Menu Item</button>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Item Name</th>
-            <th>Category</th>
-            <th>Price (AUD)</th>
-            <th>Modifiers</th>
-            <th>Badge Tag</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.menuItems.map((item, idx) => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <i class="${item.icon}" style="color:var(--color-primary); font-size:18px;"></i>
-                  <strong>${item.name}</strong>
-                </div>
-              </td>
-              <td>${DB.menuCategories.find(c=>c.id===item.catId)?.name || 'General'}</td>
-              <td><strong>$${item.price.toFixed(2)}</strong></td>
-              <td>${item.hasModifiers ? '<span class="badge badge-info">Sizes / Milks</span>' : 'Standard'}</td>
-              <td>${item.badge ? `<span class="badge badge-gold">${item.badge}</span>` : '-'}</td>
-              <td>
-                <button class="btn btn-outline btn-sm" onclick="editMenuItemPrice(${idx})"><i class="ri-price-tag-line"></i> Edit Price</button>
-                <button class="btn btn-outline btn-sm text-danger" onclick="deleteMenuItem(${idx})"><i class="ri-delete-bin-line"></i></button>
-              </td>
+              <th>Item Name</th>
+              <th>Category</th>
+              <th>Price (AUD)</th>
+              <th>Modifiers</th>
+              <th>Badge Tag</th>
+              <th>Actions</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${DB.menuItems.map((item, idx) => `
+              <tr>
+                <td>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="${item.icon}" style="color:var(--color-primary); font-size:18px;"></i>
+                    <strong>${item.name}</strong>
+                  </div>
+                </td>
+                <td>${DB.menuCategories.find(c=>c.id===item.catId)?.name || 'General'}</td>
+                <td><strong>$${item.price.toFixed(2)}</strong></td>
+                <td>${item.hasModifiers ? '<span class="badge badge-info">Sizes / Milks</span>' : 'Standard'}</td>
+                <td>${item.badge ? `<span class="badge badge-gold">${item.badge}</span>` : '-'}</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="editMenuItemPrice(${idx})"><i class="ri-price-tag-line"></i> Edit Price</button>
+                  <button class="btn btn-outline btn-sm text-danger" onclick="deleteMenuItem(${idx})"><i class="ri-delete-bin-line"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3406,32 +3516,34 @@ function renderSuppliersView(container) {
         </div>
         <button class="btn btn-primary btn-sm" onclick="openCreatePOModal()"><i class="ri-truck-line"></i> Create Purchase Order</button>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Supplier Name</th>
-            <th>Contact Person</th>
-            <th>Phone</th>
-            <th>Supply Catalog</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.suppliers.map(s => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><strong>${s.name}</strong></td>
-              <td>${s.contact}</td>
-              <td>${s.phone}</td>
-              <td>${s.catalog}</td>
-              <td><span class="badge badge-success">Active Partner</span></td>
-              <td>
-                <button class="btn btn-outline btn-sm" onclick="alert('Contacting ${s.name} at ${s.phone}')"><i class="ri-phone-line"></i> Call</button>
-              </td>
+              <th>Supplier Name</th>
+              <th>Contact Person</th>
+              <th>Phone</th>
+              <th>Supply Catalog</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${DB.suppliers.map(s => `
+              <tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.contact}</td>
+                <td>${s.phone}</td>
+                <td>${s.catalog}</td>
+                <td><span class="badge badge-success">Active Partner</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="alert('Contacting ${s.name} at ${s.phone}')"><i class="ri-phone-line"></i> Call</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3459,32 +3571,34 @@ function renderDiscountsView(container) {
         </div>
         <button class="btn btn-primary btn-sm" onclick="openCreatePromoModal()"><i class="ri-add-line"></i> Create Promo Code</button>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Discount Value</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.discounts.map((d, idx) => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><strong class="cart-order-id">${d.code}</strong></td>
-              <td>${d.description}</td>
-              <td>${d.type === 'percent' ? 'Percentage' : 'Fixed Amount'}</td>
-              <td><strong>${d.type === 'percent' ? d.val + '%' : '$' + d.val.toFixed(2)}</strong></td>
-              <td><span class="badge badge-success">Active</span></td>
-              <td>
-                <button class="btn btn-outline btn-sm text-danger" onclick="deletePromo(${idx})"><i class="ri-delete-bin-line"></i> Delete</button>
-              </td>
+              <th>Code</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Discount Value</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${DB.discounts.map((d, idx) => `
+              <tr>
+                <td><strong class="cart-order-id">${d.code}</strong></td>
+                <td>${d.description}</td>
+                <td>${d.type === 'percent' ? 'Percentage' : 'Fixed Amount'}</td>
+                <td><strong>${d.type === 'percent' ? d.val + '%' : '$' + d.val.toFixed(2)}</strong></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm text-danger" onclick="deletePromo(${idx})"><i class="ri-delete-bin-line"></i> Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3534,34 +3648,36 @@ function renderCustomersView(container) {
           </div>
           <button class="btn btn-primary btn-sm" onclick="openRegisterCustomerModal()"><i class="ri-user-add-line"></i> Register Member</button>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Member Name</th>
-              <th>Tier Badge</th>
-              <th>Mobile</th>
-              <th>Email</th>
-              <th>Points Balance</th>
-              <th>Total Visits</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${DB.customers.map((c, idx) => `
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td><strong>${c.name}</strong></td>
-                <td><span class="badge badge-gold">${c.tier}</span></td>
-                <td>${c.mobile}</td>
-                <td>${c.email}</td>
-                <td><strong style="color:var(--color-accent-gold);">${c.points} Pts</strong></td>
-                <td>${c.visits} Visits</td>
-                <td>
-                  <button class="btn btn-outline btn-sm" onclick="addBonusPoints(${idx})">+100 Pts</button>
-                </td>
+                <th>Member Name</th>
+                <th>Tier Badge</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Points Balance</th>
+                <th>Total Visits</th>
+                <th>Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${DB.customers.map((c, idx) => `
+                <tr>
+                  <td><strong>${c.name}</strong></td>
+                  <td><span class="badge badge-gold">${c.tier}</span></td>
+                  <td>${c.mobile}</td>
+                  <td>${c.email}</td>
+                  <td><strong style="color:var(--color-accent-gold);">${c.points} Pts</strong></td>
+                  <td>${c.visits} Visits</td>
+                  <td>
+                    <button class="btn btn-outline btn-sm" onclick="addBonusPoints(${idx})">+100 Pts</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -3612,34 +3728,36 @@ function renderEmployeesView(container) {
         </div>
         <button class="btn btn-success btn-sm" onclick="openClockShiftModal()"><i class="ri-time-line"></i> Clock Shift In / Out</button>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Employee Name</th>
-            <th>Role</th>
-            <th>Shift Start</th>
-            <th>Clocked In</th>
-            <th>Hours Worked Today</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.employees.map((e, idx) => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><strong>${e.name}</strong></td>
-              <td>${e.role}</td>
-              <td>${e.shiftStart}</td>
-              <td><span class="badge ${e.clockedIn ? 'badge-success':'badge-danger'}">${e.clockedIn ? 'ACTIVE ON SHIFT' : 'OFF'}</span></td>
-              <td>${(e.hoursWorked || 4.0).toFixed(1)} hrs</td>
-              <td>
-                <button class="btn btn-outline btn-sm" onclick="toggleClockStatus(${idx})">
-                  ${e.clockedIn ? 'Clock Out' : 'Clock In'}
-                </button>
-              </td>
+              <th>Employee Name</th>
+              <th>Role</th>
+              <th>Shift Start</th>
+              <th>Clocked In</th>
+              <th>Hours Worked Today</th>
+              <th>Actions</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${DB.employees.map((e, idx) => `
+              <tr>
+                <td><strong>${e.name}</strong></td>
+                <td>${e.role}</td>
+                <td>${e.shiftStart}</td>
+                <td><span class="badge ${e.clockedIn ? 'badge-success':'badge-danger'}">${e.clockedIn ? 'ACTIVE ON SHIFT' : 'OFF'}</span></td>
+                <td>${(e.hoursWorked || 4.0).toFixed(1)} hrs</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="toggleClockStatus(${idx})">
+                    ${e.clockedIn ? 'Clock Out' : 'Clock In'}
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3847,38 +3965,40 @@ function renderDashboardView(container) {
 
     <!-- Transaction History Table -->
     <div class="customer-table-card" style="margin-top:20px;">
-      <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle);">
+      <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); flex-wrap:wrap; gap:12px;">
         <div>
           <h3>Transaction History</h3>
           <span style="font-size:12px; color:var(--color-cream-muted);">${DB.completedSales.length} completed transactions recorded</span>
         </div>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Amount (AUD)</th>
-            <th>Payment Method</th>
-            <th>Items</th>
-            <th>Cashier</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${DB.completedSales.length === 0 ? `
-            <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--color-cream-muted);"><i class="ri-inbox-line" style="font-size:24px; display:block; margin-bottom:8px;"></i>No transactions recorded yet. Complete a sale to see data here.</td></tr>
-          ` : DB.completedSales.map(s => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><strong>${s.id}</strong></td>
-              <td><strong style="color:var(--color-accent-gold);">$${s.total.toFixed(2)}</strong></td>
-              <td><span class="badge ${s.paymentMethod === 'CASH' ? 'badge-warning' : s.paymentMethod === 'LOYALTY' ? 'badge-gold' : 'badge-primary'}">${s.paymentMethod}</span></td>
-              <td>${s.itemsCount} items</td>
-              <td>${s.cashier || 'Staff'}</td>
-              <td>${s.timestamp}</td>
+              <th>Order ID</th>
+              <th>Amount (AUD)</th>
+              <th>Payment Method</th>
+              <th>Items</th>
+              <th>Cashier</th>
+              <th>Time</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${DB.completedSales.length === 0 ? `
+              <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--color-cream-muted);"><i class="ri-inbox-line" style="font-size:24px; display:block; margin-bottom:8px;"></i>No transactions recorded yet. Complete a sale to see data here.</td></tr>
+            ` : DB.completedSales.map(s => `
+              <tr>
+                <td><strong>${s.id}</strong></td>
+                <td><strong style="color:var(--color-accent-gold);">$${s.total.toFixed(2)}</strong></td>
+                <td><span class="badge ${s.paymentMethod === 'CASH' ? 'badge-warning' : s.paymentMethod === 'LOYALTY' ? 'badge-gold' : 'badge-primary'}">${s.paymentMethod}</span></td>
+                <td>${s.itemsCount} items</td>
+                <td>${s.cashier || 'Staff'}</td>
+                <td>${s.timestamp}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -3916,58 +4036,59 @@ function renderAccessView(container) {
 
   container.innerHTML = `
     <div class="customer-table-card">
-      <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle);">
+      <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); flex-wrap:wrap; gap:12px;">
         <div>
           <h3>Role Access Permissions Matrix</h3>
           <span style="font-size:12px; color:var(--color-cream-muted);">Manage operational access levels across system roles</span>
         </div>
         <button class="btn btn-primary btn-sm" onclick="savePermissionsMatrix()"><i class="ri-save-line"></i> Save Permissions</button>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Module Name</th>
-            <th>Admin</th>
-            <th>Manager</th>
-            <th>Cashier</th>
-            <th>Barista</th>
-            <th>Wait Staff</th>
-          </tr>
-        </thead>
-        <tbody id="permissions-matrix-body">
-          ${modulesList.map(mod => `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><strong>${mod.name}</strong></td>
-              <td><label style="display:flex; align-items:center; gap:8px; cursor:not-allowed; opacity:0.85;"><input type="checkbox" checked disabled> <span class="badge badge-primary">Full Access</span></label></td>
-              <td>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" data-role="manager" data-module="${mod.key}" ${perms.manager && perms.manager[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
-                  <span class="badge ${perms.manager && perms.manager[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.manager && perms.manager[mod.key] ? 'Full Access' : 'Restricted'}</span>
-                </label>
-              </td>
-              <td>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" data-role="cashier" data-module="${mod.key}" ${perms.cashier && perms.cashier[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
-                  <span class="badge ${perms.cashier && perms.cashier[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.cashier && perms.cashier[mod.key] ? 'Full Access' : 'Restricted'}</span>
-                </label>
-              </td>
-              <td>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" data-role="barista" data-module="${mod.key}" ${perms.barista && perms.barista[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
-                  <span class="badge ${perms.barista && perms.barista[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.barista && perms.barista[mod.key] ? 'Full Access' : 'Restricted'}</span>
-                </label>
-              </td>
-              <td>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" data-role="waitstaff" data-module="${mod.key}" ${perms.waitstaff && perms.waitstaff[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
-                  <span class="badge ${perms.waitstaff && perms.waitstaff[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.waitstaff && perms.waitstaff[mod.key] ? 'Full Access' : 'Restricted'}</span>
-                </label>
-              </td>
+              <th>Module Name</th>
+              <th>Admin</th>
+              <th>Manager</th>
+              <th>Cashier</th>
+              <th>Barista</th>
+              <th>Wait Staff</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-
+          </thead>
+          <tbody id="permissions-matrix-body">
+            ${modulesList.map(mod => `
+              <tr>
+                <td><strong>${mod.name}</strong></td>
+                <td><label style="display:flex; align-items:center; gap:8px; cursor:not-allowed; opacity:0.85;"><input type="checkbox" checked disabled> <span class="badge badge-primary">Full Access</span></label></td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="manager" data-module="${mod.key}" ${perms.manager && perms.manager[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.manager && perms.manager[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.manager && perms.manager[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="cashier" data-module="${mod.key}" ${perms.cashier && perms.cashier[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.cashier && perms.cashier[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.cashier && perms.cashier[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="barista" data-module="${mod.key}" ${perms.barista && perms.barista[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.barista && perms.barista[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.barista && perms.barista[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+                <td>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" data-role="waitstaff" data-module="${mod.key}" ${perms.waitstaff && perms.waitstaff[mod.key] ? 'checked' : ''} onchange="updateMatrixCheckboxBadge(this)"> 
+                    <span class="badge ${perms.waitstaff && perms.waitstaff[mod.key] ? 'badge-success' : 'badge-danger'}">${perms.waitstaff && perms.waitstaff[mod.key] ? 'Full Access' : 'Restricted'}</span>
+                  </label>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
