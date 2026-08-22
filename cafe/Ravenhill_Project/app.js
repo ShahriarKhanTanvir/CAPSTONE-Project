@@ -837,7 +837,7 @@ const DB = {
 const AppState = {
   activeRole: 'cashier', // 'admin', 'cashier', 'barista'
   activeModule: 'pos',
-  isAuthenticated: false,
+  isAuthenticated: true,
   activeCategory: '1',
   searchQuery: '',
 
@@ -2185,17 +2185,40 @@ function setupCartDrawer() {
   // Legacy setup hook
 }
 
-function addItemToCart(item, customisations, notes, qty) {
+function addItemToCart(item, customisations = [], notes = '', qty = 1) {
+  if (!item) return;
+  if (!AppState.cart) {
+    AppState.cart = {
+      orderId: '#ORD-9042',
+      orderType: 'dine_in',
+      tableId: 'T-03',
+      items: [],
+      promoCode: null,
+      customer: null,
+      tipPercent: 0,
+      tipAmount: 0
+    };
+  }
+  if (!AppState.cart.items) AppState.cart.items = [];
+
   let extraPrice = 0;
-  customisations.forEach(c => {
+  (customisations || []).forEach(c => {
     extraPrice += parseFloat(c.extra_price || 0);
   });
 
-  const unitPrice = parseFloat(item.price) + extraPrice;
+  const basePrice = parseFloat(item.price || item.unit_price || 0);
+  const unitPrice = basePrice + extraPrice;
+  const itemName = item.name || item.product_name || 'Menu Item';
+
+  const normalizedItem = {
+    ...item,
+    name: itemName,
+    price: basePrice
+  };
 
   AppState.cart.items.push({
     cartItemId: 'ci-' + Date.now() + Math.random().toString(36).substr(2, 4),
-    item: item,
+    item: normalizedItem,
     customisations: customisations,
     notes: notes,
     qty: qty,
@@ -2204,6 +2227,7 @@ function addItemToCart(item, customisations, notes, qty) {
   });
 
   renderCartUI();
+  saveLocalDB();
 }
 
 function renderCartUI() {
@@ -2383,64 +2407,59 @@ window.removeCartItem = function(index) {
   renderCartUI();
 };
 
-function resetOptionGridDefaults(gridId) {
-  const grid = document.getElementById(gridId);
-  if (!grid) return;
-  const cards = grid.querySelectorAll('.option-card');
-  cards.forEach((card, idx) => {
-    if (idx === 0) {
-      card.classList.add('active');
-    } else {
-      card.classList.remove('active');
-    }
-  });
-}
-
 // Customiser Modal Logic
 function setupCustomiserModal() {
   const modal = document.getElementById('customiser-modal');
   const closeBtn = document.getElementById('close-customiser-btn');
-  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  }
 
-  // Option Cards Toggles
-  setupOptionGrid('opt-size-grid');
-  setupOptionGrid('opt-milk-grid');
-  setupOptionGrid('opt-roast-grid');
+  const minusBtn = document.getElementById('qty-minus');
+  if (minusBtn) {
+    minusBtn.addEventListener('click', () => {
+      let q = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+      if (q > 1) {
+        document.getElementById('customiser-qty').textContent = q - 1;
+        recalculateCustomiserPrice();
+      }
+    });
+  }
 
-  document.getElementById('qty-minus').addEventListener('click', () => {
-    let q = parseInt(document.getElementById('customiser-qty').textContent || '1');
-    if (q > 1) {
-      document.getElementById('customiser-qty').textContent = q - 1;
+  const plusBtn = document.getElementById('qty-plus');
+  if (plusBtn) {
+    plusBtn.addEventListener('click', () => {
+      let q = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+      document.getElementById('customiser-qty').textContent = q + 1;
       recalculateCustomiserPrice();
-    }
-  });
-
-  document.getElementById('qty-plus').addEventListener('click', () => {
-    let q = parseInt(document.getElementById('customiser-qty').textContent || '1');
-    document.getElementById('customiser-qty').textContent = q + 1;
-    recalculateCustomiserPrice();
-  });
+    });
+  }
 
   // Confirm Add to Cart
-  document.getElementById('add-to-cart-confirm-btn').addEventListener('click', () => {
-    const customisations = [];
-    
-    // Gather selections
-    document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
-      customisations.push({
-        customisation_id: input.getAttribute('data-id'),
-        group_name: input.getAttribute('data-group'),
-        option_name: input.getAttribute('data-name'),
-        extra_price: parseFloat(input.getAttribute('data-extra'))
+  const confirmBtn = document.getElementById('add-to-cart-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      if (!AppState.modalItem) return;
+      const customisations = [];
+      
+      // Gather selections
+      document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
+        customisations.push({
+          customisation_id: input.getAttribute('data-id'),
+          group_name: input.getAttribute('data-group'),
+          option_name: input.getAttribute('data-name'),
+          extra_price: parseFloat(input.getAttribute('data-extra') || 0)
+        });
       });
+
+      const notes = document.getElementById('customiser-item-notes')?.value?.trim() || '';
+      const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+
+      addItemToCart(AppState.modalItem, customisations, notes, qty);
+      modal?.classList.add('hidden');
+      showToast(`Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
     });
-
-    const notes = document.getElementById('customiser-item-notes').value.trim();
-    const qty = parseInt(document.getElementById('customiser-qty').textContent || '1');
-
-    addItemToCart(AppState.modalItem, customisations, notes, qty);
-    document.getElementById('customiser-modal').classList.add('hidden');
-  });
+  }
 }
 
 function openCustomiserModal(item) {
