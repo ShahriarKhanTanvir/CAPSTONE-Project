@@ -75,6 +75,10 @@ $csrfToken = getCSRFToken();
             <i class="ri-calendar-check-line"></i>
             <span>Reservations</span>
           </a>
+          <a href="#" class="nav-item" data-module="payments">
+            <i class="ri-bank-card-line"></i>
+            <span>Payments & Invoices</span>
+          </a>
         </nav>
 
         <div class="nav-section-title">Shop & Inventory</div>
@@ -307,6 +311,19 @@ $csrfToken = getCSRFToken();
               <span>Total Payable</span>
               <span id="cart-total">$0.00</span>
             </div>
+          </div>
+
+          <!-- Quick Tender Shortcuts -->
+          <div class="cart-quick-pay-row" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:8px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="quickPay('eftpos')" title="Instant EFTPOS Tap Payment">
+              <i class="ri-wireless-charging-line"></i> Tap
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="quickPay('cash')" title="Cash Payment">
+              <i class="ri-cash-line"></i> Cash
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="quickPay('paypal')" title="PayPal Checkout">
+              <i class="ri-paypal-line"></i> PayPal
+            </button>
           </div>
 
           <!-- Checkout Actions -->
