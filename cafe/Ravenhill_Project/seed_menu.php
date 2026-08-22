@@ -66,38 +66,115 @@ $products = [
 ];
 
 $modifiers = [
-    // Milk Modifiers
-    ["Milk", "Oat Milk", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
-    ["Milk", "Soy Milk", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
-    ["Milk", "Almond Milk", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
-    ["Milk", "Lactose Free Milk", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    // Coffee & Hot Drinks Size Modifiers
+    ["Cup Size", "Regular (8oz)", 0.00, ["Coffee", "Hot Drinks", "Tea"]],
+    ["Cup Size", "Large (12oz)", 0.80, ["Coffee", "Hot Drinks", "Tea"]],
+    ["Cup Size", "Jumbo / Extra Large (16oz)", 1.50, ["Coffee", "Hot Drinks"]],
     
-    // Coffee Modifiers
-    ["Coffee Modifiers", "Extra Shot", 0.80, ["Coffee", "Cold Coffee"]],
-    ["Coffee Modifiers", "Decaf", 0.80, ["Coffee", "Cold Coffee"]],
-    
-    // Size Modifiers
-    ["Size", "Large", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies", "Juices", "Tea"]],
-    
-    // Flavour Modifiers
-    ["Flavours", "Vanilla Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
-    ["Flavours", "Caramel Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
-    ["Flavours", "Hazelnut Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
-    
-    // Other / Add-ons
-    ["Add-ons", "Whipped Cream", 0.80, ["Hot Drinks", "Cold Coffee", "Cold Drinks"]],
-    ["Add-ons", "Marshmallows", 0.70, ["Hot Drinks", "Cold Drinks"]],
-    
-    // Food Add-ons
-    ["Food Add-ons", "Gluten Free Bread", 2.00, ["Breakfast", "Toasties", "Sandwiches"]],
-    ["Food Add-ons", "Extra Cheese", 2.00, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
-    ["Food Add-ons", "Avocado", 3.00, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
-    ["Food Add-ons", "Bacon", 4.50, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
-    ["Food Add-ons", "Extra Egg", 2.50, ["Breakfast", "Toasties", "Lunch"]],
-    ["Food Add-ons", "Hash Brown", 2.50, ["Breakfast", "Sides"]],
-    ["Food Add-ons", "Smoked Salmon", 7.00, ["Breakfast", "Sandwiches", "Lunch"]],
-    ["Food Add-ons", "Chicken", 5.00, ["Sandwiches", "Lunch"]],
-    ["Food Add-ons", "Halloumi", 4.00, ["Breakfast", "Sandwiches", "Lunch"]],
+    // Cold Drinks Size Modifiers
+    ["Cold Size", "Regular Chilled (16oz)", 0.00, ["Cold Coffee", "Cold Drinks", "Smoothies", "Juices"]],
+    ["Cold Size", "Large Chilled (20oz)", 1.00, ["Cold Coffee", "Cold Drinks", "Smoothies", "Juices"]],
+
+    // Milk & Dairy Alternatives
+    ["Milk & Dairy Choice", "Full Cream Dairy Milk", 0.00, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Skinny / Light Milk", 0.00, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Oat Milk (Oatly Barista)", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Almond Milk (Milklab)", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Soy Milk (Bonsoy)", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Coconut Milk (Milklab)", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "Lactose-Free Milk (Zymil)", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks", "Smoothies"]],
+    ["Milk & Dairy Choice", "No Milk (Black)", 0.00, ["Coffee", "Cold Coffee"]],
+
+    // Espresso Roasts & Strength
+    ["Espresso Roast & Origin", "Ravenhill Reserve Blend", 0.00, ["Coffee", "Cold Coffee"]],
+    ["Espresso Roast & Origin", "Single Origin Ethiopian", 1.00, ["Coffee", "Cold Coffee"]],
+    ["Espresso Roast & Origin", "Swiss Water Decaf", 0.70, ["Coffee", "Cold Coffee"]],
+    ["Espresso Strength", "Standard Shot", 0.00, ["Coffee", "Cold Coffee"]],
+    ["Espresso Strength", "Extra Espresso Shot (+1)", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee"]],
+    ["Espresso Strength", "Double Extra Shot (+2)", 1.50, ["Coffee", "Cold Coffee"]],
+    ["Espresso Strength", "Half Strength", 0.00, ["Coffee", "Cold Coffee"]],
+    ["Espresso Strength", "Ristretto Extraction", 0.00, ["Coffee"]],
+
+    // Syrups & Flavours
+    ["Syrups & Flavours", "Vanilla Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
+    ["Syrups & Flavours", "Caramel Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
+    ["Syrups & Flavours", "Hazelnut Syrup", 0.70, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
+    ["Syrups & Flavours", "Salted Caramel Syrup", 0.80, ["Coffee", "Hot Drinks", "Cold Coffee", "Cold Drinks"]],
+    ["Syrups & Flavours", "Pure Raw Honey", 0.60, ["Coffee", "Hot Drinks", "Tea", "Smoothies"]],
+
+    // Temperature & Sweetener
+    ["Temperature & Sweetener", "Extra Hot (68°C)", 0.00, ["Coffee", "Hot Drinks"]],
+    ["Temperature & Sweetener", "Warm / Kid's Temp (55°C)", 0.00, ["Coffee", "Hot Drinks"]],
+    ["Temperature & Sweetener", "1x Raw Sugar", 0.00, ["Coffee", "Hot Drinks", "Tea", "Cold Coffee"]],
+    ["Temperature & Sweetener", "2x Raw Sugar", 0.00, ["Coffee", "Hot Drinks", "Tea", "Cold Coffee"]],
+    ["Temperature & Sweetener", "Equal / Stevia", 0.00, ["Coffee", "Hot Drinks", "Tea", "Cold Coffee"]],
+    ["Temperature & Sweetener", "Dust with Dark Cocoa", 0.00, ["Coffee", "Hot Drinks"]],
+    ["Temperature & Sweetener", "Dust with Cinnamon", 0.00, ["Coffee", "Hot Drinks"]],
+
+    // Cold Add-ons & Ice
+    ["Ice & Indulgence", "Standard Ice", 0.00, ["Cold Coffee", "Cold Drinks", "Juices"]],
+    ["Ice & Indulgence", "Less Ice", 0.00, ["Cold Coffee", "Cold Drinks", "Juices"]],
+    ["Ice & Indulgence", "Extra Ice", 0.00, ["Cold Coffee", "Cold Drinks", "Juices"]],
+    ["Ice & Indulgence", "Scoop of Vanilla Ice Cream", 1.50, ["Cold Coffee", "Cold Drinks"]],
+    ["Ice & Indulgence", "Fresh Whipped Cream", 1.00, ["Hot Drinks", "Cold Coffee", "Cold Drinks", "Pastries", "Bakery"]],
+    ["Ice & Indulgence", "Extra Marshmallows (3 pcs)", 0.60, ["Hot Drinks", "Cold Drinks"]],
+
+    // Smoothie & Juice Boosters
+    ["Smoothie & Juice Boosters", "Organic Pea Protein (Vanilla)", 2.50, ["Smoothies"]],
+    ["Smoothie & Juice Boosters", "Whey Protein Isolate (Chocolate)", 2.50, ["Smoothies"]],
+    ["Smoothie & Juice Boosters", "Organic Chia Seeds", 1.00, ["Smoothies", "Juices"]],
+    ["Smoothie & Juice Boosters", "Organic Spirulina Greens", 1.50, ["Smoothies"]],
+    ["Smoothie & Juice Boosters", "Peanut Butter Scoop", 1.50, ["Smoothies"]],
+    ["Smoothie & Juice Boosters", "Fresh Ginger Shot", 1.00, ["Juices", "Smoothies"]],
+
+    // Breakfast & Egg Cooking Style
+    ["Egg Preparation Style", "Poached Eggs (Soft Runny)", 0.00, ["Breakfast"]],
+    ["Egg Preparation Style", "Scrambled Eggs (Silky Butter)", 0.00, ["Breakfast"]],
+    ["Egg Preparation Style", "Fried Eggs (Sunny Side Up)", 0.00, ["Breakfast"]],
+    ["Egg Preparation Style", "Fried Eggs (Over Hard)", 0.00, ["Breakfast"]],
+    ["Egg Preparation Style", "Egg Whites Only", 2.00, ["Breakfast"]],
+
+    // Bread & Toast Selection
+    ["Bread & Toast Selection", "Artisan White Sourdough", 0.00, ["Breakfast", "Toasties", "Sandwiches"]],
+    ["Bread & Toast Selection", "Seeded Multigrain Sourdough", 0.50, ["Breakfast", "Toasties", "Sandwiches"]],
+    ["Bread & Toast Selection", "Gluten-Free Bread / Toast", 1.50, ["Breakfast", "Toasties", "Sandwiches"]],
+    ["Bread & Toast Selection", "Toasted Brioche Bun", 0.00, ["Breakfast", "Sandwiches"]],
+    ["Bread & Toast Selection", "No Bread / Carb-Free", 0.00, ["Breakfast"]],
+
+    // Food Add-Ons & Savory Extras
+    ["Food Add-Ons & Extras", "Crispy Smoked Bacon (2 Rashers)", 4.50, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Grilled Halloumi Cheese (2 Slices)", 4.50, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Smashed Hass Avocado", 4.00, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Golden Potato Hash Brown", 3.50, ["Breakfast", "Toasties", "Sandwiches", "Sides"]],
+    ["Food Add-Ons & Extras", "Grilled Thyme Mushrooms", 4.00, ["Breakfast", "Toasties", "Lunch"]],
+    ["Food Add-Ons & Extras", "Smoked Tasmanian Salmon", 6.00, ["Breakfast", "Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Grilled Herb Chicken Breast", 5.50, ["Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Wilted Baby Spinach", 3.00, ["Breakfast", "Lunch"]],
+    ["Food Add-Ons & Extras", "Roasted Heirloom Tomatoes", 3.50, ["Breakfast", "Toasties", "Lunch"]],
+    ["Food Add-Ons & Extras", "Danish Creamy Feta", 3.00, ["Breakfast", "Toasties", "Lunch"]],
+    ["Food Add-Ons & Extras", "Extra Free-Range Egg", 2.50, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
+    ["Food Add-Ons & Extras", "Extra Melted Vintage Cheddar", 2.00, ["Breakfast", "Toasties", "Sandwiches"]],
+    ["Food Add-Ons & Extras", "Extra Swiss Gruyère Cheese", 2.50, ["Toasties", "Sandwiches"]],
+    ["Food Add-Ons & Extras", "Pickled Jalapeños", 1.00, ["Toasties", "Sandwiches", "Lunch"]],
+
+    // Sauces, Condiments & Spreads
+    ["Sauces & Condiments", "House Citrus Hollandaise", 2.00, ["Breakfast"]],
+    ["Sauces & Condiments", "Smoky Tomato Relish", 1.00, ["Breakfast", "Toasties", "Sandwiches", "Sides"]],
+    ["Sauces & Condiments", "Chipotle Spicy Mayo", 1.00, ["Breakfast", "Toasties", "Sandwiches", "Sides"]],
+    ["Sauces & Condiments", "Garlic Aioli", 1.00, ["Sandwiches", "Sides", "Lunch"]],
+    ["Sauces & Condiments", "Truffle Mayo", 1.50, ["Toasties", "Sandwiches", "Sides"]],
+    ["Sauces & Condiments", "Dijon Mustard", 0.00, ["Toasties", "Sandwiches"]],
+    ["Sauces & Condiments", "Strawberry Jam", 0.50, ["Pastries", "Bakery", "Breakfast"]],
+    ["Sauces & Condiments", "Nutella Spread", 1.00, ["Pastries", "Bakery"]],
+    ["Sauces & Condiments", "Sauce on the Side", 0.00, ["Breakfast", "Toasties", "Sandwiches", "Sides", "Lunch"]],
+
+    // Removals & Dietary Preferences
+    ["Removals & Dietary", "No Butter / Dry Toast", 0.00, ["Breakfast", "Toasties", "Sandwiches", "Pastries", "Bakery"]],
+    ["Removals & Dietary", "No Onion / Chives", 0.00, ["Breakfast", "Toasties", "Sandwiches", "Lunch"]],
+    ["Removals & Dietary", "No Tomato", 0.00, ["Toasties", "Sandwiches", "Breakfast"]],
+    ["Removals & Dietary", "No Dukkah (Nut Allergy)", 0.00, ["Breakfast", "Lunch"]],
+    ["Removals & Dietary", "No Mayo / Dressing", 0.00, ["Sandwiches", "Lunch", "Sides"]],
+    ["Removals & Dietary", "Extra Crispy Bacon", 0.00, ["Breakfast", "Toasties", "Sandwiches"]]
 ];
 
 try {

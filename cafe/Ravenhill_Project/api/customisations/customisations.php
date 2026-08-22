@@ -41,6 +41,135 @@ $db->exec("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ");
 
+// Auto-seed customisations if table has fewer than 10 options
+$countCheck = $db->query("SELECT COUNT(*) AS total FROM Customisations")->fetch();
+if (!$countCheck || (int)$countCheck['total'] < 15) {
+    $seedModifiers = [
+        // Coffee & Hot Drinks Size Modifiers
+        ["Cup Size", "Regular (8oz)", 0.00, [1, 2, 3], 1],
+        ["Cup Size", "Large (12oz)", 0.80, [1, 2, 3], 0],
+        ["Cup Size", "Jumbo / Extra Large (16oz)", 1.50, [1, 2], 0],
+        
+        // Cold Drinks Size Modifiers
+        ["Cold Size", "Regular Chilled (16oz)", 0.00, [4, 5, 6, 7], 1],
+        ["Cold Size", "Large Chilled (20oz)", 1.00, [4, 5, 6, 7], 0],
+
+        // Milk & Dairy Alternatives
+        ["Milk & Dairy Choice", "Full Cream Dairy Milk", 0.00, [1, 2, 4, 5, 6], 1],
+        ["Milk & Dairy Choice", "Skinny / Light Milk", 0.00, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "Oat Milk (Oatly Barista)", 0.80, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "Almond Milk (Milklab)", 0.80, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "Soy Milk (Bonsoy)", 0.70, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "Coconut Milk (Milklab)", 0.80, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "Lactose-Free Milk (Zymil)", 0.70, [1, 2, 4, 5, 6], 0],
+        ["Milk & Dairy Choice", "No Milk (Black)", 0.00, [1, 4], 0],
+
+        // Espresso Roasts & Strength
+        ["Espresso Roast & Origin", "Ravenhill Reserve Blend", 0.00, [1, 4], 1],
+        ["Espresso Roast & Origin", "Single Origin Ethiopian", 1.00, [1, 4], 0],
+        ["Espresso Roast & Origin", "Swiss Water Decaf", 0.70, [1, 4], 0],
+        ["Espresso Strength", "Standard Shot", 0.00, [1, 4], 1],
+        ["Espresso Strength", "Extra Espresso Shot (+1)", 0.80, [1, 2, 4], 0],
+        ["Espresso Strength", "Double Extra Shot (+2)", 1.50, [1, 4], 0],
+        ["Espresso Strength", "Half Strength", 0.00, [1, 4], 0],
+        ["Espresso Strength", "Ristretto Extraction", 0.00, [1], 0],
+
+        // Syrups & Flavours
+        ["Syrups & Flavours", "Vanilla Syrup", 0.70, [1, 2, 4, 5], 0],
+        ["Syrups & Flavours", "Caramel Syrup", 0.70, [1, 2, 4, 5], 0],
+        ["Syrups & Flavours", "Hazelnut Syrup", 0.70, [1, 2, 4, 5], 0],
+        ["Syrups & Flavours", "Salted Caramel Syrup", 0.80, [1, 2, 4, 5], 0],
+        ["Syrups & Flavours", "Pure Raw Honey", 0.60, [1, 2, 3, 6], 0],
+
+        // Temperature & Sweetener
+        ["Temperature & Sweetener", "Extra Hot (68°C)", 0.00, [1, 2], 0],
+        ["Temperature & Sweetener", "Warm / Kid's Temp (55°C)", 0.00, [1, 2], 0],
+        ["Temperature & Sweetener", "1x Raw Sugar", 0.00, [1, 2, 3, 4], 0],
+        ["Temperature & Sweetener", "2x Raw Sugar", 0.00, [1, 2, 3, 4], 0],
+        ["Temperature & Sweetener", "Equal / Stevia", 0.00, [1, 2, 3, 4], 0],
+        ["Temperature & Sweetener", "Dust with Dark Cocoa", 0.00, [1, 2], 0],
+        ["Temperature & Sweetener", "Dust with Cinnamon", 0.00, [1, 2], 0],
+
+        // Cold Add-ons & Ice
+        ["Ice & Indulgence", "Standard Ice", 0.00, [4, 5, 7], 1],
+        ["Ice & Indulgence", "Less Ice", 0.00, [4, 5, 7], 0],
+        ["Ice & Indulgence", "Extra Ice", 0.00, [4, 5, 7], 0],
+        ["Ice & Indulgence", "Scoop of Vanilla Ice Cream", 1.50, [4, 5], 0],
+        ["Ice & Indulgence", "Fresh Whipped Cream", 1.00, [2, 4, 5, 11, 12], 0],
+        ["Ice & Indulgence", "Extra Marshmallows (3 pcs)", 0.60, [2, 5], 0],
+
+        // Smoothie & Juice Boosters
+        ["Smoothie & Juice Boosters", "Organic Pea Protein (Vanilla)", 2.50, [6], 0],
+        ["Smoothie & Juice Boosters", "Whey Protein Isolate (Chocolate)", 2.50, [6], 0],
+        ["Smoothie & Juice Boosters", "Organic Chia Seeds", 1.00, [6, 7], 0],
+        ["Smoothie & Juice Boosters", "Organic Spirulina Greens", 1.50, [6], 0],
+        ["Smoothie & Juice Boosters", "Peanut Butter Scoop", 1.50, [6], 0],
+        ["Smoothie & Juice Boosters", "Fresh Ginger Shot", 1.00, [6, 7], 0],
+
+        // Breakfast & Egg Cooking Style
+        ["Egg Preparation Style", "Poached Eggs (Soft Runny)", 0.00, [8], 1],
+        ["Egg Preparation Style", "Scrambled Eggs (Silky Butter)", 0.00, [8], 0],
+        ["Egg Preparation Style", "Fried Eggs (Sunny Side Up)", 0.00, [8], 0],
+        ["Egg Preparation Style", "Fried Eggs (Over Hard)", 0.00, [8], 0],
+        ["Egg Preparation Style", "Egg Whites Only", 2.00, [8], 0],
+
+        // Bread & Toast Selection
+        ["Bread & Toast Selection", "Artisan White Sourdough", 0.00, [8, 9, 10], 1],
+        ["Bread & Toast Selection", "Seeded Multigrain Sourdough", 0.50, [8, 9, 10], 0],
+        ["Bread & Toast Selection", "Gluten-Free Bread / Toast", 1.50, [8, 9, 10], 0],
+        ["Bread & Toast Selection", "Toasted Brioche Bun", 0.00, [8, 10], 0],
+        ["Bread & Toast Selection", "No Bread / Carb-Free", 0.00, [8], 0],
+
+        // Food Add-Ons & Savory Extras
+        ["Food Add-Ons & Extras", "Crispy Smoked Bacon (2 Rashers)", 4.50, [8, 9, 10, 13], 0],
+        ["Food Add-Ons & Extras", "Grilled Halloumi Cheese (2 Slices)", 4.50, [8, 9, 10, 13], 0],
+        ["Food Add-Ons & Extras", "Smashed Hass Avocado", 4.00, [8, 9, 10, 13], 0],
+        ["Food Add-Ons & Extras", "Golden Potato Hash Brown", 3.50, [8, 9, 10, 14], 0],
+        ["Food Add-Ons & Extras", "Grilled Thyme Mushrooms", 4.00, [8, 9, 13], 0],
+        ["Food Add-Ons & Extras", "Smoked Tasmanian Salmon", 6.00, [8, 10, 13], 0],
+        ["Food Add-Ons & Extras", "Grilled Herb Chicken Breast", 5.50, [10, 13], 0],
+        ["Food Add-Ons & Extras", "Wilted Baby Spinach", 3.00, [8, 13], 0],
+        ["Food Add-Ons & Extras", "Roasted Heirloom Tomatoes", 3.50, [8, 9, 13], 0],
+        ["Food Add-Ons & Extras", "Danish Creamy Feta", 3.00, [8, 9, 13], 0],
+        ["Food Add-Ons & Extras", "Extra Free-Range Egg", 2.50, [8, 9, 10, 13], 0],
+        ["Food Add-Ons & Extras", "Extra Melted Vintage Cheddar", 2.00, [8, 9, 10], 0],
+        ["Food Add-Ons & Extras", "Extra Swiss Gruyère Cheese", 2.50, [9, 10], 0],
+        ["Food Add-Ons & Extras", "Pickled Jalapeños", 1.00, [9, 10, 13], 0],
+
+        // Sauces, Condiments & Spreads
+        ["Sauces & Condiments", "House Citrus Hollandaise", 2.00, [8], 0],
+        ["Sauces & Condiments", "Smoky Tomato Relish", 1.00, [8, 9, 10, 14], 0],
+        ["Sauces & Condiments", "Chipotle Spicy Mayo", 1.00, [8, 9, 10, 14], 0],
+        ["Sauces & Condiments", "Garlic Aioli", 1.00, [10, 13, 14], 0],
+        ["Sauces & Condiments", "Truffle Mayo", 1.50, [9, 10, 14], 0],
+        ["Sauces & Condiments", "Dijon Mustard", 0.00, [9, 10], 0],
+        ["Sauces & Condiments", "Strawberry Jam", 0.50, [8, 11, 12], 0],
+        ["Sauces & Condiments", "Nutella Spread", 1.00, [11, 12], 0],
+        ["Sauces & Condiments", "Sauce on the Side", 0.00, [8, 9, 10, 13, 14], 0],
+
+        // Removals & Dietary Preferences
+        ["Removals & Dietary", "No Butter / Dry Toast", 0.00, [8, 9, 10, 11, 12], 0],
+        ["Removals & Dietary", "No Onion / Chives", 0.00, [8, 9, 10, 13], 0],
+        ["Removals & Dietary", "No Tomato", 0.00, [8, 9, 10], 0],
+        ["Removals & Dietary", "No Dukkah (Nut Allergy)", 0.00, [8, 13], 0],
+        ["Removals & Dietary", "No Mayo / Dressing", 0.00, [10, 13, 14], 0],
+        ["Removals & Dietary", "Extra Crispy Bacon", 0.00, [8, 9, 10], 0]
+    ];
+
+    $insStmt = $db->prepare("INSERT INTO Customisations (group_name, option_name, extra_price, category_id, is_default, availability) VALUES (?, ?, ?, ?, ?, 1)");
+    foreach ($seedModifiers as $sMod) {
+        $grp = $sMod[0];
+        $opt = $sMod[1];
+        $price = (float)$sMod[2];
+        $catIds = $sMod[3];
+        $isDef = (int)$sMod[4];
+
+        foreach ($catIds as $cId) {
+            $insStmt->execute([$grp, $opt, $price, $cId, $isDef]);
+        }
+    }
+}
+
 // ── OPTIONS preflight ──────────────────────────────────────────────────────
 if ($method === 'OPTIONS') {
     http_response_code(204);

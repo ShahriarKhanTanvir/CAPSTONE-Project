@@ -711,7 +711,7 @@ const defaultMenuItems = [
   { id: '7', product_id: 7, catId: '1', category_id: 1, name: 'Short Macchiato', desc: 'Pure espresso marked with a dash of steamed milk foam', price: 4.50, hasModifiers: true, image: 'brand_recources/double_espresso_short_black.png' },
   { id: '8', product_id: 8, catId: '1', category_id: 1, name: 'Long Macchiato', desc: 'Double shot over hot water stained with steamed milk foam', price: 5.20, hasModifiers: true, image: 'brand_recources/long_black_coffee.png' },
   { id: '9', product_id: 9, catId: '1', category_id: 1, name: 'Mocha', desc: 'Belgian dark chocolate melted with espresso and silky milk', price: 5.80, hasModifiers: true, image: 'brand_recources/cappuccino_coffee.png' },
-  { id: '10', product_id: 10, catId: '1', category_id: 1, name: 'Babycino', desc: 'Warm frothed milk with sweet cocoa and two marshmallows', price: 2.50, hasModifiers: false, image: 'brand_recources/cappuccino_coffee.png' },
+  { id: '10', product_id: 10, catId: '1', category_id: 1, name: 'Babycino', desc: 'Warm frothed milk with sweet cocoa and two marshmallows', price: 2.50, hasModifiers: true, image: 'brand_recources/cappuccino_coffee.png' },
 
   // Hot Drinks
   { id: '11', product_id: 11, catId: '2', category_id: 2, name: 'Hot Chocolate', desc: 'Belgian 54% dark chocolate with steamed milk and marshmallows', price: 5.50, hasModifiers: true, image: 'brand_recources/cappuccino_coffee.png' },
@@ -740,9 +740,9 @@ const defaultMenuItems = [
   { id: '28', product_id: 28, catId: '5', category_id: 5, name: 'Iced Chai Latte', desc: 'Chilled aromatic spiced chai infused with cold milk over ice', price: 7.20, hasModifiers: true, image: 'brand_recources/prana_sticky_chai_latte.png' },
   { id: '29', product_id: 29, catId: '5', category_id: 5, name: 'Iced Matcha Latte', desc: 'Ceremonial Japanese matcha whisked with ice-cold milk over ice', price: 7.80, hasModifiers: true, image: 'brand_recources/iced_oat_milk_latte.png' },
   { id: '30', product_id: 30, catId: '5', category_id: 5, name: 'Milkshake', desc: 'Classic thick shake (Chocolate, Vanilla, Strawberry, Caramel)', price: 8.50, hasModifiers: true, image: 'brand_recources/iced_oat_milk_latte.png' },
-  { id: '31', product_id: 31, catId: '5', category_id: 5, name: 'Bottled Still Water', desc: 'Pure Australian spring water in recyclable 600ml bottle', price: 3.50, hasModifiers: false, image: 'brand_recources/cold_brew_coffee.png' },
-  { id: '32', product_id: 32, catId: '5', category_id: 5, name: 'Sparkling Water', desc: 'Crisp mineral sparkling water with fresh lemon wedge 500ml', price: 5.00, hasModifiers: false, image: 'brand_recources/cold_brew_coffee.png' },
-  { id: '33', product_id: 33, catId: '5', category_id: 5, name: 'Soft Drink', desc: 'Classic canned soft drinks (Coke, Coke Zero, Sprite, Fanta)', price: 4.50, hasModifiers: false, image: 'brand_recources/cold_brew_coffee.png' },
+  { id: '31', product_id: 31, catId: '5', category_id: 5, name: 'Bottled Still Water', desc: 'Pure Australian spring water in recyclable 600ml bottle', price: 3.50, hasModifiers: true, image: 'brand_recources/cold_brew_coffee.png' },
+  { id: '32', product_id: 32, catId: '5', category_id: 5, name: 'Sparkling Water', desc: 'Crisp mineral sparkling water with fresh lemon wedge 500ml', price: 5.00, hasModifiers: true, image: 'brand_recources/cold_brew_coffee.png' },
+  { id: '33', product_id: 33, catId: '5', category_id: 5, name: 'Soft Drink', desc: 'Classic canned soft drinks (Coke, Coke Zero, Sprite, Fanta)', price: 4.50, hasModifiers: true, image: 'brand_recources/cold_brew_coffee.png' },
 
   // Smoothies
   { id: '34', product_id: 34, catId: '6', category_id: 6, name: 'Smoothie (Banana / Berry / Mango / Tropical)', desc: 'Blended fruit smoothie with Greek yogurt, honey and chia seeds', price: 9.50, hasModifiers: true, image: 'brand_recources/iced_oat_milk_latte.png' },
@@ -758,8 +758,8 @@ const defaultMenuItems = [
   { id: '40', product_id: 40, catId: '8', category_id: 8, name: 'Bacon & Egg Roll', desc: 'Smoked streaky bacon, fried egg, relish on a brioche bun', price: 12.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
   { id: '41', product_id: 41, catId: '8', category_id: 8, name: 'Breakfast Wrap', desc: 'Scrambled eggs, bacon, spinach, avocado & chipotle mayo', price: 13.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
   { id: '42', product_id: 42, catId: '8', category_id: 8, name: 'Avocado Toast', desc: 'Smashed Hass avocado, Persian feta, dukkah, radish & lemon', price: 18.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
-  { id: '43', product_id: 43, catId: '8', category_id: 8, name: 'Granola & Yoghurt', desc: 'Honey toasted granola with seasonal berries & vanilla yogurt', price: 15.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '44', product_id: 44, catId: '8', category_id: 8, name: 'Porridge', desc: 'Rolled oats with almond milk, caramelized banana & maple', price: 15.00, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
+  { id: '43', product_id: 43, catId: '8', category_id: 8, name: 'Granola & Yoghurt', desc: 'Honey toasted granola with seasonal berries & vanilla yogurt', price: 15.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '44', product_id: 44, catId: '8', category_id: 8, name: 'Porridge', desc: 'Rolled oats with almond milk, caramelized banana & maple', price: 15.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
   { id: '45', product_id: 45, catId: '8', category_id: 8, name: 'Eggs Benedict', desc: 'Two poached eggs, smoked ham or bacon, citrus hollandaise on sourdough', price: 21.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
   { id: '46', product_id: 46, catId: '8', category_id: 8, name: 'Breakfast Burger', desc: 'Angus patty, bacon, fried egg, hash brown, cheddar & BBQ relish', price: 16.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
 
@@ -774,25 +774,25 @@ const defaultMenuItems = [
   { id: '52', product_id: 52, catId: '10', category_id: 10, name: 'Chicken & Avocado Sandwich', desc: 'Poached chicken breast, avocado, rocket and herb mayo on baguette', price: 16.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
 
   // Pastries
-  { id: '53', product_id: 53, catId: '11', category_id: 11, name: 'Plain Croissant', desc: 'Traditional flaky French butter croissant baked fresh daily', price: 6.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '54', product_id: 54, catId: '11', category_id: 11, name: 'Almond Croissant', desc: 'Double-baked croissant filled with rich almond frangipane', price: 8.00, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '55', product_id: 55, catId: '11', category_id: 11, name: 'Chocolate Croissant', desc: 'Flaky French pastry with two batons of dark Belgian chocolate', price: 7.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '56', product_id: 56, catId: '11', category_id: 11, name: 'Ham & Cheese Croissant', desc: 'Warm butter croissant with leg ham, Swiss cheese & bechamel', price: 9.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '57', product_id: 57, catId: '11', category_id: 11, name: 'Fruit Danish', desc: 'Crispy pastry rosette with vanilla custard and glazed fruit', price: 7.00, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
+  { id: '53', product_id: 53, catId: '11', category_id: 11, name: 'Plain Croissant', desc: 'Traditional flaky French butter croissant baked fresh daily', price: 6.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '54', product_id: 54, catId: '11', category_id: 11, name: 'Almond Croissant', desc: 'Double-baked croissant filled with rich almond frangipane', price: 8.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '55', product_id: 55, catId: '11', category_id: 11, name: 'Chocolate Croissant', desc: 'Flaky French pastry with two batons of dark Belgian chocolate', price: 7.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '56', product_id: 56, catId: '11', category_id: 11, name: 'Ham & Cheese Croissant', desc: 'Warm butter croissant with leg ham, Swiss cheese & bechamel', price: 9.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '57', product_id: 57, catId: '11', category_id: 11, name: 'Fruit Danish', desc: 'Crispy pastry rosette with vanilla custard and glazed fruit', price: 7.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
 
   // Bakery
-  { id: '58', product_id: 58, catId: '12', category_id: 12, name: 'Blueberry Muffin', desc: 'Moist vanilla batter with wild blueberries and crumble top', price: 6.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '59', product_id: 59, catId: '12', category_id: 12, name: 'Chocolate Muffin', desc: 'Double chocolate chunk muffin with dark and milk chips', price: 6.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '60', product_id: 60, catId: '12', category_id: 12, name: 'Banana Bread', desc: 'Toasted spiced banana loaf with whipped honey cinnamon butter', price: 7.00, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '61', product_id: 61, catId: '12', category_id: 12, name: 'Blueberry Scone', desc: 'Traditional scone served warm with strawberry jam & cream', price: 6.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
+  { id: '58', product_id: 58, catId: '12', category_id: 12, name: 'Blueberry Muffin', desc: 'Moist vanilla batter with wild blueberries and crumble top', price: 6.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '59', product_id: 59, catId: '12', category_id: 12, name: 'Chocolate Muffin', desc: 'Double chocolate chunk muffin with dark and milk chips', price: 6.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '60', product_id: 60, catId: '12', category_id: 12, name: 'Banana Bread', desc: 'Toasted spiced banana loaf with whipped honey cinnamon butter', price: 7.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '61', product_id: 61, catId: '12', category_id: 12, name: 'Blueberry Scone', desc: 'Traditional scone served warm with strawberry jam & cream', price: 6.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
 
   // Lunch
   { id: '62', product_id: 62, catId: '13', category_id: 13, name: 'Seasonal Salad', desc: 'Baby spinach, quinoa, roast pumpkin, walnuts & balsamic citrus', price: 18.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
   { id: '63', product_id: 63, catId: '13', category_id: 13, name: 'Chicken Caesar Salad', desc: 'Grilled chicken, bacon, cos lettuce, croutons, parmesan & egg', price: 21.00, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
 
   // Sides
-  { id: '64', product_id: 64, catId: '14', category_id: 14, name: 'Chips', desc: 'Bowl of crispy golden shoestring potato fries with garlic aioli', price: 8.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' },
-  { id: '65', product_id: 65, catId: '14', category_id: 14, name: 'Sweet Potato Chips', desc: 'Crunchy rosemary salted sweet potato fries with chipotle mayo', price: 10.50, hasModifiers: false, image: 'brand_recources/butter_croissant.png' }
+  { id: '64', product_id: 64, catId: '14', category_id: 14, name: 'Chips', desc: 'Bowl of crispy golden shoestring potato fries with garlic aioli', price: 8.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' },
+  { id: '65', product_id: 65, catId: '14', category_id: 14, name: 'Sweet Potato Chips', desc: 'Crunchy rosemary salted sweet potato fries with chipotle mayo', price: 10.50, hasModifiers: true, image: 'brand_recources/butter_croissant.png' }
 ];
 
 const DB = {
@@ -2404,6 +2404,300 @@ function openCustomiserModal(item) {
   openCustomiserModalAsync(item);
 }
 
+function getClientSideCustomisations(item) {
+  const catId = String(item.category_id || item.catId || '1');
+  const nameLower = (item.name || item.product_name || '').toLowerCase();
+  const groups = {};
+
+  const isCoffee = catId === '1' || nameLower.includes('latte') || nameLower.includes('cappuccino') || nameLower.includes('flat white') || nameLower.includes('espresso') || nameLower.includes('mocha') || nameLower.includes('long black') || nameLower.includes('piccolo') || nameLower.includes('macchiato');
+  const isHotDrink = catId === '2' || nameLower.includes('chai') || nameLower.includes('chocolate') || nameLower.includes('matcha') || nameLower.includes('turmeric');
+  const isTea = catId === '3' || nameLower.includes('tea');
+  const isColdCoffee = catId === '4' || nameLower.includes('iced latte') || nameLower.includes('iced long black') || nameLower.includes('iced coffee') || nameLower.includes('cold brew');
+  const isColdDrink = catId === '5' || nameLower.includes('milkshake') || nameLower.includes('soda') || nameLower.includes('iced chocolate');
+  const isSmoothie = catId === '6' || nameLower.includes('smoothie');
+  const isJuice = catId === '7' || nameLower.includes('juice');
+  const isBreakfast = catId === '8' || nameLower.includes('egg') || nameLower.includes('toast') || nameLower.includes('benedict') || nameLower.includes('bacon') || nameLower.includes('avocado') || nameLower.includes('wrap') || nameLower.includes('burger');
+  const isToastie = catId === '9' || nameLower.includes('toastie') || nameLower.includes('melt');
+  const isSandwich = catId === '10' || nameLower.includes('sandwich') || nameLower.includes('blt');
+  const isPastryBakery = catId === '11' || catId === '12' || nameLower.includes('croissant') || nameLower.includes('danish') || nameLower.includes('muffin') || nameLower.includes('bread') || nameLower.includes('scone');
+  const isLunch = catId === '13' || nameLower.includes('salad') || nameLower.includes('caesar') || nameLower.includes('bowl');
+  const isSides = catId === '14' || nameLower.includes('chips') || nameLower.includes('fries');
+
+  if (isCoffee) {
+    groups['Cup Size'] = [
+      { customisation_id: 'cs-1', option_name: 'Regular (8oz)', extra_price: 0.00, is_default: true },
+      { customisation_id: 'cs-2', option_name: 'Large (12oz)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'cs-3', option_name: 'Jumbo (16oz)', extra_price: 1.50, is_default: false }
+    ];
+    groups['Milk Choice'] = [
+      { customisation_id: 'mc-1', option_name: 'Full Cream Dairy Milk', extra_price: 0.00, is_default: !nameLower.includes('black') && !nameLower.includes('espresso') },
+      { customisation_id: 'mc-2', option_name: 'Skinny / Light Milk', extra_price: 0.00, is_default: false },
+      { customisation_id: 'mc-3', option_name: 'Oat Milk (Oatly Barista)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'mc-4', option_name: 'Almond Milk (Milklab)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'mc-5', option_name: 'Soy Milk (Bonsoy)', extra_price: 0.70, is_default: false },
+      { customisation_id: 'mc-6', option_name: 'Coconut Milk (Milklab)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'mc-7', option_name: 'Lactose-Free (Zymil)', extra_price: 0.70, is_default: false },
+      { customisation_id: 'mc-8', option_name: 'No Milk (Black)', extra_price: 0.00, is_default: nameLower.includes('black') || nameLower.includes('espresso') }
+    ];
+    groups['Espresso Roast & Origin'] = [
+      { customisation_id: 'ro-1', option_name: 'Ravenhill Reserve Blend', extra_price: 0.00, is_default: true },
+      { customisation_id: 'ro-2', option_name: 'Single Origin Ethiopian (Floral & Berry)', extra_price: 1.00, is_default: false },
+      { customisation_id: 'ro-3', option_name: 'Swiss Water Decaf', extra_price: 0.70, is_default: false }
+    ];
+    groups['Espresso Strength & Shots'] = [
+      { customisation_id: 'st-1', option_name: 'Standard Shot', extra_price: 0.00, is_default: true },
+      { customisation_id: 'st-2', option_name: 'Extra Espresso Shot (+1)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'st-3', option_name: 'Double Extra Shot (+2)', extra_price: 1.50, is_default: false },
+      { customisation_id: 'st-4', option_name: 'Half Strength', extra_price: 0.00, is_default: false },
+      { customisation_id: 'st-5', option_name: 'Ristretto Extraction', extra_price: 0.00, is_default: false }
+    ];
+    groups['Syrups & Flavours'] = [
+      { customisation_id: 'sy-1', option_name: 'Vanilla Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'sy-2', option_name: 'Caramel Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'sy-3', option_name: 'Hazelnut Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'sy-4', option_name: 'Salted Caramel Syrup', extra_price: 0.80, is_default: false },
+      { customisation_id: 'sy-5', option_name: 'Pure Raw Honey', extra_price: 0.60, is_default: false }
+    ];
+    groups['Temperature & Sweetener'] = [
+      { customisation_id: 'tp-1', option_name: 'Extra Hot (68°C)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'tp-2', option_name: 'Warm / Kid\'s Temp (55°C)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'tp-3', option_name: '1x Raw Sugar', extra_price: 0.00, is_default: false },
+      { customisation_id: 'tp-4', option_name: '2x Raw Sugar', extra_price: 0.00, is_default: false },
+      { customisation_id: 'tp-5', option_name: 'Equal / Stevia', extra_price: 0.00, is_default: false },
+      { customisation_id: 'tp-6', option_name: 'Dust with Dark Cocoa', extra_price: 0.00, is_default: nameLower.includes('cappuccino') },
+      { customisation_id: 'tp-7', option_name: 'Dust with Cinnamon', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isHotDrink) {
+    groups['Cup Size'] = [
+      { customisation_id: 'hd-s1', option_name: 'Regular (8oz)', extra_price: 0.00, is_default: true },
+      { customisation_id: 'hd-s2', option_name: 'Large (12oz)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'hd-s3', option_name: 'Jumbo (16oz)', extra_price: 1.50, is_default: false }
+    ];
+    groups['Milk Choice'] = [
+      { customisation_id: 'hd-m1', option_name: 'Full Cream Dairy Milk', extra_price: 0.00, is_default: true },
+      { customisation_id: 'hd-m2', option_name: 'Skinny Milk', extra_price: 0.00, is_default: false },
+      { customisation_id: 'hd-m3', option_name: 'Oat Milk (Oatly)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'hd-m4', option_name: 'Almond Milk (Milklab)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'hd-m5', option_name: 'Soy Milk (Bonsoy)', extra_price: 0.70, is_default: false },
+      { customisation_id: 'hd-m6', option_name: 'Coconut Milk', extra_price: 0.80, is_default: false }
+    ];
+    groups['Add-Ons & Extras'] = [
+      { customisation_id: 'hd-e1', option_name: 'Add Espresso Shot (Dirty)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'hd-e2', option_name: 'Fresh Whipped Cream', extra_price: 1.00, is_default: false },
+      { customisation_id: 'hd-e3', option_name: 'Extra Marshmallows (3 pcs)', extra_price: 0.60, is_default: false },
+      { customisation_id: 'hd-e4', option_name: 'Pure Raw Honey', extra_price: 0.60, is_default: false }
+    ];
+    groups['Temperature & Sweetener'] = [
+      { customisation_id: 'hd-t1', option_name: 'Extra Hot', extra_price: 0.00, is_default: false },
+      { customisation_id: 'hd-t2', option_name: 'Warm / Kid\'s Temp', extra_price: 0.00, is_default: false },
+      { customisation_id: 'hd-t3', option_name: 'Less Sweet', extra_price: 0.00, is_default: false },
+      { customisation_id: 'hd-t4', option_name: '1x Sugar', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isTea) {
+    groups['Pot Size'] = [
+      { customisation_id: 't-s1', option_name: 'Teapot for One', extra_price: 0.00, is_default: true },
+      { customisation_id: 't-s2', option_name: 'Large Teapot for Two', extra_price: 2.00, is_default: false }
+    ];
+    groups['Milk on the Side'] = [
+      { customisation_id: 't-m1', option_name: 'No Milk', extra_price: 0.00, is_default: true },
+      { customisation_id: 't-m2', option_name: 'Cold Full Cream Milk on Side', extra_price: 0.00, is_default: false },
+      { customisation_id: 't-m3', option_name: 'Cold Oat Milk on Side', extra_price: 0.80, is_default: false },
+      { customisation_id: 't-m4', option_name: 'Cold Soy Milk on Side', extra_price: 0.70, is_default: false }
+    ];
+    groups['Garnishes & Sweeteners'] = [
+      { customisation_id: 't-g1', option_name: 'Fresh Lemon Slice', extra_price: 0.00, is_default: false },
+      { customisation_id: 't-g2', option_name: 'Fresh Mint Leaves', extra_price: 0.00, is_default: false },
+      { customisation_id: 't-g3', option_name: 'Pure Raw Honey on Side', extra_price: 0.60, is_default: false },
+      { customisation_id: 't-g4', option_name: '1x Raw Sugar', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isColdCoffee || isColdDrink) {
+    groups['Cup Size'] = [
+      { customisation_id: 'cc-s1', option_name: 'Regular Chilled (16oz)', extra_price: 0.00, is_default: true },
+      { customisation_id: 'cc-s2', option_name: 'Large Chilled (20oz)', extra_price: 1.00, is_default: false }
+    ];
+    groups['Milk Choice'] = [
+      { customisation_id: 'cc-m1', option_name: 'Full Cream Dairy Milk', extra_price: 0.00, is_default: true },
+      { customisation_id: 'cc-m2', option_name: 'Skinny Milk', extra_price: 0.00, is_default: false },
+      { customisation_id: 'cc-m3', option_name: 'Oat Milk (Oatly)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'cc-m4', option_name: 'Almond Milk (Milklab)', extra_price: 0.80, is_default: false },
+      { customisation_id: 'cc-m5', option_name: 'Soy Milk (Bonsoy)', extra_price: 0.70, is_default: false },
+      { customisation_id: 'cc-m6', option_name: 'Black / Water Only', extra_price: 0.00, is_default: false }
+    ];
+    groups['Ice Level'] = [
+      { customisation_id: 'cc-i1', option_name: 'Standard Ice', extra_price: 0.00, is_default: true },
+      { customisation_id: 'cc-i2', option_name: 'Less Ice', extra_price: 0.00, is_default: false },
+      { customisation_id: 'cc-i3', option_name: 'Extra Ice', extra_price: 0.00, is_default: false },
+      { customisation_id: 'cc-i4', option_name: 'No Ice', extra_price: 0.00, is_default: false }
+    ];
+    groups['Cold Extras & Flavors'] = [
+      { customisation_id: 'cc-e1', option_name: 'Extra Espresso Shot', extra_price: 0.80, is_default: false },
+      { customisation_id: 'cc-e2', option_name: 'Scoop of Vanilla Ice Cream', extra_price: 1.50, is_default: nameLower.includes('iced coffee') || nameLower.includes('iced chocolate') },
+      { customisation_id: 'cc-e3', option_name: 'Fresh Whipped Cream', extra_price: 1.00, is_default: nameLower.includes('iced coffee') || nameLower.includes('iced chocolate') },
+      { customisation_id: 'cc-e4', option_name: 'Vanilla Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'cc-e5', option_name: 'Caramel Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'cc-e6', option_name: 'Hazelnut Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'cc-e7', option_name: 'Salted Caramel Syrup', extra_price: 0.80, is_default: false }
+    ];
+  } else if (isSmoothie || isJuice) {
+    groups['Liquid Base'] = [
+      { customisation_id: 'sm-b1', option_name: 'Full Cream Milk', extra_price: 0.00, is_default: isSmoothie },
+      { customisation_id: 'sm-b2', option_name: 'Oat Milk', extra_price: 0.80, is_default: false },
+      { customisation_id: 'sm-b3', option_name: 'Almond Milk', extra_price: 0.80, is_default: false },
+      { customisation_id: 'sm-b4', option_name: 'Coconut Water Base', extra_price: 1.00, is_default: false },
+      { customisation_id: 'sm-b5', option_name: 'Apple Juice Base', extra_price: 0.00, is_default: isJuice }
+    ];
+    groups['Superfood Boosters & Protein'] = [
+      { customisation_id: 'sm-p1', option_name: 'Organic Vanilla Pea Protein', extra_price: 2.50, is_default: false },
+      { customisation_id: 'sm-p2', option_name: 'Whey Protein Isolate (Chocolate)', extra_price: 2.50, is_default: false },
+      { customisation_id: 'sm-p3', option_name: 'Organic Chia Seeds', extra_price: 1.00, is_default: false },
+      { customisation_id: 'sm-p4', option_name: 'Organic Spirulina Greens', extra_price: 1.50, is_default: false },
+      { customisation_id: 'sm-p5', option_name: 'Peanut Butter Scoop', extra_price: 1.50, is_default: false },
+      { customisation_id: 'sm-p6', option_name: 'Fresh Ginger Shot', extra_price: 1.00, is_default: false },
+      { customisation_id: 'sm-p7', option_name: 'Pure Raw Honey', extra_price: 0.50, is_default: false }
+    ];
+    groups['Texture & Sweetness'] = [
+      { customisation_id: 'sm-t1', option_name: 'Standard Blend', extra_price: 0.00, is_default: true },
+      { customisation_id: 'sm-t2', option_name: 'Extra Thick / Less Ice', extra_price: 0.00, is_default: false },
+      { customisation_id: 'sm-t3', option_name: 'No Added Sweetener', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isBreakfast) {
+    groups['Egg Preparation Style'] = [
+      { customisation_id: 'bf-e1', option_name: 'Poached Eggs (Soft Runny)', extra_price: 0.00, is_default: true },
+      { customisation_id: 'bf-e2', option_name: 'Scrambled Eggs (Silky Butter)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-e3', option_name: 'Fried Eggs (Sunny Side Up)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-e4', option_name: 'Fried Eggs (Over Hard)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-e5', option_name: 'Egg Whites Only', extra_price: 2.00, is_default: false },
+      { customisation_id: 'bf-e6', option_name: 'No Eggs', extra_price: 0.00, is_default: false }
+    ];
+    groups['Bread & Toast Selection'] = [
+      { customisation_id: 'bf-b1', option_name: 'Artisan White Sourdough', extra_price: 0.00, is_default: true },
+      { customisation_id: 'bf-b2', option_name: 'Seeded Multigrain Sourdough', extra_price: 0.50, is_default: false },
+      { customisation_id: 'bf-b3', option_name: 'Gluten-Free Toast', extra_price: 1.50, is_default: false },
+      { customisation_id: 'bf-b4', option_name: 'Toasted Brioche Bun', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-b5', option_name: 'No Bread / Carb-Free', extra_price: 0.00, is_default: false }
+    ];
+    groups['Breakfast Add-Ons & Extras'] = [
+      { customisation_id: 'bf-a1', option_name: 'Crispy Smoked Bacon (2 Rashers)', extra_price: 4.50, is_default: false },
+      { customisation_id: 'bf-a2', option_name: 'Grilled Halloumi (2 Slices)', extra_price: 4.50, is_default: false },
+      { customisation_id: 'bf-a3', option_name: 'Smashed Hass Avocado', extra_price: 4.00, is_default: false },
+      { customisation_id: 'bf-a4', option_name: 'Golden Potato Hash Brown', extra_price: 3.50, is_default: false },
+      { customisation_id: 'bf-a5', option_name: 'Grilled Thyme Field Mushrooms', extra_price: 4.00, is_default: false },
+      { customisation_id: 'bf-a6', option_name: 'Smoked Tasmanian Salmon', extra_price: 6.00, is_default: false },
+      { customisation_id: 'bf-a7', option_name: 'Wilted Baby Spinach', extra_price: 3.00, is_default: false },
+      { customisation_id: 'bf-a8', option_name: 'Roasted Heirloom Tomatoes', extra_price: 3.50, is_default: false },
+      { customisation_id: 'bf-a9', option_name: 'Danish Creamy Feta', extra_price: 3.00, is_default: false },
+      { customisation_id: 'bf-a10', option_name: 'Extra Free-Range Egg', extra_price: 2.50, is_default: false }
+    ];
+    groups['Sauces & Condiments'] = [
+      { customisation_id: 'bf-s1', option_name: 'House Citrus Hollandaise', extra_price: 2.00, is_default: nameLower.includes('benedict') },
+      { customisation_id: 'bf-s2', option_name: 'Smoky Tomato Relish', extra_price: 1.00, is_default: false },
+      { customisation_id: 'bf-s3', option_name: 'Chipotle Spicy Mayo', extra_price: 1.00, is_default: false },
+      { customisation_id: 'bf-s4', option_name: 'Smoky BBQ Sauce', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-s5', option_name: 'Tomato Ketchup', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-s6', option_name: 'Sauce on the Side', extra_price: 0.00, is_default: false }
+    ];
+    groups['Removals & Dietary'] = [
+      { customisation_id: 'bf-r1', option_name: 'No Butter / Dry Toast', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-r2', option_name: 'No Onion / Chives', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-r3', option_name: 'No Dukkah (Nut Allergy)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bf-r4', option_name: 'Extra Crispy Bacon', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isToastie || isSandwich) {
+    groups['Bread Choice'] = [
+      { customisation_id: 'ts-b1', option_name: 'Artisan White Sourdough', extra_price: 0.00, is_default: true },
+      { customisation_id: 'ts-b2', option_name: 'Seeded Multigrain Sourdough', extra_price: 0.50, is_default: false },
+      { customisation_id: 'ts-b3', option_name: 'Gluten-Free Bread', extra_price: 1.50, is_default: false },
+      { customisation_id: 'ts-b4', option_name: 'Fresh French Baguette', extra_price: 0.00, is_default: isSandwich && !nameLower.includes('toast') }
+    ];
+    groups['Toasting Preference'] = [
+      { customisation_id: 'ts-t1', option_name: 'Toasted Golden & Crunchy', extra_price: 0.00, is_default: true },
+      { customisation_id: 'ts-t2', option_name: 'Lightly Toasted', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ts-t3', option_name: 'Fresh / Untoasted', extra_price: 0.00, is_default: false }
+    ];
+    groups['Cheese & Filling Upgrades'] = [
+      { customisation_id: 'ts-c1', option_name: 'Extra Melted Vintage Cheddar', extra_price: 2.00, is_default: false },
+      { customisation_id: 'ts-c2', option_name: 'Extra Swiss Gruyère Cheese', extra_price: 2.50, is_default: false },
+      { customisation_id: 'ts-c3', option_name: 'Add Sliced Hass Avocado', extra_price: 3.50, is_default: false },
+      { customisation_id: 'ts-c4', option_name: 'Add Crispy Bacon', extra_price: 4.00, is_default: false },
+      { customisation_id: 'ts-c5', option_name: 'Add Pickled Jalapeños', extra_price: 1.00, is_default: false },
+      { customisation_id: 'ts-c6', option_name: 'Add Dill Pickles / Gherkins', extra_price: 1.00, is_default: false },
+      { customisation_id: 'ts-c7', option_name: 'Add Sliced Heirloom Tomato', extra_price: 1.50, is_default: false }
+    ];
+    groups['Spreads & Condiments'] = [
+      { customisation_id: 'ts-s1', option_name: 'Dijon Mustard', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ts-s2', option_name: 'House Herb Aioli', extra_price: 0.00, is_default: isSandwich },
+      { customisation_id: 'ts-s3', option_name: 'Truffle Mayo', extra_price: 1.50, is_default: false },
+      { customisation_id: 'ts-s4', option_name: 'Sweet Chili Jam', extra_price: 1.00, is_default: false }
+    ];
+    groups['Removals & Dietary'] = [
+      { customisation_id: 'ts-r1', option_name: 'No Butter', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ts-r2', option_name: 'No Tomato', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ts-r3', option_name: 'No Onion', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ts-r4', option_name: 'No Mustard / Mayo', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isPastryBakery) {
+    groups['Serving Style'] = [
+      { customisation_id: 'pb-s1', option_name: 'Served Fresh (Room Temp)', extra_price: 0.00, is_default: true },
+      { customisation_id: 'pb-s2', option_name: 'Warmed in Oven', extra_price: 0.00, is_default: false },
+      { customisation_id: 'pb-s3', option_name: 'Toasted with Butter on Side', extra_price: 0.00, is_default: false }
+    ];
+    groups['Accompaniments & Spreads'] = [
+      { customisation_id: 'pb-a1', option_name: 'Cultured French Butter', extra_price: 0.00, is_default: nameLower.includes('croissant') || nameLower.includes('bread') },
+      { customisation_id: 'pb-a2', option_name: 'Strawberry Preserves', extra_price: 0.50, is_default: false },
+      { customisation_id: 'pb-a3', option_name: 'Australian Pure Honey', extra_price: 0.50, is_default: false },
+      { customisation_id: 'pb-a4', option_name: 'Nutella Hazelnut Spread', extra_price: 1.00, is_default: false },
+      { customisation_id: 'pb-a5', option_name: 'Fresh Whipped Cream', extra_price: 1.00, is_default: false }
+    ];
+    groups['Removals'] = [
+      { customisation_id: 'pb-r1', option_name: 'No Butter', extra_price: 0.00, is_default: false },
+      { customisation_id: 'pb-r2', option_name: 'No Icing Sugar Dusting', extra_price: 0.00, is_default: false }
+    ];
+  } else if (isLunch || isSides) {
+    groups['Protein Add-Ons'] = [
+      { customisation_id: 'ln-p1', option_name: 'Grilled Herb Chicken Breast', extra_price: 5.50, is_default: false },
+      { customisation_id: 'ln-p2', option_name: 'Smoked Tasmanian Salmon', extra_price: 6.00, is_default: false },
+      { customisation_id: 'ln-p3', option_name: 'Grilled Halloumi (2 Slices)', extra_price: 4.50, is_default: false },
+      { customisation_id: 'ln-p4', option_name: 'Boiled Free-Range Egg', extra_price: 2.50, is_default: false },
+      { customisation_id: 'ln-p5', option_name: 'Smashed Hass Avocado', extra_price: 4.00, is_default: false }
+    ];
+    if (isLunch) {
+      groups['Salad Dressings'] = [
+        { customisation_id: 'ln-d1', option_name: 'House Lemon & Herb Vinaigrette', extra_price: 0.00, is_default: true },
+        { customisation_id: 'ln-d2', option_name: 'Creamy Garlic Caesar', extra_price: 0.00, is_default: false },
+        { customisation_id: 'ln-d3', option_name: 'Japanese Sesame Soy', extra_price: 0.00, is_default: false },
+        { customisation_id: 'ln-d4', option_name: 'Dressing on the Side', extra_price: 0.00, is_default: false }
+      ];
+    }
+    groups['Dipping Sauces'] = [
+      { customisation_id: 'ln-s1', option_name: 'Garlic Aioli', extra_price: 1.00, is_default: isSides },
+      { customisation_id: 'ln-s2', option_name: 'Chipotle Spicy Mayo', extra_price: 1.00, is_default: false },
+      { customisation_id: 'ln-s3', option_name: 'Truffle Mayo', extra_price: 1.50, is_default: false },
+      { customisation_id: 'ln-s4', option_name: 'Smoky BBQ Relish', extra_price: 1.00, is_default: false },
+      { customisation_id: 'ln-s5', option_name: 'Tomato Ketchup', extra_price: 0.00, is_default: false }
+    ];
+    groups['Removals & Dietary'] = [
+      { customisation_id: 'ln-r1', option_name: 'No Onion', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ln-r2', option_name: 'No Croutons (Gluten Free)', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ln-r3', option_name: 'No Cheese / Dairy Free', extra_price: 0.00, is_default: false },
+      { customisation_id: 'ln-r4', option_name: 'No Nuts / Seeds', extra_price: 0.00, is_default: false }
+    ];
+  } else {
+    // Universal fallback
+    groups['Extras & Add-Ons'] = [
+      { customisation_id: 'un-1', option_name: 'Extra Portion', extra_price: 2.50, is_default: false },
+      { customisation_id: 'un-2', option_name: 'Side Salad', extra_price: 4.50, is_default: false },
+      { customisation_id: 'un-3', option_name: 'Sauce on the Side', extra_price: 0.00, is_default: false }
+    ];
+    groups['Removals & Notes'] = [
+      { customisation_id: 'un-r1', option_name: 'No Onion', extra_price: 0.00, is_default: false },
+      { customisation_id: 'un-r2', option_name: 'No Dairy', extra_price: 0.00, is_default: false },
+      { customisation_id: 'un-r3', option_name: 'Extra Crispy', extra_price: 0.00, is_default: false }
+    ];
+  }
+
+  return groups;
+}
+
 async function openCustomiserModalAsync(item) {
   AppState.modalItem = item;
   document.getElementById('customiser-item-name').textContent = item.name || item.product_name;
@@ -2414,58 +2708,140 @@ async function openCustomiserModalAsync(item) {
   const imgEl = document.getElementById('customiser-item-img');
   if (imgEl) imgEl.src = getItemImage(item);
 
+  const notesLabel = document.getElementById('customiser-notes-label');
+  const notesInput = document.getElementById('customiser-item-notes');
+  const catId = String(item.category_id || item.catId || '1');
+  const isDrink = ['1', '2', '3', '4', '5', '6', '7'].includes(catId);
+
+  if (notesLabel) {
+    notesLabel.textContent = isDrink ? '☕ Barista Notes & Special Requests' : '🍳 Kitchen & Dietary Instructions';
+  }
+  if (notesInput) {
+    notesInput.placeholder = isDrink ? 'E.g., Extra hot, 3/4 full, latte art, separate hot water...' : 'E.g., Extra crispy bacon, dressing on side, nut allergy, well toasted...';
+  }
+
   const container = document.getElementById('dynamic-customiser-sections');
   if (container) {
-    container.innerHTML = '<div style="padding:20px;text-align:center;">Loading options...</div>';
+    container.innerHTML = '<div style="padding:20px;text-align:center;"><i class="ri-loader-4-line ri-spin" style="font-size:24px; color:var(--color-primary);"></i><p>Loading customisation options...</p></div>';
   }
   document.getElementById('customiser-modal').classList.remove('hidden');
 
-  if (container) {
+  let groupsToRender = {};
+
+  try {
     const cData = await API.fetchCustomisations(item.product_id || item.id, item.category_id);
+    if (cData && cData.groups && Object.keys(cData.groups).length > 0) {
+      groupsToRender = cData.groups;
+    } else {
+      groupsToRender = getClientSideCustomisations(item);
+    }
+  } catch (err) {
+    console.warn('[Customiser] Falling back to client-side customisations:', err);
+    groupsToRender = getClientSideCustomisations(item);
+  }
+
+  if (container) {
     container.innerHTML = '';
 
-    if (cData && cData.groups) {
-      for (const [group, options] of Object.entries(cData.groups)) {
-        const isSingle = ['Size', 'Milk', 'Coffee Modifiers'].includes(group);
-        const type = isSingle ? 'radio' : 'checkbox';
-        const groupNameClean = group.replace(/\s+/g, '');
-        
-        let html = `<div class="customiser-section">
-          <label class="section-label">${group}</label>
-          <div class="checkbox-options-grid">`;
-          
-        options.forEach(opt => {
-          const extraText = opt.extra_price > 0 ? ` (+ $${parseFloat(opt.extra_price).toFixed(2)})` : '';
-          html += `
-            <label class="checkbox-card">
-              <input type="${type}" name="group_${groupNameClean}" 
-                     value="${opt.customisation_id}" 
-                     data-id="${opt.customisation_id}"
-                     data-group="${group}"
-                     data-name="${opt.option_name}"
-                     data-extra="${opt.extra_price}"
-                     ${opt.is_default ? 'checked' : ''}
-                     onchange="recalculateCustomiserPrice()">
-              <span>${opt.option_name}${extraText}</span>
-            </label>
-          `;
-        });
-        html += `</div></div>`;
-        container.innerHTML += html;
-      }
+    const singleChoiceGroups = [
+      'Cup Size', 'Size', 'Cold Size', 'Size Selection', 'Pot Size',
+      'Milk Choice', 'Milk & Dairy Choice', 'Milk on the Side',
+      'Espresso Roast & Origin', 'Espresso Strength', 'Espresso Strength & Shots',
+      'Liquid Base', 'Egg Preparation Style', 'Bread & Toast Selection',
+      'Bread Choice', 'Toasting Preference', 'Serving Style', 'Salad Dressings',
+      'Ice Level', 'Texture & Sweetness'
+    ];
+
+    const groupIcons = {
+      'Cup Size': 'ri-cup-line',
+      'Size': 'ri-cup-line',
+      'Cold Size': 'ri-snow-line',
+      'Size Selection': 'ri-cup-line',
+      'Pot Size': 'ri-leaf-line',
+      'Milk Choice': 'ri-drop-line',
+      'Milk & Dairy Choice': 'ri-drop-line',
+      'Milk on the Side': 'ri-drop-line',
+      'Espresso Roast & Origin': 'ri-fire-line',
+      'Espresso Strength & Shots': 'ri-flashlight-line',
+      'Espresso Strength': 'ri-flashlight-line',
+      'Syrups & Flavours': 'ri-heart-pulse-line',
+      'Temperature & Sweetener': 'ri-temp-hot-line',
+      'Hot Drink Extras': 'ri-add-circle-line',
+      'Add-Ons & Extras': 'ri-add-circle-line',
+      'Cold Extras & Flavors': 'ri-sparkling-line',
+      'Superfood Boosters & Protein': 'ri-capsule-line',
+      'Liquid Base': 'ri-drinks-line',
+      'Egg Preparation Style': 'ri-restaurant-line',
+      'Bread & Toast Selection': 'ri-bread-line',
+      'Bread Choice': 'ri-bread-line',
+      'Toasting Preference': 'ri-fire-line',
+      'Breakfast Add-Ons & Extras': 'ri-add-circle-line',
+      'Food Add-Ons & Extras': 'ri-add-circle-line',
+      'Cheese & Filling Upgrades': 'ri-add-circle-line',
+      'Protein Add-Ons': 'ri-user-star-line',
+      'Sauces & Condiments': 'ri-goblet-line',
+      'Spreads & Condiments': 'ri-goblet-line',
+      'Salad Dressings': 'ri-oil-line',
+      'Dipping Sauces': 'ri-contrast-drop-2-line',
+      'Accompaniments & Spreads': 'ri-cake-line',
+      'Serving Style': 'ri-temp-hot-line',
+      'Removals & Dietary': 'ri-forbid-line',
+      'Removals': 'ri-forbid-line',
+      'Bakery Removals': 'ri-forbid-line',
+      'Removals & Notes': 'ri-forbid-line'
+    };
+
+    for (const [group, options] of Object.entries(groupsToRender)) {
+      const isSingle = singleChoiceGroups.includes(group);
+      const type = isSingle ? 'radio' : 'checkbox';
+      const groupNameClean = group.replace(/[^a-zA-Z0-9]/g, '_');
+      const iconClass = groupIcons[group] || 'ri-checkbox-circle-line';
+      const isRemovalGroup = group.toLowerCase().includes('removal');
+
+      let html = `
+        <div class="customiser-section">
+          <label class="section-label" style="display:flex; align-items:center; gap:6px; font-weight:700; color:var(--color-primary-light);">
+            <i class="${iconClass}"></i> <span>${group}</span>
+            ${isSingle ? '<span style="font-size:10px; color:var(--color-cream-muted); font-weight:normal; margin-left:auto;">(Select 1)</span>' : '<span style="font-size:10px; color:var(--color-cream-muted); font-weight:normal; margin-left:auto;">(Optional)</span>'}
+          </label>
+          <div class="checkbox-options-grid">
+      `;
+
+      options.forEach((opt, optIdx) => {
+        const extraPrice = parseFloat(opt.extra_price || 0);
+        let extraText = '';
+        if (extraPrice > 0) {
+          extraText = `<span class="custom-opt-badge price-extra">+ $${extraPrice.toFixed(2)}</span>`;
+        } else if (isRemovalGroup) {
+          extraText = `<span class="custom-opt-badge removal-badge">Removal</span>`;
+        } else {
+          extraText = `<span class="custom-opt-badge free-badge">Free</span>`;
+        }
+
+        const isChecked = opt.is_default || (isSingle && optIdx === 0 && !options.some(o => o.is_default));
+
+        html += `
+          <label class="checkbox-card ${isRemovalGroup ? 'removal-card' : ''}" style="cursor:pointer;">
+            <input type="${type}" name="group_${groupNameClean}" 
+                   value="${opt.customisation_id || opt.option_name}" 
+                   data-id="${opt.customisation_id || opt.option_name}"
+                   data-group="${group}"
+                   data-name="${opt.option_name}"
+                   data-extra="${extraPrice}"
+                   ${isChecked ? 'checked' : ''}
+                   onchange="recalculateCustomiserPrice()">
+            <span class="custom-opt-name">${opt.option_name}</span>
+            ${extraText}
+          </label>
+        `;
+      });
+
+      html += `</div></div>`;
+      container.innerHTML += html;
     }
   }
 
   recalculateCustomiserPrice();
-}
-
-function setupOptionGrid(gridId) {
-  // Legacy function no longer needed for dynamic checkbox layout
-}
-
-function getActiveOptionVal(gridId) {
-  // Legacy function no longer needed
-  return '';
 }
 
 function recalculateCustomiserPrice() {

@@ -336,8 +336,8 @@ $csrfToken = getCSRFToken();
 
         <!-- Special Instructions -->
         <div class="customiser-section">
-          <label class="section-label">Barista Instructions</label>
-          <textarea id="customiser-item-notes" class="form-textarea" placeholder="E.g., Half-sweet, double-cupped, separate water..."></textarea>
+          <label class="section-label" id="customiser-notes-label">Special Instructions & Dietary Notes</label>
+          <textarea id="customiser-item-notes" class="form-textarea" placeholder="E.g., Extra hot, sauce on the side, nut allergy..."></textarea>
         </div>
 
       </div>
