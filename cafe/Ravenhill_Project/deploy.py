@@ -4,7 +4,7 @@ import paramiko
 import stat
 
 # SFTP Configuration
-HOST = 'mehedihasan.au'
+HOST = '116.255.43.78' # mehedihasan.au
 PORT = 2222
 USERNAME = 'mehedih3_cpro306_g1'
 PASSWORD = 'cpro306'
