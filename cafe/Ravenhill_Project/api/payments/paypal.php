@@ -85,8 +85,23 @@ if ($method === 'POST' && $action === 'capture_order') {
 
     // Persist Payment Record in MySQL
     try {
-        // 1. If order exists, update it
+        // 1. Verify or create order record so foreign key is always satisfied
         if ($orderId > 0) {
+            $checkStmt = $db->prepare("SELECT order_id FROM Orders WHERE order_id = ?");
+            $checkStmt->execute([$orderId]);
+            if (!$checkStmt->fetch()) {
+                $orderId = 0; // Trigger creation below
+            }
+        }
+
+        if ($orderId <= 0) {
+            $createOrderStmt = $db->prepare("
+                INSERT INTO Orders (total_amount, order_status, order_type, notes)
+                VALUES (?, 'preparing', 'dine-in', 'PayPal Online Sandbox Order')
+            ");
+            $createOrderStmt->execute([$capturedAmount]);
+            $orderId = (int)$db->lastInsertId();
+        } else {
             $stmt = $db->prepare("UPDATE Orders SET order_status = 'preparing' WHERE order_id = ?");
             $stmt->execute([$orderId]);
         }
@@ -102,7 +117,10 @@ if ($method === 'POST' && $action === 'capture_order') {
             $captureId,
             "PayPal Sandbox Capture (Order: $paypalOrderId)"
         ]);
-        $paymentId = $db->lastInsertId();
+        $paymentId = (int)$db->lastInsertId();
+
+        // 3. Link payment_id to Orders table
+        $db->prepare("UPDATE Orders SET payment_id = ? WHERE order_id = ?")->execute([$paymentId, $orderId]);
 
         // 3. Record Audit Log if AuditLogs table exists
         try {
