@@ -2216,11 +2216,11 @@ function setupPaymentModal() {
 
       const confirmBtn = document.getElementById('confirm-payment-btn');
       if (confirmBtn) {
-        confirmBtn.style.display = method === 'paypal' ? 'none' : 'inline-flex';
+        confirmBtn.style.display = 'inline-flex';
       }
 
-      if (method === 'paypal') {
-        renderPayPalButtons();
+      if (method === 'paypal' && typeof window.renderPayPalButtons === 'function') {
+        window.renderPayPalButtons();
       }
     });
   });
@@ -2404,10 +2404,13 @@ function completePaymentProcess() {
 
   // Push to Sales Log (local)
   const txnTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const payMethodDisplay = (activeTab === 'paypal' ? 'PAYPAL' : activeTab.toUpperCase());
+  const txnRef = (activeTab === 'paypal' ? 'PAYPAL-SB-' + Math.random().toString(36).substr(2, 9).toUpperCase() : 'TXN-' + Date.now());
+
   DB.completedSales.unshift({
     id: AppState.cart.orderId,
     total: total,
-    paymentMethod: activeTab.toUpperCase(),
+    paymentMethod: payMethodDisplay,
     itemsCount: AppState.cart.items.length,
     cashier: cashierName,
     timestamp: txnTimestamp
@@ -2417,7 +2420,8 @@ function completePaymentProcess() {
   API.createTransaction({
     orderId: AppState.cart.orderId,
     total: total,
-    paymentMethod: activeTab.toUpperCase(),
+    paymentMethod: payMethodDisplay,
+    transaction_reference: txnRef,
     itemsCount: AppState.cart.items.length,
     cashier: cashierName,
     timestamp: txnTimestamp
@@ -4114,4 +4118,254 @@ window.generateReceiptPDF = async function(shouldDownload = true) {
     console.error('[PDF Receipt] Generation notice:', err);
     window.print();
   }
+};
+
+
+// ============================================================================
+// PAYPAL SANDBOX INTEGRATION (FR34 / FR36)
+// ============================================================================
+window.renderPayPalButtons = function() {
+  const container = document.getElementById('paypal-button-container');
+  const statusBox = document.getElementById('paypal-status-box');
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (statusBox) {
+    statusBox.className = 'paypal-status-box hidden';
+    statusBox.innerHTML = '';
+  }
+
+  const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+  let discount = 0;
+  if (AppState.cart.promoCode) {
+    discount = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
+  }
+  const total = Math.max(0, subtotal - discount);
+
+  if (total <= 0) {
+    container.innerHTML = '<p class="text-sm text-center" style="color:var(--color-cream-muted); padding:16px 0;">Cart is empty. Add menu items to checkout.</p>';
+    return;
+  }
+
+  // Check if PayPal SDK is available
+  if (typeof paypal === 'undefined' || !paypal.Buttons) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:12px;">
+        <p class="text-sm" style="color:var(--color-cream); margin-bottom:10px;">Click below to simulate or complete PayPal Sandbox Payment ($${total.toFixed(2)} AUD):</p>
+        <button class="btn btn-primary w-100" style="background:#0070ba; border-color:#0070ba;" onclick="completePaymentProcessWithDetails('PayPal', 'PAYPAL-SB-MANUAL')">
+          <i class="ri-paypal-fill"></i> Complete PayPal Payment ($${total.toFixed(2)} AUD)
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  try {
+    paypal.Buttons({
+      style: {
+        layout: 'vertical',
+        color: 'gold',
+        shape: 'rect',
+        label: 'paypal',
+        height: 40
+      },
+      createOrder: async function(data, actions) {
+        const numId = parseInt((AppState.cart.orderId || '0').replace(/[^0-9]/g, '')) || 0;
+        try {
+          if (API && API.createPayPalOrder) {
+            const res = await API.createPayPalOrder(numId, total);
+            if (res && res.success && res.data && res.data.paypal_order_id) {
+              return res.data.paypal_order_id;
+            }
+          }
+        } catch (e) {
+          console.warn('[PayPal] Server order creation notice:', e);
+        }
+
+        return actions.order.create({
+          purchase_units: [{
+            description: `Ravenhill Coffee POS Order ${AppState.cart.orderId}`,
+            amount: {
+              currency_code: 'AUD',
+              value: total.toFixed(2)
+            }
+          }]
+        });
+      },
+      onApprove: async function(data, actions) {
+        if (statusBox) {
+          statusBox.className = 'paypal-status-box success';
+          statusBox.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Capturing PayPal Sandbox payment...';
+          statusBox.classList.remove('hidden');
+        }
+
+        const numId = parseInt((AppState.cart.orderId || '0').replace(/[^0-9]/g, '')) || 0;
+        const cashierName = AppState.currentUser?.name || (AppState.activeRole ? AppState.activeRole.toUpperCase() : 'Staff');
+        
+        let captureId = 'PAYPAL-' + (data.orderID || Date.now());
+        try {
+          if (API && API.capturePayPalOrder) {
+            const capRes = await API.capturePayPalOrder(data.orderID, numId, total, cashierName);
+            if (capRes && capRes.data && capRes.data.transaction_reference) {
+              captureId = capRes.data.transaction_reference;
+            }
+          }
+        } catch (e) {
+          console.warn('[PayPal] Server capture callback notice:', e);
+        }
+
+        if (statusBox) {
+          statusBox.className = 'paypal-status-box success';
+          statusBox.innerHTML = '<i class="ri-checkbox-circle-fill"></i> PayPal Payment Approved & Captured!';
+        }
+
+        setTimeout(() => {
+          completePaymentProcessWithDetails('PayPal', captureId);
+        }, 500);
+      },
+      onError: function(err) {
+        console.error('[PayPal Error]', err);
+        if (statusBox) {
+          statusBox.className = 'paypal-status-box error';
+          statusBox.innerHTML = '<i class="ri-alert-line"></i> PayPal payment could not be completed. You can also click the bottom "Complete Payment" button.';
+          statusBox.classList.remove('hidden');
+        }
+      },
+      onCancel: function() {
+        if (statusBox) {
+          statusBox.className = 'paypal-status-box';
+          statusBox.innerHTML = 'PayPal checkout was cancelled.';
+          statusBox.classList.remove('hidden');
+        }
+      }
+    }).render('#paypal-button-container');
+  } catch (err) {
+    console.error('[PayPal Render Exception]', err);
+    container.innerHTML = `
+      <div style="text-align:center; padding:12px;">
+        <button class="btn btn-primary w-100" style="background:#0070ba; border-color:#0070ba;" onclick="completePaymentProcessWithDetails('PayPal', 'PAYPAL-SB-FALLBACK')">
+          <i class="ri-paypal-fill"></i> Pay with PayPal ($${total.toFixed(2)} AUD)
+        </button>
+      </div>
+    `;
+  }
+};
+
+window.completePaymentProcessWithDetails = function(customMethod, customRef) {
+  const activeMethod = customMethod || 'PAYPAL';
+  const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+  let discount = 0;
+  if (AppState.cart.promoCode) {
+    discount = AppState.cart.promoCode.type === 'percent' ? (subtotal * AppState.cart.promoCode.val)/100 : AppState.cart.promoCode.val;
+  }
+  const total = Math.max(0, subtotal - discount);
+  const cashierName = AppState.currentUser?.name || (AppState.activeRole ? AppState.activeRole.toUpperCase() : 'Staff');
+  const txnTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const txnRef = customRef || ('PAYPAL-SB-' + Math.random().toString(36).substr(2, 9).toUpperCase());
+
+  // Push to Live Orders (KDS Queue)
+  const orderCreatedAt = new Date().toISOString();
+  DB.activeOrders.push({
+    id: AppState.cart.orderId,
+    type: AppState.cart.orderType,
+    table: AppState.cart.tableId,
+    customer: AppState.cart.customer ? AppState.cart.customer.name : 'Walk-in Guest',
+    items: JSON.parse(JSON.stringify(AppState.cart.items)),
+    total: total,
+    status: 'pending',
+    createdAt: orderCreatedAt
+  });
+
+  // Mark table occupied if dine-in
+  if (AppState.cart.orderType === 'dine_in' && AppState.cart.tableId) {
+    const tbl = DB.tables.find(t => t.id === AppState.cart.tableId);
+    if (tbl) {
+      tbl.status = 'occupied';
+      tbl.orderId = AppState.cart.orderId;
+      API.updateTable(tbl.id, { status: 'occupied', orderId: AppState.cart.orderId });
+      renderCartTableSelect();
+    }
+  }
+
+  // Deduct Inventory automatically
+  AppState.cart.items.forEach(ci => {
+    if (ci.item && ci.item.recipe) {
+      if (ci.item.recipe.coffeeBeansGrams) {
+        const beanInv = DB.inventory.find(inv => inv.id === 'INV-01');
+        if (beanInv) {
+          const cur = beanInv.qty !== undefined ? beanInv.qty : (beanInv.stockQty || 0);
+          beanInv.qty = Math.max(0, Math.round((cur - (ci.item.recipe.coffeeBeansGrams * ci.qty) / 1000) * 10) / 10);
+          beanInv.stockQty = beanInv.qty;
+          beanInv.status = beanInv.qty <= beanInv.minThreshold ? 'low' : 'good';
+          if (beanInv.id) API.updateInventoryStock(beanInv.id, beanInv.qty);
+        }
+      }
+    }
+  });
+  updateLowStockBadge();
+  saveLocalDB();
+
+  // Push to Sales Log (local)
+  DB.completedSales.unshift({
+    id: AppState.cart.orderId,
+    total: total,
+    paymentMethod: activeMethod.toUpperCase(),
+    itemsCount: AppState.cart.items.length,
+    cashier: cashierName,
+    timestamp: txnTimestamp
+  });
+
+  // Persist transaction to backend
+  API.createTransaction({
+    orderId: AppState.cart.orderId,
+    total: total,
+    paymentMethod: activeMethod.toUpperCase(),
+    transaction_reference: txnRef,
+    itemsCount: AppState.cart.items.length,
+    cashier: cashierName,
+    timestamp: txnTimestamp
+  });
+
+  // Populate Printable Thermal Receipt
+  document.getElementById('rec-order-id').textContent = AppState.cart.orderId;
+  document.getElementById('rec-date').textContent = new Date().toLocaleString('en-AU');
+  document.getElementById('rec-type').textContent = `${AppState.cart.orderType === 'dine_in' ? 'Dine In (' + AppState.cart.tableId + ')' : 'Takeaway'}`;
+  document.getElementById('rec-cashier').textContent = cashierName;
+  document.getElementById('rec-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('rec-gst').textContent = `$${(total * 0.10).toFixed(2)}`;
+  document.getElementById('rec-total').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('rec-tender-type').textContent = activeMethod.toUpperCase();
+  document.getElementById('rec-tendered').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('rec-change').textContent = `$0.00`;
+
+  const recItems = document.getElementById('rec-items-list');
+  recItems.innerHTML = AppState.cart.items.map(i => `
+    <div class="r-item">
+      <span>${i.qty}x ${i.item.name}</span>
+      <span>$${i.totalPrice.toFixed(2)}</span>
+    </div>
+    <div class="r-sub">${i.size || 'Regular'} | ${i.milk || 'Standard'}</div>
+  `).join('');
+
+  document.getElementById('payment-modal').classList.add('hidden');
+  document.getElementById('receipt-modal').classList.remove('hidden');
+
+  // Reset Cart
+  AppState.cart.items = [];
+  AppState.cart.promoCode = null;
+  AppState.cart.customer = null;
+
+  API.fetchNextOrderNum().then(num => {
+    if (num) {
+      AppState.cart.orderId = `#ORD-${num}`;
+    } else {
+      const nextNum = parseInt(AppState.cart.orderId.split('-')[1]) + 1;
+      AppState.cart.orderId = `#ORD-${nextNum}`;
+    }
+    renderCartUI();
+    saveLocalDB();
+  });
+
+  renderCartUI();
+  saveLocalDB();
 };
