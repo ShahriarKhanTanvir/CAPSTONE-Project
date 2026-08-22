@@ -7,8 +7,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # NFR16: Force HTTPS Communication
+    # NFR16: Force HTTPS Communication for Production (exclude local development)
     RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Rewrite extensionless API endpoints to .php
