@@ -2242,46 +2242,8 @@ function renderCartUI() {
     cartOrderNumEl.textContent = AppState.cart.orderId;
   }
 
-  container.innerHTML = '';
-
-  if (AppState.cart.items.length === 0) {
-    container.innerHTML = `
-      <div class="empty-cart-state">
-        <i class="ri-cup-line"></i>
-        <p>No items added yet</p>
-        <span>Select coffee or pastries from menu</span>
-      </div>`;
-  } else {
-    AppState.cart.items.forEach((ci, idx) => {
-      const card = document.createElement('div');
-      card.className = 'cart-item-card';
-
-      const modPills = ci.customisations ? ci.customisations.map(c => c.option_name) : [];
-
-      card.innerHTML = `
-        <div class="cart-item-top">
-          <span class="cart-item-title">${ci.item.name}</span>
-          <span class="cart-item-price">$${ci.totalPrice.toFixed(2)}</span>
-        </div>
-        <div class="cart-item-modifiers">
-          ${modPills.map(p => `<span class="modifier-pill">${p}</span>`).join('')}
-        </div>
-        ${ci.notes ? `<div style="font-size:10px; color:var(--color-accent-gold);"><i class="ri-edit-line"></i> ${ci.notes}</div>` : ''}
-        <div class="cart-item-bottom">
-          <div class="cart-qty-ctrl">
-            <button class="icon-btn-sm" onclick="updateCartQty(${idx}, -1)"><i class="ri-subtract-line"></i></button>
-            <span>${ci.qty}</span>
-            <button class="icon-btn-sm" onclick="updateCartQty(${idx}, 1)"><i class="ri-add-line"></i></button>
-          </div>
-          <button class="cart-item-delete" onclick="removeCartItem(${idx})"><i class="ri-delete-bin-line"></i></button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  // Calculate Totals
-  let subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+  const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (i.qty || 1), 0);
+  let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (i.totalPrice || 0), 0);
   let discount = 0;
 
   if (AppState.cart.promoCode) {
@@ -2302,6 +2264,50 @@ function renderCartUI() {
 
   const finalTotal = Math.max(0, subtotal - discount);
   const gst = finalTotal * 0.10;
+
+  container.innerHTML = '';
+
+  if (!AppState.cart.items || AppState.cart.items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-cart-state">
+        <i class="ri-cup-line"></i>
+        <p>Your cart is empty</p>
+        <span>Tap any coffee or food item from the menu to add to your order</span>
+      </div>`;
+  } else {
+    AppState.cart.items.forEach((ci, idx) => {
+      const card = document.createElement('div');
+      card.className = 'cart-item-card';
+
+      const modPills = ci.customisations && ci.customisations.length > 0 
+        ? ci.customisations.map(c => `<span class="modifier-pill">${c.option_name}</span>`).join('') 
+        : '';
+
+      card.innerHTML = `
+        <div class="cart-item-top">
+          <div style="flex:1;">
+            <span class="cart-item-title">${ci.item.name || ci.item.product_name}</span>
+            <div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;">$${(ci.unitPrice || ci.item.price).toFixed(2)} each</div>
+          </div>
+          <span class="cart-item-price">$${(ci.totalPrice || 0).toFixed(2)}</span>
+        </div>
+        ${modPills ? `<div class="cart-item-modifiers">${modPills}</div>` : ''}
+        ${ci.notes ? `<div style="font-size:10px; color:var(--color-accent-gold); margin-top:4px;"><i class="ri-edit-line"></i> Note: ${ci.notes}</div>` : ''}
+        <div class="cart-item-bottom" style="margin-top:8px;">
+          <div class="cart-qty-ctrl">
+            <button type="button" class="icon-btn-sm" onclick="updateCartQty(${idx}, -1)" title="Decrease quantity"><i class="ri-subtract-line"></i></button>
+            <span style="font-weight:700; min-width:18px; text-align:center;">${ci.qty}</span>
+            <button type="button" class="icon-btn-sm" onclick="updateCartQty(${idx}, 1)" title="Increase quantity"><i class="ri-add-line"></i></button>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="icon-btn-sm" onclick="editCartItem(${idx})" title="Edit options & modifiers" style="background:rgba(217, 107, 67, 0.15); border-color:var(--color-primary); color:var(--color-primary-light);"><i class="ri-edit-2-line"></i></button>
+            <button type="button" class="cart-item-delete icon-btn-sm text-danger" onclick="removeCartItem(${idx})" title="Remove item"><i class="ri-delete-bin-line"></i></button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
 
   const subtotalEl = document.getElementById('cart-subtotal');
   const gstEl = document.getElementById('cart-gst');
@@ -2325,19 +2331,22 @@ function renderCartUI() {
 
   if (totalEl) totalEl.textContent = `$${finalTotal.toFixed(2)}`;
   if (btnTotalEl) btnTotalEl.textContent = `$${finalTotal.toFixed(2)}`;
-  if (checkoutBtn) checkoutBtn.disabled = AppState.cart.items.length === 0;
+  if (checkoutBtn) checkoutBtn.disabled = !AppState.cart.items || AppState.cart.items.length === 0;
 
-  // Update Topbar Cart Badge
+  // Update Topbar Cart Badge & Label
   const topbarCartBadge = document.getElementById('topbar-cart-count');
   if (topbarCartBadge) {
     topbarCartBadge.textContent = totalItemCount;
+  }
+  const topbarCartBtn = document.getElementById('topbar-cart-toggle-btn');
+  if (topbarCartBtn) {
+    topbarCartBtn.title = `View Cart (${totalItemCount} item${totalItemCount === 1 ? '' : 's'} • $${finalTotal.toFixed(2)})`;
   }
 
   // Mobile Floating Cart Bar Sync
   const mobileCartBar = document.getElementById('mobile-cart-bar');
   const mobileCartCount = document.getElementById('mobile-cart-count');
   const mobileCartTotal = document.getElementById('mobile-cart-total');
-  const totalItemCount = AppState.cart.items.reduce((acc, i) => acc + (i.qty || 1), 0);
 
   if (mobileCartCount) {
     mobileCartCount.textContent = `${totalItemCount} item${totalItemCount === 1 ? '' : 's'}`;
@@ -2346,7 +2355,7 @@ function renderCartUI() {
     mobileCartTotal.textContent = `$${finalTotal.toFixed(2)}`;
   }
   if (mobileCartBar) {
-    if (AppState.activeModule === 'pos') {
+    if (totalItemCount > 0 && AppState.activeModule === 'pos') {
       mobileCartBar.classList.remove('hidden');
     } else {
       mobileCartBar.classList.add('hidden');
@@ -2404,6 +2413,7 @@ window.toggleCartDrawer = function() {
 // Explicit Global Modal Closers
 window.closeCustomiserModal = function() {
   document.getElementById('customiser-modal')?.classList.add('hidden');
+  AppState.editingCartIndex = null;
 };
 
 window.closePaymentModal = function() {
@@ -2459,6 +2469,7 @@ function setupUniversalModalClosers() {
       if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('mobile-open');
+        AppState.editingCartIndex = null;
       } else {
         document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
         document.getElementById('cart-drawer')?.classList.remove('mobile-open');
@@ -2469,6 +2480,7 @@ function setupUniversalModalClosers() {
     // 2. Click on the backdrop background itself
     if (e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal-overlay')) {
       e.target.classList.add('hidden');
+      AppState.editingCartIndex = null;
     }
   });
 
@@ -2478,6 +2490,7 @@ function setupUniversalModalClosers() {
       const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
       if (openModals.length > 0) {
         openModals[openModals.length - 1].classList.add('hidden');
+        AppState.editingCartIndex = null;
       } else {
         const cartDrawer = document.getElementById('cart-drawer');
         if (cartDrawer && cartDrawer.classList.contains('mobile-open')) {
@@ -2499,14 +2512,24 @@ window.updateCartQty = function(index, delta) {
     item.totalPrice = item.unitPrice * item.qty;
   }
   renderCartUI();
+  saveLocalDB();
 };
 
 window.removeCartItem = function(index) {
   AppState.cart.items.splice(index, 1);
   renderCartUI();
+  saveLocalDB();
 };
 
-// Confirm Add to Cart from Customiser Modal
+// Edit Cart Item Options
+window.editCartItem = function(index) {
+  const ci = AppState.cart.items[index];
+  if (!ci) return;
+  AppState.editingCartIndex = index;
+  openCustomiserModalAsync(ci.item, ci);
+};
+
+// Confirm Add to Cart / Update Item from Customiser Modal
 window.confirmAddToCart = function() {
   const modal = document.getElementById('customiser-modal');
   if (!AppState.modalItem) {
@@ -2526,12 +2549,40 @@ window.confirmAddToCart = function() {
   const notes = document.getElementById('customiser-item-notes')?.value?.trim() || '';
   const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
 
-  addItemToCart(AppState.modalItem, customisations, notes, qty);
-  if (modal) modal.classList.add('hidden');
+  if (AppState.editingCartIndex !== null && AppState.editingCartIndex !== undefined) {
+    const idx = AppState.editingCartIndex;
+    if (AppState.cart.items[idx]) {
+      let extraPrice = 0;
+      customisations.forEach(c => extraPrice += parseFloat(c.extra_price || 0));
+      const basePrice = parseFloat(AppState.modalItem.price || AppState.modalItem.unit_price || 0);
+      const unitPrice = basePrice + extraPrice;
 
-  // Immediately take customer to cart
-  window.openCartDrawer();
-  showToast(`Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
+      AppState.cart.items[idx].customisations = customisations;
+      AppState.cart.items[idx].notes = notes;
+      AppState.cart.items[idx].qty = qty;
+      AppState.cart.items[idx].unitPrice = unitPrice;
+      AppState.cart.items[idx].totalPrice = unitPrice * qty;
+    }
+    AppState.editingCartIndex = null;
+    if (modal) modal.classList.add('hidden');
+    renderCartUI();
+    saveLocalDB();
+    showToast(`✨ Updated ${AppState.modalItem.name || AppState.modalItem.product_name} in cart!`, 'success');
+  } else {
+    addItemToCart(AppState.modalItem, customisations, notes, qty);
+    if (modal) modal.classList.add('hidden');
+    
+    // Animate topbar cart badge
+    const badge = document.getElementById('topbar-cart-toggle-btn');
+    if (badge) {
+      badge.classList.remove('cart-pulse');
+      void badge.offsetWidth;
+      badge.classList.add('cart-pulse');
+    }
+
+    renderCartUI();
+    showToast(`✨ Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
+  }
 };
 
 // Customiser Modal Logic
@@ -2866,12 +2917,12 @@ function getClientSideCustomisations(item) {
   return groups;
 }
 
-async function openCustomiserModalAsync(item) {
+async function openCustomiserModalAsync(item, editingData = null) {
   AppState.modalItem = item;
   document.getElementById('customiser-item-name').textContent = item.name || item.product_name;
   document.getElementById('customiser-item-desc').textContent = item.desc || '';
-  document.getElementById('customiser-qty').textContent = 1;
-  document.getElementById('customiser-item-notes').value = '';
+  document.getElementById('customiser-qty').textContent = editingData ? (editingData.qty || 1) : 1;
+  document.getElementById('customiser-item-notes').value = editingData ? (editingData.notes || '') : '';
 
   const imgEl = document.getElementById('customiser-item-img');
   if (imgEl) imgEl.src = getItemImage(item);
@@ -2986,7 +3037,12 @@ async function openCustomiserModalAsync(item) {
           extraText = `<span class="custom-opt-badge free-badge">Free</span>`;
         }
 
-        const isChecked = opt.is_default || (isSingle && optIdx === 0 && !options.some(o => o.is_default));
+        let isChecked = false;
+        if (editingData && editingData.customisations && editingData.customisations.length > 0) {
+          isChecked = editingData.customisations.some(c => (c.customisation_id && c.customisation_id === opt.customisation_id) || (c.option_name && c.option_name === opt.option_name));
+        } else {
+          isChecked = opt.is_default || (isSingle && optIdx === 0 && !options.some(o => o.is_default));
+        }
 
         html += `
           <label class="checkbox-card ${isRemovalGroup ? 'removal-card' : ''}" style="cursor:pointer;">
@@ -3014,17 +3070,23 @@ async function openCustomiserModalAsync(item) {
 
 function recalculateCustomiserPrice() {
   if (!AppState.modalItem) return;
-  let base = parseFloat(AppState.modalItem.price);
+  let base = parseFloat(AppState.modalItem.price || AppState.modalItem.unit_price || 0);
 
   document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
     base += parseFloat(input.getAttribute('data-extra') || 0);
   });
 
-  const qty = parseInt(document.getElementById('customiser-qty').textContent || '1');
+  const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
   const total = base * qty;
   
   const calcEl = document.getElementById('customiser-calculated-price');
   if (calcEl) calcEl.textContent = `$${total.toFixed(2)}`;
+
+  const confirmBtn = document.getElementById('add-to-cart-confirm-btn');
+  if (confirmBtn) {
+    const isEdit = AppState.editingCartIndex !== null && AppState.editingCartIndex !== undefined;
+    confirmBtn.innerHTML = `${isEdit ? '<i class="ri-check-line"></i> Update Item' : '<i class="ri-shopping-cart-2-line"></i> Add to Cart'} • <span id="customiser-calculated-price">$${total.toFixed(2)}</span>`;
+  }
 }
 
 // Payment & Receipt Modal Logic
