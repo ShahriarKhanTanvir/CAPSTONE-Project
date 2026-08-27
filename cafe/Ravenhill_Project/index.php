@@ -23,16 +23,467 @@ $csrfToken = getCSRFToken();
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-dark">
-  <!-- Top Animated Promotional Banner (FR & Live Promo) -->
-  <div class="promo-top-banner" id="top-promo-banner">
-    <div class="promo-banner-content">
-      <span class="promo-tag"><i class="ri-fire-fill"></i> Today's Special</span>
-      <span>COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
-      <span class="promo-timer" id="promo-countdown-timer">02:45:18</span>
+  <!-- =========================================================================
+       DEDICATED SEPARATE BRAND LANDING PAGE (Main Entry Point)
+       ========================================================================= -->
+  <div id="landing-page-view" class="landing-page-container">
+    
+    <!-- Top Animated Promotional Banner -->
+    <div class="promo-top-banner" id="top-promo-banner">
+      <div class="promo-banner-content">
+        <span class="promo-tag"><i class="ri-fire-fill"></i> Today's Special</span>
+        <span>COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
+        <span class="promo-timer" id="promo-countdown-timer">02:45:18</span>
+      </div>
+      <button type="button" class="promo-claim-btn" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.enterAsCustomer()">
+        <i class="ri-gift-line"></i> Claim Special Combo
+      </button>
     </div>
-    <button type="button" class="promo-claim-btn" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.switchModule('landing')">
-      <i class="ri-gift-line"></i> Claim Special Combo
-    </button>
+
+    <!-- Sticky Dedicated Landing Navbar -->
+    <header class="landing-navbar" id="landing-navbar">
+      <a href="#hero-section" class="landing-nav-brand" onclick="window.scrollTo({ top:0, behavior:'smooth' })">
+        <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Coffee Roasters Logo">
+        <div class="landing-brand-text">
+          <span class="landing-brand-title">RAVENHILL</span>
+          <span class="landing-brand-sub">Coffee Roasters • Melb CBD</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="landing-nav-links">
+          <li><a href="#hero-section" class="landing-nav-link active">Home</a></li>
+          <li><a href="#story-section" class="landing-nav-link">Our Story</a></li>
+          <li><a href="#menu-preview-section" class="landing-nav-link">Menu</a></li>
+          <li><a href="#specials-section" class="landing-nav-link">Specials</a></li>
+          <li><a href="#roles-section" class="landing-nav-link" style="color:var(--color-accent-gold); font-weight:700;">Choose Role</a></li>
+          <li><a href="#location-section" class="landing-nav-link">Location</a></li>
+          <li><a href="#gallery-section" class="landing-nav-link">Gallery</a></li>
+        </ul>
+      </nav>
+
+      <div class="landing-nav-actions">
+        <button type="button" class="btn-nav-role" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
+          <i class="ri-user-star-line"></i> Choose Your Role
+        </button>
+        <button type="button" class="btn-nav-login" onclick="window.openRoleLoginModal ? window.openRoleLoginModal('cashier') : window.openLoginModal('cashier')">
+          <i class="ri-lock-line"></i> Login
+        </button>
+      </div>
+    </header>
+
+    <!-- 1. Hero Section -->
+    <section class="landing-hero" id="hero-section">
+      <div class="hero-video-wrapper">
+        <video class="hero-video-bg" autoplay muted loop playsinline poster="./brand_recources/roasted_coffee_beans.png">
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-coffee-being-poured-into-a-cup-32860-large.mp4" type="video/mp4">
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-barista-pouring-milk-into-a-cup-of-coffee-41712-large.mp4" type="video/mp4">
+        </video>
+        <div class="hero-video-overlay"></div>
+        <canvas id="hero-steam-canvas" class="hero-steam-canvas"></canvas>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-progression-badge">
+          <i class="ri-sparkling-fill" id="hero-progression-icon"></i>
+          <span id="hero-progression-text" class="hero-progression-text">WAKE UP.</span>
+        </div>
+
+        <h1 class="hero-headline">Coffee, Crafted for Your Moment.</h1>
+        <p class="hero-subheadline">Exceptional coffee. Fresh food. Good vibes. Right in the heart of Melbourne.</p>
+
+        <div class="hero-cta-group">
+          <button type="button" class="btn-hero-primary" onclick="document.getElementById('menu-preview-section')?.scrollIntoView({ behavior:'smooth' })">
+            <i class="ri-cup-fill"></i> Explore the Experience
+          </button>
+          <button type="button" class="btn-hero-secondary" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
+            <i class="ri-user-star-line"></i> Choose Your Role
+          </button>
+        </div>
+
+        <div class="hero-status-pill">
+          <span class="status-dot-pulse"></span>
+          <span>Open Today: 6:30 AM – 4:00 PM • 142 Flinders Lane, Melbourne CBD</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Good Vibes Storytelling Marquee Strip -->
+    <div class="vibes-marquee-strip">
+      <div class="vibes-marquee-track">
+        <span class="vibes-item">GOOD COFFEE. BETTER DAYS. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">YOUR DAILY RITUAL, MADE BETTER. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">MORE THAN COFFEE. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">TAKE A MOMENT. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">MELBOURNE CBD SPECIALTY ROASTER <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">GOOD COFFEE. BETTER DAYS. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">YOUR DAILY RITUAL, MADE BETTER. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">MORE THAN COFFEE. <i class="ri-star-fill vibes-star"></i></span>
+        <span class="vibes-item">TAKE A MOMENT. <i class="ri-star-fill vibes-star"></i></span>
+      </div>
+    </div>
+
+    <!-- 3. Story & Roasting Heritage Section (About Ravenhill) -->
+    <section class="landing-section" id="story-section">
+      <div class="story-grid">
+        <div class="story-card-visual">
+          <img src="./brand_recources/roasted_coffee_beans.png" alt="Roasted Coffee Beans" loading="lazy">
+          <div class="story-floating-badge">
+            <div class="story-badge-icon"><i class="ri-fire-fill"></i></div>
+            <div>
+              <strong style="color:#fff; font-size:14px; display:block;">Ethical Single Origin</strong>
+              <span style="color:var(--color-cream-muted); font-size:12px;">Small Batch Roasted in Melbourne</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="story-content-col">
+          <span class="section-tag">About Ravenhill</span>
+          <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
+          <p class="section-subtext">
+            Nestled along iconic Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of specialty coffee. From hand-picked high-altitude micro-lots to our custom roasting curve, we brew for clarity, sweetness, and distinct origin profiles.
+          </p>
+
+          <div class="story-stats-grid">
+            <div class="story-stat-card">
+              <div class="story-stat-num">100%</div>
+              <div class="story-stat-label">Ethical Micro-Lots & Direct Trade</div>
+            </div>
+            <div class="story-stat-card">
+              <div class="story-stat-num">4.9 ★</div>
+              <div class="story-stat-label">1,450+ Verified Melbourne Reviews</div>
+            </div>
+            <div class="story-stat-card">
+              <div class="story-stat-num">15+</div>
+              <div class="story-stat-label">Barista & Roasting Industry Awards</div>
+            </div>
+            <div class="story-stat-card">
+              <div class="story-stat-num">28 sec</div>
+              <div class="story-stat-label">Golden Ratio Espresso Extraction</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Menu & Our Coffee Showcase -->
+    <section class="digital-menu-wrap" id="menu-preview-section">
+      <div class="section-header-centered">
+        <span class="section-tag">Our Melbourne Menu</span>
+        <h2 class="section-main-title">Crafted with Passion. Served with Care.</h2>
+        <p class="section-subtext">Explore our specialty espresso bar, artisan toasties, fresh pastries, and refreshing iced botanicals.</p>
+      </div>
+
+      <div class="category-nav-pills">
+        <button type="button" class="category-pill-btn active" data-cat="coffee" onclick="filterLandingMenu('coffee')">
+          ☕ Coffee
+        </button>
+        <button type="button" class="category-pill-btn" data-cat="breakfast" onclick="filterLandingMenu('breakfast')">
+          🥐 Breakfast
+        </button>
+        <button type="button" class="category-pill-btn" data-cat="lunch" onclick="filterLandingMenu('lunch')">
+          🥪 Lunch
+        </button>
+        <button type="button" class="category-pill-btn" data-cat="cold" onclick="filterLandingMenu('cold')">
+          🧋 Cold Drinks
+        </button>
+        <button type="button" class="category-pill-btn" data-cat="sweets" onclick="filterLandingMenu('sweets')">
+          🍰 Sweets
+        </button>
+      </div>
+
+      <div class="digital-menu-grid" id="digital-menu-grid">
+        <!-- Dynamically rendered via filterLandingMenu -->
+      </div>
+
+      <div style="text-align:center; margin-top:36px;">
+        <button type="button" class="btn-hero-primary" onclick="window.enterAsCustomer()">
+          <i class="ri-shopping-bag-3-fill"></i> View Full Menu & Order Online →
+        </button>
+      </div>
+    </section>
+
+    <!-- 5. Today's Special Combo Section -->
+    <section class="landing-section" id="specials-section">
+      <div class="section-header-centered">
+        <span class="section-tag">Featured Promotion</span>
+        <h2 class="section-main-title">Today's Special Deal</h2>
+        <p class="section-subtext">Enjoy Melbourne's favorite morning ritual pairing with an exclusive promotional discount.</p>
+      </div>
+
+      <div class="specials-featured-card">
+        <div class="specials-visual">
+          <img src="./brand_recources/butter_croissant.png" alt="Coffee and Croissant Special Combo" loading="lazy">
+          <span class="product-card-badge" style="position:absolute; top:12px; left:12px;">SAVE 15%</span>
+        </div>
+        <div>
+          <span class="section-tag" style="color:var(--color-accent-gold);">Morning Combo Deal</span>
+          <h3 style="font-family:'Outfit', sans-serif; font-size:28px; color:#fff; margin:8px 0 12px;">Specialty Coffee + Warm Pastry</h3>
+          <p style="color:var(--color-cream-muted); font-size:14px; line-height:1.6; margin-bottom:20px;">
+            Pair any handcrafted house blend or single origin coffee with our fresh daily-baked French butter croissant or almond pastry.
+          </p>
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+            <div>
+              <span style="font-size:12px; color:var(--color-cream-subtle); display:block;">Combo Price</span>
+              <strong style="font-family:'Outfit', sans-serif; font-size:26px; color:var(--color-accent-gold);">$11.20 AUD</strong>
+              <span style="font-size:13px; text-decoration:line-through; color:var(--color-cream-subtle); margin-left:6px;">$13.20</span>
+            </div>
+            <span class="promo-timer" style="font-size:14px; padding:6px 12px;"><i class="ri-time-line"></i> Limited Time Offer</span>
+          </div>
+          <button type="button" class="btn-hero-primary" onclick="window.claimSpecialPromoCombo()">
+            <i class="ri-gift-line"></i> Claim Special Combo (15% OFF)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Choose Your Role Experience Section -->
+    <section class="roles-section-wrap" id="roles-section">
+      <div class="section-header-centered">
+        <span class="section-tag">Explore the Experience</span>
+        <h2 class="section-main-title">Choose Your Role</h2>
+        <p class="section-subtext">Select how you would like to interact with the Ravenhill Coffee platform.</p>
+      </div>
+
+      <div class="roles-grid">
+        <!-- Customer Role Card -->
+        <div class="role-card-item featured-customer">
+          <span class="role-card-badge">Guest & Member</span>
+          <div class="role-card-icon">☕</div>
+          <h3 class="role-card-title">Customer</h3>
+          <p class="role-card-desc">Browse the menu, order food and drinks, make payments and receive an order number with real-time preparation tracking.</p>
+          <ul class="role-card-features">
+            <li><i class="ri-check-line"></i> Digital Menu & Customisations</li>
+            <li><i class="ri-check-line"></i> 6 Active Payment Gateways</li>
+            <li><i class="ri-check-line"></i> Unique Receipt & Order Tracker</li>
+            <li><i class="ri-check-line"></i> Loyalty Points & Free Coffee</li>
+          </ul>
+          <button type="button" class="role-card-btn btn-role-customer" onclick="window.enterAsCustomer()">
+            Continue as Customer <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+
+        <!-- Staff Role Card -->
+        <div class="role-card-item">
+          <div class="role-card-icon">👨🍳</div>
+          <h3 class="role-card-title">Staff / Operations</h3>
+          <p class="role-card-desc">Access staff-related functions, manage kitchen and barista orders, floor tables and perform daily operational tasks.</p>
+          <ul class="role-card-features">
+            <li><i class="ri-check-line"></i> POS Register & Rapid Billing</li>
+            <li><i class="ri-check-line"></i> Barista & Kitchen KDS Display</li>
+            <li><i class="ri-check-line"></i> Wait Staff Floor Table Monitor</li>
+            <li><i class="ri-check-line"></i> Shift Attendance & Clock-In</li>
+          </ul>
+          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openRoleLoginModal('cashier')">
+            Staff Login <i class="ri-lock-line"></i>
+          </button>
+        </div>
+
+        <!-- Manager / Admin Role Card -->
+        <div class="role-card-item">
+          <div class="role-card-icon">👨💼</div>
+          <h3 class="role-card-title">Manager / Admin</h3>
+          <p class="role-card-desc">Access executive management, sales analytics, inventory recipe tracking, staff rosters and system administration.</p>
+          <ul class="role-card-features">
+            <li><i class="ri-check-line"></i> Sales Revenue & Z-Reports</li>
+            <li><i class="ri-check-line"></i> Bean Stock & Recipe Maps</li>
+            <li><i class="ri-check-line"></i> Supplier Purchase Orders</li>
+            <li><i class="ri-check-line"></i> Full Role Permission Controls</li>
+          </ul>
+          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openRoleLoginModal('admin')">
+            Admin Login <i class="ri-shield-keyhole-line"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Digital Loyalty Program Section -->
+    <section class="loyalty-section-wrap" id="rewards-section">
+      <div class="loyalty-hero-card">
+        <div style="text-align:center; max-width:650px; margin:0 auto;">
+          <span class="section-tag" style="color:var(--color-accent-gold);">Ravenhill Loyalty Program</span>
+          <h2 class="section-main-title" style="margin-bottom:8px;">Every Coffee Brings You Closer to Your Next One.</h2>
+          <p class="section-subtext">Earn points on every cup, unlock VIP upgrades, and get your 6th coffee entirely free on us.</p>
+        </div>
+
+        <div class="loyalty-tracker-strip">
+          <div class="stamp-node filled">
+            <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+            <span class="stamp-label">Cup 1 ✓</span>
+          </div>
+          <div class="stamp-node filled">
+            <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+            <span class="stamp-label">Cup 2 ✓</span>
+          </div>
+          <div class="stamp-node filled">
+            <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+            <span class="stamp-label">Cup 3 ✓</span>
+          </div>
+          <div class="stamp-node">
+            <div class="stamp-circle"><i class="ri-cup-line"></i></div>
+            <span class="stamp-label">Cup 4</span>
+          </div>
+          <div class="stamp-node">
+            <div class="stamp-circle"><i class="ri-cup-line"></i></div>
+            <span class="stamp-label">Cup 5</span>
+          </div>
+          <div class="stamp-node free-reward">
+            <div class="stamp-circle"><i class="ri-gift-fill"></i></div>
+            <span class="stamp-label" style="color:#10b981; font-weight:800;">FREE COFFEE</span>
+          </div>
+        </div>
+
+        <div class="loyalty-tiers-row">
+          <div class="tier-badge-card active-tier">
+            <div style="font-size:18px; font-weight:700; margin-bottom:4px;">🥉 Bronze Member</div>
+            <div style="font-size:12px; color:var(--color-cream-muted);">Earn 10 Pts per $1.00 spent. Redeem for $1.00 off per 20 Pts.</div>
+          </div>
+          <div class="tier-badge-card">
+            <div style="font-size:18px; font-weight:700; margin-bottom:4px; color:var(--color-cream);">🥈 Silver Tier</div>
+            <div style="font-size:12px; color:var(--color-cream-muted);">1.2x Point multiplier + Free large size upgrade on your birthday.</div>
+          </div>
+          <div class="tier-badge-card">
+            <div style="font-size:18px; font-weight:700; margin-bottom:4px; color:var(--color-accent-gold);">🥇 Gold VIP</div>
+            <div style="font-size:12px; color:var(--color-cream-muted);">1.5x Point multiplier + Free Oat / Almond milk upgrades forever.</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-top:32px;">
+          <button type="button" class="btn-hero-primary" onclick="joinRavenhillRewards()">
+            <i class="ri-vip-crown-fill"></i> ⭐ Join Ravenhill Rewards
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Location & Opening Hours Section -->
+    <section class="landing-section" id="location-section">
+      <div class="visit-section-grid">
+        <div class="visit-info-card">
+          <div>
+            <span class="section-tag">Find Us in Melbourne CBD</span>
+            <h3 class="section-main-title" style="font-size:26px;">142 Flinders Lane</h3>
+            <p class="section-subtext">Located in Melbourne's iconic cultural coffee laneway corridor. Walk-ins welcome, express click & collect available.</p>
+
+            <table class="hours-table">
+              <tbody>
+                <tr><td>Monday – Friday</td><td>6:30 AM – 4:00 PM</td></tr>
+                <tr><td>Saturday</td><td>7:30 AM – 3:30 PM</td></tr>
+                <tr><td>Sunday</td><td>8:00 AM – 3:00 PM</td></tr>
+                <tr><td>Public Holidays</td><td>8:00 AM – 2:00 PM</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+            <button type="button" class="btn-hero-primary" onclick="window.enterAsCustomer('reservations')" style="padding:10px 20px; font-size:14px;">
+              <i class="ri-calendar-check-line"></i> Book a Table
+            </button>
+            <a href="https://maps.google.com/?q=142+Flinders+Lane+Melbourne" target="_blank" rel="noopener" class="btn-hero-secondary" style="padding:10px 20px; font-size:14px;">
+              <i class="ri-map-pin-2-line"></i> Open in Maps
+            </a>
+          </div>
+        </div>
+
+        <div class="visit-info-card" style="background:linear-gradient(135deg, #1c1510, #140e0a); justify-content:center; text-align:center; padding:40px 24px;">
+          <i class="ri-store-2-fill" style="font-size:48px; color:var(--color-primary-light); margin-bottom:12px;"></i>
+          <h4 style="font-size:22px; font-family:'Outfit', sans-serif; color:#fff; margin-bottom:8px;">Fast Laneway Pickup</h4>
+          <p style="color:var(--color-cream-muted); font-size:14px; max-width:380px; margin:0 auto 20px;">Order ahead online with zero wait time. Your barista has your order steaming when you arrive.</p>
+          <div>
+            <button type="button" class="btn-hero-primary" onclick="window.enterAsCustomer('pos')" style="padding:12px 24px;">
+              <i class="ri-smartphone-line"></i> Order Ahead Online
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Social & Melbourne Laneway Gallery -->
+    <section class="gallery-section-wrap" id="gallery-section">
+      <div class="section-header-centered">
+        <span class="section-tag">Café Atmosphere</span>
+        <h2 class="section-main-title">Melbourne Laneway Moments</h2>
+        <p class="section-subtext">A glimpse into our daily craft, artisan barista pours, and Flinders Lane café energy.</p>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-card">
+          <img src="./brand_recources/flat_white_coffee.png" alt="Melbourne Flat White" loading="lazy">
+          <div class="gallery-overlay"><span>Velvety Micro-Foam Flat White</span></div>
+        </div>
+        <div class="gallery-card">
+          <img src="./brand_recources/cappuccino_coffee.png" alt="Artisan Cappuccino" loading="lazy">
+          <div class="gallery-overlay"><span>Cocoa-Dusted Cappuccino</span></div>
+        </div>
+        <div class="gallery-card">
+          <img src="./brand_recources/double_espresso_short_black.png" alt="Double Espresso" loading="lazy">
+          <div class="gallery-overlay"><span>Crema-Rich Double Espresso</span></div>
+        </div>
+        <div class="gallery-card">
+          <img src="./brand_recources/butter_croissant.png" alt="Butter Croissant" loading="lazy">
+          <div class="gallery-overlay"><span>Fresh Daily French Butter Pastries</span></div>
+        </div>
+        <div class="gallery-card">
+          <img src="./brand_recources/iced_oat_milk_latte.png" alt="Iced Oat Milk Latte" loading="lazy">
+          <div class="gallery-overlay"><span>Chilled Single Origin Iced Latte</span></div>
+        </div>
+        <div class="gallery-card">
+          <img src="./brand_recources/v60_pourover_coffee.png" alt="V60 Single Origin Pourover" loading="lazy">
+          <div class="gallery-overlay"><span>Precision Handcrafted V60 Pourover</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Landing Page Footer -->
+    <footer class="landing-footer" id="landing-footer">
+      <div class="landing-footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:36px; height:36px; border-radius:50%;">
+            <strong style="font-family:'Outfit', sans-serif; font-size:18px; color:#fff; letter-spacing:1px;">RAVENHILL</strong>
+          </div>
+          <p style="font-size:13px; line-height:1.6; color:var(--color-cream-subtle);">
+            Melbourne CBD Specialty Coffee Roasters. Dedicated to ethical sourcing, precision roasting, and extraordinary everyday coffee rituals.
+          </p>
+        </div>
+
+        <div>
+          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Navigation</h5>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+            <a href="#hero-section" style="color:inherit; text-decoration:none;">Home</a>
+            <a href="#story-section" style="color:inherit; text-decoration:none;">Our Story</a>
+            <a href="#menu-preview-section" style="color:inherit; text-decoration:none;">Menu</a>
+            <a href="#specials-section" style="color:inherit; text-decoration:none;">Specials</a>
+            <a href="#location-section" style="color:inherit; text-decoration:none;">Location & Hours</a>
+          </div>
+        </div>
+
+        <div>
+          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Access Portal</h5>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+            <a href="#roles-section" style="color:inherit; text-decoration:none;">Choose Your Role</a>
+            <a href="#" onclick="window.enterAsCustomer()" style="color:inherit; text-decoration:none;">Customer Storefront</a>
+            <a href="#" onclick="window.openRoleLoginModal('cashier')" style="color:inherit; text-decoration:none;">Staff Login</a>
+            <a href="#" onclick="window.openRoleLoginModal('admin')" style="color:inherit; text-decoration:none;">Manager / Admin</a>
+          </div>
+        </div>
+
+        <div>
+          <h5 style="color:#fff; font-size:14px; margin-bottom:8px;">Get 10% Off First Order</h5>
+          <p style="font-size:12px;">Join our Melbourne coffee dispatch newsletter:</p>
+          <form onsubmit="event.preventDefault(); showToast('🎉 Subscribed! Use promo code MELB10 for 10% off at checkout.', 'success'); this.reset();" class="footer-newsletter-input">
+            <input type="email" placeholder="Enter your email..." required>
+            <button type="submit" class="btn-hero-primary" style="padding:8px 16px; font-size:12px; border-radius:20px;">Join</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom-row">
+        <span>© 2026 Ravenhill Coffee Roasters Pty Ltd. All Rights Reserved. ABN 88 142 904 883.</span>
+        <span>142 Flinders Lane, Melbourne VIC 3000 • hello@ravenhillcoffee.com.au</span>
+      </div>
+    </footer>
+
   </div>
 
   <!-- Skip to Main Content Link for Keyboard / Screen Reader Accessibility -->
@@ -41,7 +492,10 @@ $csrfToken = getCSRFToken();
   <!-- Mobile Sidebar Backdrop Overlay -->
   <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
-  <div id="app-container" class="app-layout">
+  <!-- =========================================================================
+       INTERNAL POS, OPERATIONS & STOREFRONT APPLICATION SHELL
+       ========================================================================= -->
+  <div id="app-container" class="app-layout hidden">
     
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
@@ -59,13 +513,13 @@ $csrfToken = getCSRFToken();
       </div>
 
       <div class="sidebar-nav-wrapper">
-        <div class="nav-section-title">Storefront & Experience</div>
+        <div class="nav-section-title">Navigation & Storefront</div>
         <nav class="nav-menu">
-          <a href="#" class="nav-item active" data-module="landing">
-            <i class="ri-compass-3-line"></i>
-            <span>Experience & Storefront</span>
+          <a href="#" class="nav-item" onclick="window.showLandingView(); return false;" data-module="landing">
+            <i class="ri-home-4-line"></i>
+            <span>Brand Landing Page</span>
           </a>
-          <a href="#" class="nav-item" data-module="pos">
+          <a href="#" class="nav-item active" data-module="pos">
             <i class="ri-shopping-bag-3-line"></i>
             <span>Point of Sale (POS)</span>
           </a>
@@ -178,6 +632,12 @@ $csrfToken = getCSRFToken();
         </div>
 
         <div class="topbar-right">
+          <!-- Return to Dedicated Brand Landing Page -->
+          <button type="button" class="btn-return-landing" onclick="window.showLandingView ? window.showLandingView() : window.switchModule('landing')" title="Back to Dedicated Brand Landing Page">
+            <i class="ri-home-4-line"></i>
+            <span>Home</span>
+          </button>
+
           <!-- Quick Search -->
           <div class="global-search-box">
             <i class="ri-search-line" aria-hidden="true"></i>

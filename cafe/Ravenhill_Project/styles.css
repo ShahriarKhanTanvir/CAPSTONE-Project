@@ -4359,38 +4359,414 @@ select option, .form-select option, .form-select-sm option {
   gap: 12px;
 }
 
-/* Responsive adjustments for Landing Page */
+/* Dedicated Landing Navbar */
+.landing-navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 99;
+  background: rgba(13, 10, 8, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.landing-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--color-cream);
+  cursor: pointer;
+}
+
+.landing-nav-brand img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary-light);
+  object-fit: cover;
+}
+
+.landing-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-brand-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.landing-brand-sub {
+  font-size: 11px;
+  color: var(--color-accent-gold);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-nav-link {
+  color: var(--color-cream-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 4px 0;
+}
+
+.landing-nav-link:hover,
+.landing-nav-link.active {
+  color: var(--color-cream);
+}
+
+.landing-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width 0.25s ease;
+}
+
+.landing-nav-link:hover::after {
+  width: 100%;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-nav-role {
+  background: linear-gradient(135deg, var(--color-primary), #b45309);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217, 107, 67, 0.35);
+  transition: all 0.25s ease;
+}
+
+.btn-nav-role:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 107, 67, 0.5);
+  background: linear-gradient(135deg, #ea580c, #d97706);
+}
+
+.btn-nav-login {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-cream);
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-nav-login:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+/* Return to Landing Page Floating / Topbar button */
+.btn-return-landing {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-cream);
+  border: 1px solid var(--color-border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-return-landing:hover {
+  background: rgba(217, 107, 67, 0.2);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Role Selection Section & Cards */
+.roles-section-wrap {
+  padding: 90px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.role-card-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.role-card-item:hover {
+  transform: translateY(-8px);
+  border-color: var(--color-primary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+.role-card-item.featured-customer {
+  background: linear-gradient(180deg, #221812 0%, #17110c 100%);
+  border-color: rgba(217, 107, 67, 0.4);
+}
+
+.role-card-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(217, 107, 67, 0.2);
+  border: 1px solid rgba(217, 107, 67, 0.5);
+  color: var(--color-accent-gold);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.role-card-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(217, 107, 67, 0.2), rgba(229, 169, 59, 0.2));
+  border: 1px solid rgba(229, 169, 59, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: var(--color-accent-gold);
+}
+
+.role-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-cream);
+  margin: 0 0 10px;
+}
+
+.role-card-desc {
+  font-size: 14px;
+  color: var(--color-cream-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  flex: 1;
+}
+
+.role-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-cream-subtle);
+}
+
+.role-card-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-card-features li i {
+  color: #10b981;
+}
+
+.role-card-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-role-customer {
+  background: linear-gradient(135deg, var(--color-primary), #b45309);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(217, 107, 67, 0.4);
+}
+
+.btn-role-customer:hover {
+  background: linear-gradient(135deg, #ea580c, #d97706);
+  transform: translateY(-2px);
+}
+
+.btn-role-staff {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-cream);
+  border: 1px solid var(--color-border);
+}
+
+.btn-role-staff:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--color-primary);
+}
+
+/* Specials Banner Card */
+.specials-featured-card {
+  background: linear-gradient(135deg, #261b14 0%, #382417 50%, #1c140d 100%);
+  border: 2px solid rgba(229, 169, 59, 0.4);
+  border-radius: 24px;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+  margin: 40px auto 0;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.specials-visual {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.specials-visual img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+}
+
+/* Laneway Gallery Grid */
+.gallery-section-wrap {
+  padding: 90px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 36px;
+}
+
+.gallery-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 260px;
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.gallery-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-card:hover img {
+  transform: scale(1.08);
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(13, 10, 8, 0.85) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-card:hover .gallery-overlay {
+  opacity: 1;
+}
+
 @media (max-width: 900px) {
-  .story-grid,
-  .visit-section-grid,
-  .landing-footer-grid {
+  .landing-nav-links {
+    display: none;
+  }
+  .roles-grid {
     grid-template-columns: 1fr;
   }
-  .loyalty-tiers-row {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .specials-featured-card {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 600px) {
-  .promo-top-banner {
-    flex-direction: column;
-    text-align: center;
-    gap: 6px;
-  }
-  .hero-cta-group {
-    flex-direction: column;
-    width: 100%;
-  }
-  .btn-hero-primary,
-  .btn-hero-secondary {
-    width: 100%;
-    justify-content: center;
-  }
-  .loyalty-tracker-strip {
-    justify-content: center;
-    gap: 12px;
-  }
-  .story-stats-grid {
+  .gallery-grid {
     grid-template-columns: 1fr;
   }
 }

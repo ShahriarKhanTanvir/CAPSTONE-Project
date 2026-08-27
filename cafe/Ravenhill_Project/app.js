@@ -1016,26 +1016,20 @@ function initApp() {
   setupLiveClock();
   setupKeyboardShortcuts();
 
-  // If no saved role, default to customer storefront experience
+  // Set default role
   if (!AppState.activeRole) {
     AppState.activeRole = 'customer';
     AppState.activeModule = 'landing';
   }
 
-  if (AppState.activeRole === 'customer') {
-    AppState.isAuthenticated = true;
-    if (!AppState.activeModule) AppState.activeModule = 'landing';
-    applyRoleToUI('customer');
-    applyRolePermissionsUI();
-  } else if (!AppState.isAuthenticated) {
-    openLoginModal(AppState.activeRole || 'cashier');
+  // Default entry: Show the dedicated separate brand landing page
+  const hash = window.location.hash;
+  if (hash === '#pos' || hash === '#kds' || hash === '#admin' || hash === '#dashboard') {
+    window.showAppView(hash.replace('#', ''));
   } else {
-    applyRoleToUI(AppState.activeRole);
-    applyRolePermissionsUI();
+    window.showLandingView();
   }
 
-  // Render initial UI from saved state
-  renderCurrentModule();
   updateKDSBadge();
   updateLowStockBadge();
 
@@ -1118,6 +1112,7 @@ function applyRoleToUI(role) {
     if (avatarEl) avatarEl.textContent = 'SL';
   }
 }
+window.applyRoleToUI = applyRoleToUI;
 
 window.applyRolePermissionsUI = function() {
   const role = AppState.activeRole || 'cashier';
@@ -2073,6 +2068,7 @@ window.getItemImage = function(item) {
 
   return 'flat_white_coffee.png';
 };
+const getItemImage = window.getItemImage;
 
 // ==========================================
 // 5. POS MODULE IMPLEMENTATION
@@ -6393,6 +6389,76 @@ let landingCountdownInterval = null;
 let landingSteamAnimFrame = null;
 let landingProgressionInterval = null;
 
+window.showLandingView = function() {
+  const landing = document.getElementById('landing-page-view');
+  const app = document.getElementById('app-container');
+  if (landing) {
+    landing.classList.remove('hidden');
+    landing.style.display = 'block';
+  }
+  if (app) {
+    app.classList.add('hidden');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.initPromoCountdown();
+  window.initSteamParticles();
+  window.initHeroBadgeProgression();
+  window.filterLandingMenu('coffee');
+};
+
+window.showAppView = function(moduleKey) {
+  const landing = document.getElementById('landing-page-view');
+  const app = document.getElementById('app-container');
+  if (landing) {
+    landing.classList.add('hidden');
+    landing.style.display = 'none';
+  }
+  if (app) {
+    app.classList.remove('hidden');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (moduleKey) {
+    switchModule(moduleKey);
+  } else {
+    renderCurrentModule();
+  }
+};
+
+window.enterAsCustomer = function(targetModule) {
+  AppState.activeRole = 'customer';
+  AppState.isAuthenticated = true;
+  localStorage.setItem('RAVENHILL_USER_ROLE', 'customer');
+  if (window.applyRoleToUI) window.applyRoleToUI('customer');
+  if (window.applyRolePermissionsUI) window.applyRolePermissionsUI();
+  window.showAppView(targetModule || 'pos');
+  showToast('☕ Welcome to Ravenhill! Explore our Melbourne menu & place your order.', 'success');
+};
+
+window.openRoleLoginModal = function(targetRole) {
+  const modal = document.getElementById('role-select-modal');
+  const roleSelect = document.getElementById('role-popup-select');
+  const passInput = document.getElementById('role-password-input');
+  const errorMsg = document.getElementById('role-pass-error');
+
+  if (roleSelect) {
+    if (targetRole === 'admin') {
+      roleSelect.value = 'admin';
+    } else if (targetRole === 'staff') {
+      roleSelect.value = 'cashier';
+    } else {
+      roleSelect.value = targetRole || 'cashier';
+    }
+  }
+
+  if (passInput) {
+    passInput.value = '#DemoPass';
+    passInput.type = 'text';
+  }
+
+  if (errorMsg) errorMsg.classList.add('hidden');
+  if (modal) modal.classList.remove('hidden');
+};
+
 window.initPromoCountdown = function() {
   if (landingCountdownInterval) clearInterval(landingCountdownInterval);
   let totalSeconds = 2 * 3600 + 45 * 60 + 18;
@@ -6416,16 +6482,15 @@ window.claimSpecialPromoCombo = function() {
   const flatWhite = (DB.menuItems || defaultMenuItems).find(i => i.name === 'Flat White') || (DB.menuItems || defaultMenuItems)[0];
   const croissant = (DB.menuItems || defaultMenuItems).find(i => i.name.includes('Croissant')) || (DB.menuItems || defaultMenuItems).find(i => i.catId === '6') || (DB.menuItems || defaultMenuItems)[1];
 
-  // Add Flat White with discount
+  window.enterAsCustomer('pos');
+
   if (flatWhite) {
     addItemToCart(flatWhite, [{ customisation_id: 'cs-1', option_name: 'Regular (8oz)', extra_price: 0 }], 'Combo Special (15% OFF)', 1);
   }
-  // Add Pastry
   if (croissant) {
     addItemToCart(croissant, [{ customisation_id: 'warm-1', option_name: 'Warm & Crispy', extra_price: 0 }], 'Combo Special (15% OFF)', 1);
   }
 
-  // Set promo code
   AppState.cart.promoCode = { code: 'COMBO15', val: 15, type: 'percent' };
   renderCartUI();
   window.openCartDrawer();
@@ -6566,10 +6631,10 @@ window.filterLandingMenu = function(categoryKey) {
           </div>
           <p class="product-desc-text">${item.desc || 'Artisan specialty coffee crafted with precision in Melbourne CBD.'}</p>
           <div class="product-action-row">
-            <button type="button" class="btn-card-order" onclick="openCustomiserModalAsync(DB.menuItems.find(i => String(i.id) === '${item.id}') || defaultMenuItems[0])">
+            <button type="button" class="btn-card-order" onclick="window.orderFromLandingPage('${item.id}')">
               <i class="ri-shopping-bag-3-fill"></i> Add to Cart
             </button>
-            <button type="button" class="btn-card-customise" onclick="openCustomiserModalAsync(DB.menuItems.find(i => String(i.id) === '${item.id}') || defaultMenuItems[0])" title="Customise options">
+            <button type="button" class="btn-card-customise" onclick="window.orderFromLandingPage('${item.id}')" title="Customise options">
               <i class="ri-equalizer-line"></i>
             </button>
           </div>
@@ -6577,6 +6642,12 @@ window.filterLandingMenu = function(categoryKey) {
       </div>
     `;
   }).join('');
+};
+
+window.orderFromLandingPage = function(itemId) {
+  const item = (DB.menuItems || defaultMenuItems).find(i => String(i.id) === String(itemId)) || defaultMenuItems[0];
+  window.enterAsCustomer('pos');
+  openCustomiserModalAsync(item);
 };
 
 window.joinRavenhillRewards = function() {
