@@ -14,10 +14,10 @@ $csrfToken = getCSRFToken();
   <meta name="csrf-token" content="<?php echo htmlspecialchars($csrfToken); ?>">
 
   <title>Ravenhill Coffee — POS & Shop Management System</title>
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Luxury Typography Suite -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Remixicon Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -32,7 +32,7 @@ $csrfToken = getCSRFToken();
     <div class="promo-top-banner" id="top-promo-banner">
       <div class="promo-banner-content">
         <span class="promo-tag"><i class="ri-fire-fill"></i> Today's Special</span>
-        <span>COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
+        <span class="promo-text">COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
         <span class="promo-timer" id="promo-countdown-timer">02:45:18</span>
       </div>
       <button type="button" class="promo-claim-btn" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.enterAsCustomer()">
@@ -40,37 +40,41 @@ $csrfToken = getCSRFToken();
       </button>
     </div>
 
-    <!-- Sticky Dedicated Landing Navbar -->
-    <header class="landing-navbar" id="landing-navbar">
-      <a href="#hero-section" class="landing-nav-brand" onclick="window.scrollTo({ top:0, behavior:'smooth' })">
-        <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Coffee Roasters Logo">
-        <div class="landing-brand-text">
-          <span class="landing-brand-title">RAVENHILL</span>
-          <span class="landing-brand-sub">Coffee Roasters • Melb CBD</span>
+    <!-- Floating Glassmorphic Top Navigation Bar -->
+    <div class="landing-navbar-wrapper">
+      <header class="landing-navbar" id="landing-navbar">
+        <a href="#hero-section" class="landing-nav-brand" onclick="window.scrollTo({ top:0, behavior:'smooth' })">
+          <div class="brand-avatar-glow">
+            <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Coffee Roasters Logo">
+          </div>
+          <div class="landing-brand-text">
+            <span class="landing-brand-title">RAVENHILL</span>
+            <span class="landing-brand-sub">Coffee Roasters • Melb CBD</span>
+          </div>
+        </a>
+
+        <nav class="landing-nav-menu">
+          <ul class="landing-nav-links">
+            <li><a href="#hero-section" class="landing-nav-link active"><i class="ri-home-4-line"></i> Home</a></li>
+            <li><a href="#story-section" class="landing-nav-link"><i class="ri-book-open-line"></i> Our Story</a></li>
+            <li><a href="#menu-preview-section" class="landing-nav-link"><i class="ri-cup-line"></i> Menu</a></li>
+            <li><a href="#specials-section" class="landing-nav-link"><i class="ri-fire-line"></i> Specials</a></li>
+            <li><a href="#roles-section" class="landing-nav-link highlight-gold"><i class="ri-user-star-line"></i> Choose Role</a></li>
+            <li><a href="#location-section" class="landing-nav-link"><i class="ri-map-pin-line"></i> Location</a></li>
+            <li><a href="#gallery-section" class="landing-nav-link"><i class="ri-camera-lens-line"></i> Gallery</a></li>
+          </ul>
+        </nav>
+
+        <div class="landing-nav-actions">
+          <button type="button" class="btn-nav-role" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
+            <i class="ri-user-star-fill"></i> <span>Choose Your Role</span>
+          </button>
+          <button type="button" class="btn-nav-login" onclick="window.openRoleLoginModal ? window.openRoleLoginModal('cashier') : window.openLoginModal('cashier')">
+            <i class="ri-lock-line"></i> <span>Login</span>
+          </button>
         </div>
-      </a>
-
-      <nav>
-        <ul class="landing-nav-links">
-          <li><a href="#hero-section" class="landing-nav-link active">Home</a></li>
-          <li><a href="#story-section" class="landing-nav-link">Our Story</a></li>
-          <li><a href="#menu-preview-section" class="landing-nav-link">Menu</a></li>
-          <li><a href="#specials-section" class="landing-nav-link">Specials</a></li>
-          <li><a href="#roles-section" class="landing-nav-link" style="color:var(--color-accent-gold); font-weight:700;">Choose Role</a></li>
-          <li><a href="#location-section" class="landing-nav-link">Location</a></li>
-          <li><a href="#gallery-section" class="landing-nav-link">Gallery</a></li>
-        </ul>
-      </nav>
-
-      <div class="landing-nav-actions">
-        <button type="button" class="btn-nav-role" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
-          <i class="ri-user-star-line"></i> Choose Your Role
-        </button>
-        <button type="button" class="btn-nav-login" onclick="window.openRoleLoginModal ? window.openRoleLoginModal('cashier') : window.openLoginModal('cashier')">
-          <i class="ri-lock-line"></i> Login
-        </button>
-      </div>
-    </header>
+      </header>
+    </div>
 
     <!-- 1. Hero Section -->
     <section class="landing-hero" id="hero-section">
@@ -84,26 +88,47 @@ $csrfToken = getCSRFToken();
       </div>
 
       <div class="hero-content">
-        <div class="hero-progression-badge">
-          <i class="ri-sparkling-fill" id="hero-progression-icon"></i>
-          <span id="hero-progression-text" class="hero-progression-text">WAKE UP.</span>
+        <div class="hero-top-badges-row">
+          <div class="hero-progression-badge">
+            <i class="ri-sparkling-fill" id="hero-progression-icon"></i>
+            <span id="hero-progression-text" class="hero-progression-text">WAKE UP.</span>
+          </div>
+          <div class="hero-status-pill">
+            <span class="status-dot-pulse"></span>
+            <span>Open Today • 6:30 AM – 4:00 PM • 142 Flinders Lane</span>
+          </div>
         </div>
 
-        <h1 class="hero-headline">Coffee, Crafted for Your Moment.</h1>
-        <p class="hero-subheadline">Exceptional coffee. Fresh food. Good vibes. Right in the heart of Melbourne.</p>
+        <h1 class="hero-headline">
+          Coffee, Crafted for <span class="text-gold-gradient">Your Moment.</span>
+        </h1>
+        <p class="hero-subheadline">
+          Exceptional specialty coffee. Fresh daily artisan food. Good Melbourne vibes. Roasted and brewed with passion in the heart of Flinders Lane.
+        </p>
 
         <div class="hero-cta-group">
           <button type="button" class="btn-hero-primary" onclick="document.getElementById('menu-preview-section')?.scrollIntoView({ behavior:'smooth' })">
-            <i class="ri-cup-fill"></i> Explore the Experience
+            <i class="ri-cup-fill"></i> Explore Menu & Order Now <i class="ri-arrow-right-line"></i>
           </button>
           <button type="button" class="btn-hero-secondary" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
             <i class="ri-user-star-line"></i> Choose Your Role
           </button>
         </div>
 
-        <div class="hero-status-pill">
-          <span class="status-dot-pulse"></span>
-          <span>Open Today: 6:30 AM – 4:00 PM • 142 Flinders Lane, Melbourne CBD</span>
+        <!-- Hero Metric Highlights Bar -->
+        <div class="hero-highlights-bar">
+          <div class="hero-highlight-pill">
+            <i class="ri-leaf-fill"></i> 100% Ethical Micro-Lots
+          </div>
+          <div class="hero-highlight-pill">
+            <i class="ri-fire-fill"></i> Small-Batch Roasted Daily
+          </div>
+          <div class="hero-highlight-pill">
+            <i class="ri-star-fill"></i> 4.9 ★ (1,450+ Reviews)
+          </div>
+          <div class="hero-highlight-pill">
+            <i class="ri-flashlight-fill"></i> Fast Laneway Table & Pickup
+          </div>
         </div>
       </div>
     </section>
@@ -123,45 +148,64 @@ $csrfToken = getCSRFToken();
       </div>
     </div>
 
-    <!-- 3. Story & Roasting Heritage Section (About Ravenhill) -->
+    <!-- 3. Story & Roasting Heritage Section (Bento Grid Architecture) -->
     <section class="landing-section" id="story-section">
-      <div class="story-grid">
-        <div class="story-card-visual">
-          <img src="./brand_recources/roasted_coffee_beans.png" alt="Roasted Coffee Beans" loading="lazy">
-          <div class="story-floating-badge">
-            <div class="story-badge-icon"><i class="ri-fire-fill"></i></div>
-            <div>
-              <strong style="color:#fff; font-size:14px; display:block;">Ethical Single Origin</strong>
-              <span style="color:var(--color-cream-muted); font-size:12px;">Small Batch Roasted in Melbourne</span>
+      <div class="section-header-centered">
+        <span class="section-tag">Roasting Craft & Heritage</span>
+        <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
+        <p class="section-subtext">Nestled along iconic Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of Melbourne specialty coffee.</p>
+      </div>
+
+      <div class="story-bento-grid">
+        <!-- Big Spotlight Card -->
+        <div class="bento-card bento-card-spotlight">
+          <div class="bento-visual-box">
+            <img src="./brand_recources/roasted_coffee_beans.png" alt="Ravenhill Roasted Coffee Beans" loading="lazy">
+            <div class="bento-badge-floating">
+              <i class="ri-fire-fill"></i>
+              <div>
+                <strong>Batch #142 Roasted Fresh</strong>
+                <span>Dialed In Daily at 6:00 AM</span>
+              </div>
+            </div>
+          </div>
+          <div class="bento-text-box">
+            <span class="section-tag" style="color:var(--color-accent-gold);">Our Roasting Philosophy</span>
+            <h3 style="font-family:'Outfit', sans-serif; font-size:24px; color:#fff; margin:6px 0 10px;">Precision Sourcing & Custom Curves</h3>
+            <p style="color:var(--color-cream-muted); font-size:14px; line-height:1.6; margin-bottom:16px;">
+              From high-altitude Ethiopian and Colombian estates to our gentle drum roasting profile, we accentuate floral aromatics, caramel sweetness, and silky mouthfeel.
+            </p>
+            <div class="tasting-notes-tags">
+              <span class="tasting-tag">🍫 Dark Cacao</span>
+              <span class="tasting-tag">🍯 Toffee & Caramel</span>
+              <span class="tasting-tag">🍊 Bergamot & Citrus</span>
+              <span class="tasting-tag">🫐 Wild Blueberries</span>
             </div>
           </div>
         </div>
 
-        <div class="story-content-col">
-          <span class="section-tag">About Ravenhill</span>
-          <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
-          <p class="section-subtext">
-            Nestled along iconic Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of specialty coffee. From hand-picked high-altitude micro-lots to our custom roasting curve, we brew for clarity, sweetness, and distinct origin profiles.
-          </p>
+        <!-- Bento Card 2: 100% Ethical -->
+        <div class="bento-card bento-card-stat">
+          <div class="bento-icon-glow"><i class="ri-earth-line"></i></div>
+          <div class="bento-stat-num">100%</div>
+          <h4 class="bento-stat-title">Ethical Direct Trade</h4>
+          <p class="bento-stat-desc">Fair compensation & long-term partnerships directly with independent micro-lot coffee farming families.</p>
+        </div>
 
-          <div class="story-stats-grid">
-            <div class="story-stat-card">
-              <div class="story-stat-num">100%</div>
-              <div class="story-stat-label">Ethical Micro-Lots & Direct Trade</div>
-            </div>
-            <div class="story-stat-card">
-              <div class="story-stat-num">4.9 ★</div>
-              <div class="story-stat-label">1,450+ Verified Melbourne Reviews</div>
-            </div>
-            <div class="story-stat-card">
-              <div class="story-stat-num">15+</div>
-              <div class="story-stat-label">Barista & Roasting Industry Awards</div>
-            </div>
-            <div class="story-stat-card">
-              <div class="story-stat-num">28 sec</div>
-              <div class="story-stat-label">Golden Ratio Espresso Extraction</div>
-            </div>
-          </div>
+        <!-- Bento Card 3: 28-Sec Extraction -->
+        <div class="bento-card bento-card-stat">
+          <div class="bento-icon-glow"><i class="ri-timer-flash-line"></i></div>
+          <div class="bento-stat-num">28 sec</div>
+          <h4 class="bento-stat-title">Golden Extraction Ratio</h4>
+          <p class="bento-stat-desc">Calibrated 1:2 extraction pressure at 93.5°C for the ultimate balance of crema, body, and brightness.</p>
+        </div>
+
+        <!-- Bento Card 4: Verified Reviews -->
+        <div class="bento-card bento-card-stat">
+          <div class="bento-icon-glow"><i class="ri-medal-fill"></i></div>
+          <div class="bento-stat-num">4.9 ★</div>
+          <h4 class="bento-stat-title">1,450+ Verified Reviews</h4>
+          <p class="bento-stat-desc">Voted among Melbourne CBD's finest laneway espresso destinations and roasting pioneers.</p>
         </div>
       </div>
     </section>
@@ -176,19 +220,19 @@ $csrfToken = getCSRFToken();
 
       <div class="category-nav-pills">
         <button type="button" class="category-pill-btn active" data-cat="coffee" onclick="filterLandingMenu('coffee')">
-          ☕ Coffee
+          <i class="ri-cup-line"></i> Coffee
         </button>
         <button type="button" class="category-pill-btn" data-cat="breakfast" onclick="filterLandingMenu('breakfast')">
-          🥐 Breakfast
+          <i class="ri-bread-line"></i> Breakfast
         </button>
         <button type="button" class="category-pill-btn" data-cat="lunch" onclick="filterLandingMenu('lunch')">
-          🥪 Lunch
+          <i class="ri-restaurant-line"></i> Lunch
         </button>
         <button type="button" class="category-pill-btn" data-cat="cold" onclick="filterLandingMenu('cold')">
-          🧋 Cold Drinks
+          <i class="ri-goblet-line"></i> Cold Drinks
         </button>
         <button type="button" class="category-pill-btn" data-cat="sweets" onclick="filterLandingMenu('sweets')">
-          🍰 Sweets
+          <i class="ri-cake-3-line"></i> Sweets
         </button>
       </div>
 
@@ -222,7 +266,7 @@ $csrfToken = getCSRFToken();
           <p style="color:var(--color-cream-muted); font-size:14px; line-height:1.6; margin-bottom:20px;">
             Pair any handcrafted house blend or single origin coffee with our fresh daily-baked French butter croissant or almond pastry.
           </p>
-          <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
             <div>
               <span style="font-size:12px; color:var(--color-cream-subtle); display:block;">Combo Price</span>
               <strong style="font-family:'Outfit', sans-serif; font-size:26px; color:var(--color-accent-gold);">$11.20 AUD</strong>
@@ -264,8 +308,9 @@ $csrfToken = getCSRFToken();
         </div>
 
         <!-- Staff Role Card -->
-        <div class="role-card-item">
-          <div class="role-card-icon">👨🍳</div>
+        <div class="role-card-item role-card-staff">
+          <span class="role-card-badge staff-badge">Staff & Crew</span>
+          <div class="role-card-icon staff-icon">👨‍🍳</div>
           <h3 class="role-card-title">Staff / Operations</h3>
           <p class="role-card-desc">Access staff-related functions, manage kitchen and barista orders, floor tables and perform daily operational tasks.</p>
           <ul class="role-card-features">
@@ -280,8 +325,9 @@ $csrfToken = getCSRFToken();
         </div>
 
         <!-- Manager / Admin Role Card -->
-        <div class="role-card-item">
-          <div class="role-card-icon">👨💼</div>
+        <div class="role-card-item role-card-admin">
+          <span class="role-card-badge admin-badge">Executive</span>
+          <div class="role-card-icon admin-icon">👨‍💼</div>
           <h3 class="role-card-title">Manager / Admin</h3>
           <p class="role-card-desc">Access executive management, sales analytics, inventory recipe tracking, staff rosters and system administration.</p>
           <ul class="role-card-features">
@@ -290,7 +336,7 @@ $csrfToken = getCSRFToken();
             <li><i class="ri-check-line"></i> Supplier Purchase Orders</li>
             <li><i class="ri-check-line"></i> Full Role Permission Controls</li>
           </ul>
-          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openRoleLoginModal('admin')">
+          <button type="button" class="role-card-btn btn-role-admin" onclick="window.openRoleLoginModal('admin')">
             Admin Login <i class="ri-shield-keyhole-line"></i>
           </button>
         </div>
