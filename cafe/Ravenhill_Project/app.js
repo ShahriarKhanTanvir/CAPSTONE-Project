@@ -872,6 +872,9 @@ function saveLocalDB() {
       activeRole: AppState.activeRole,
       isAuthenticated: AppState.isAuthenticated
     }));
+    if (AppState.cart) {
+      localStorage.setItem('RAVENHILL_CART_STATE', JSON.stringify(AppState.cart));
+    }
   } catch (e) {
     console.warn('[LocalStorage] Save failed:', e);
   }
@@ -905,6 +908,17 @@ function loadLocalDB() {
       if (appParsed.activeRole) AppState.activeRole = appParsed.activeRole;
       if (appParsed.isAuthenticated !== undefined) AppState.isAuthenticated = appParsed.isAuthenticated;
     }
+    // Load cart state
+    const cartSaved = localStorage.getItem('RAVENHILL_CART_STATE');
+    if (cartSaved) {
+      const cartParsed = JSON.parse(cartSaved);
+      if (cartParsed && Array.isArray(cartParsed.items)) {
+        AppState.cart = {
+          ...AppState.cart,
+          ...cartParsed
+        };
+      }
+    }
     if (!DB.menuCategories.some(c => String(c.id) === String(AppState.activeCategory)) && DB.menuCategories.length > 0) {
       AppState.activeCategory = DB.menuCategories[0].id;
     }
@@ -912,6 +926,80 @@ function loadLocalDB() {
     console.warn('[LocalStorage] Load failed:', e);
   }
 }
+
+// Global Toast Notification System
+window.showToast = function(message, type = 'info', duration = 3200) {
+  let container = document.getElementById('app-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'app-toast-container';
+    container.style.cssText = 'position:fixed; top:24px; right:24px; z-index:999999; display:flex; flex-direction:column; gap:10px; pointer-events:none; max-width:90vw; width:380px;';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `app-toast toast-${type}`;
+  
+  const iconMap = {
+    success: 'ri-checkbox-circle-fill',
+    warning: 'ri-alert-fill',
+    danger: 'ri-error-warning-fill',
+    error: 'ri-close-circle-fill',
+    info: 'ri-information-fill'
+  };
+  const icon = iconMap[type] || 'ri-notification-3-fill';
+
+  const bgMap = {
+    success: 'linear-gradient(135deg, rgba(39, 174, 96, 0.95), rgba(46, 204, 113, 0.95))',
+    warning: 'linear-gradient(135deg, rgba(230, 126, 34, 0.95), rgba(241, 196, 15, 0.95))',
+    danger: 'linear-gradient(135deg, rgba(192, 57, 43, 0.95), rgba(231, 76, 60, 0.95))',
+    error: 'linear-gradient(135deg, rgba(192, 57, 43, 0.95), rgba(231, 76, 60, 0.95))',
+    info: 'linear-gradient(135deg, rgba(217, 107, 67, 0.95), rgba(229, 169, 59, 0.95))'
+  };
+
+  toast.style.cssText = `
+    background: ${bgMap[type] || bgMap.info};
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    transform: translateX(50px) scale(0.95);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+
+  toast.innerHTML = `
+    <i class="${icon}" style="font-size:18px; flex-shrink:0;"></i>
+    <span style="flex:1; line-height:1.35;">${message}</span>
+    <button type="button" style="background:none; border:none; color:rgba(255,255,255,0.8); cursor:pointer; font-size:16px; padding:0; display:flex; align-items:center;" onclick="this.parentElement.remove()"><i class="ri-close-line"></i></button>
+  `;
+
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateX(0) scale(1)';
+    toast.style.opacity = '1';
+  });
+
+  setTimeout(() => {
+    toast.style.transform = 'translateX(50px) scale(0.95)';
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      if (typeof toast.remove === 'function') toast.remove();
+      else if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 350);
+  }, duration);
+};
+
+const showToast = window.showToast;
 
 function initApp() {
   // Load saved state from LocalStorage immediately to prevent initial reset on refresh
@@ -2530,31 +2618,38 @@ window.editCartItem = function(index) {
 };
 
 // Confirm Add to Cart / Update Item from Customiser Modal
+let isAddingToCart = false;
 window.confirmAddToCart = function() {
+  if (isAddingToCart) return;
+  isAddingToCart = true;
+  setTimeout(() => { isAddingToCart = false; }, 300);
+
   const modal = document.getElementById('customiser-modal');
   if (!AppState.modalItem) {
     if (modal) modal.classList.add('hidden');
     return;
   }
+
   const customisations = [];
   document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
     customisations.push({
-      customisation_id: input.getAttribute('data-id'),
-      group_name: input.getAttribute('data-group'),
-      option_name: input.getAttribute('data-name'),
+      customisation_id: input.getAttribute('data-id') || input.value,
+      group_name: input.getAttribute('data-group') || 'Option',
+      option_name: input.getAttribute('data-name') || input.value,
       extra_price: parseFloat(input.getAttribute('data-extra') || 0)
     });
   });
 
   const notes = document.getElementById('customiser-item-notes')?.value?.trim() || '';
-  const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+  const qty = Math.max(1, parseInt(document.getElementById('customiser-qty')?.textContent || '1') || 1);
+  const currentItem = { ...AppState.modalItem };
 
   if (AppState.editingCartIndex !== null && AppState.editingCartIndex !== undefined) {
     const idx = AppState.editingCartIndex;
-    if (AppState.cart.items[idx]) {
+    if (AppState.cart && AppState.cart.items && AppState.cart.items[idx]) {
       let extraPrice = 0;
       customisations.forEach(c => extraPrice += parseFloat(c.extra_price || 0));
-      const basePrice = parseFloat(AppState.modalItem.price || AppState.modalItem.unit_price || 0);
+      const basePrice = parseFloat(currentItem.price || currentItem.unit_price || 0);
       const unitPrice = basePrice + extraPrice;
 
       AppState.cart.items[idx].customisations = customisations;
@@ -2564,12 +2659,14 @@ window.confirmAddToCart = function() {
       AppState.cart.items[idx].totalPrice = unitPrice * qty;
     }
     AppState.editingCartIndex = null;
+    AppState.modalItem = null;
     if (modal) modal.classList.add('hidden');
     renderCartUI();
     saveLocalDB();
-    showToast(`✨ Updated ${AppState.modalItem.name || AppState.modalItem.product_name} in cart!`, 'success');
+    showToast(`✨ Updated ${currentItem.name || currentItem.product_name} in cart!`, 'success');
   } else {
-    addItemToCart(AppState.modalItem, customisations, notes, qty);
+    addItemToCart(currentItem, customisations, notes, qty);
+    AppState.modalItem = null;
     if (modal) modal.classList.add('hidden');
     
     // Animate topbar cart badge
@@ -2581,7 +2678,7 @@ window.confirmAddToCart = function() {
     }
 
     renderCartUI();
-    showToast(`✨ Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
+    showToast(`✨ Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
   }
 };
 
@@ -2590,7 +2687,11 @@ function setupCustomiserModal() {
   const modal = document.getElementById('customiser-modal');
   const closeBtn = document.getElementById('close-customiser-btn');
   if (closeBtn && modal) {
-    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      AppState.modalItem = null;
+      AppState.editingCartIndex = null;
+    });
   }
 
   const minusBtn = document.getElementById('qty-minus');
@@ -2611,11 +2712,6 @@ function setupCustomiserModal() {
       document.getElementById('customiser-qty').textContent = q + 1;
       recalculateCustomiserPrice();
     });
-  }
-
-  const confirmBtn = document.getElementById('add-to-cart-confirm-btn');
-  if (confirmBtn) {
-    confirmBtn.addEventListener('click', window.confirmAddToCart);
   }
 }
 
@@ -3407,7 +3503,16 @@ window.openPaymentModal = function() {
   document.getElementById('payment-modal')?.classList.remove('hidden');
 }
 
+let isProcessingPayment = false;
 function completePaymentProcess() {
+  if (isProcessingPayment) return;
+  if (!AppState.cart || !AppState.cart.items || AppState.cart.items.length === 0) {
+    showToast('Your cart is empty! Please select items first.', 'warning');
+    return;
+  }
+  isProcessingPayment = true;
+  setTimeout(() => { isProcessingPayment = false; }, 1500);
+
   const activeTab = document.querySelector('.pay-tab.active')?.getAttribute('data-method') || 'eftpos';
   const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
   let discount = 0;
