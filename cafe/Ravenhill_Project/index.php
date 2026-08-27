@@ -23,6 +23,18 @@ $csrfToken = getCSRFToken();
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-dark">
+  <!-- Top Animated Promotional Banner (FR & Live Promo) -->
+  <div class="promo-top-banner" id="top-promo-banner">
+    <div class="promo-banner-content">
+      <span class="promo-tag"><i class="ri-fire-fill"></i> Today's Special</span>
+      <span>COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
+      <span class="promo-timer" id="promo-countdown-timer">02:45:18</span>
+    </div>
+    <button type="button" class="promo-claim-btn" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.switchModule('landing')">
+      <i class="ri-gift-line"></i> Claim Special Combo
+    </button>
+  </div>
+
   <!-- Skip to Main Content Link for Keyboard / Screen Reader Accessibility -->
   <a href="#workspace-container" class="skip-to-content">Skip to main content</a>
 
@@ -47,11 +59,15 @@ $csrfToken = getCSRFToken();
       </div>
 
       <div class="sidebar-nav-wrapper">
-        <div class="nav-section-title">POS & Operations</div>
+        <div class="nav-section-title">Storefront & Experience</div>
         <nav class="nav-menu">
-          <a href="#" class="nav-item active" data-module="pos">
+          <a href="#" class="nav-item active" data-module="landing">
+            <i class="ri-compass-3-line"></i>
+            <span>Experience & Storefront</span>
+          </a>
+          <a href="#" class="nav-item" data-module="pos">
             <i class="ri-shopping-bag-3-line"></i>
-            <span>Point of Sale</span>
+            <span>Point of Sale (POS)</span>
           </a>
           <a href="#" class="nav-item" data-module="kds">
             <i class="ri-fire-line"></i>
@@ -186,11 +202,11 @@ $csrfToken = getCSRFToken();
           <div class="role-selector-container">
             <label for="user-role-select" class="role-label">Role:</label>
             <select id="user-role-select" class="role-select" aria-label="Select Active Role">
-              <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
+              <option value="customer" selected>☕ Customer (Storefront & Order)</option>
+              <option value="cashier">💳 Cashier (POS & Sales)</option>
               <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
               <option value="barista">☕ Barista (Beverages KDS)</option>
               <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
-              <option value="customer">👤 Customer (Live Tracker)</option>
               <option value="manager">📊 Manager (Operations & Staff)</option>
               <option value="admin">⚡ Admin (Full Control)</option>
             </select>

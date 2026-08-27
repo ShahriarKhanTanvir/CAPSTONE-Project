@@ -1016,9 +1016,18 @@ function initApp() {
   setupLiveClock();
   setupKeyboardShortcuts();
 
-  // Check if session is authenticated
+  // If no saved role, default to customer storefront experience
+  if (!AppState.activeRole) {
+    AppState.activeRole = 'customer';
+    AppState.activeModule = 'landing';
+  }
 
-  if (!AppState.isAuthenticated) {
+  if (AppState.activeRole === 'customer') {
+    AppState.isAuthenticated = true;
+    if (!AppState.activeModule) AppState.activeModule = 'landing';
+    applyRoleToUI('customer');
+    applyRolePermissionsUI();
+  } else if (!AppState.isAuthenticated) {
     openLoginModal(AppState.activeRole || 'cashier');
   } else {
     applyRoleToUI(AppState.activeRole);
@@ -1784,6 +1793,7 @@ function switchModule(moduleKey) {
 
   // Update Topbar Header Title
   const titleMap = {
+    landing: { title: 'RAVENHILL Coffee Roasters', sub: 'Specialty Coffee, Artisan Roastery & Digital Ordering • Flinders Lane, Melbourne CBD' },
     pos: { title: 'Point of Sale (POS)', sub: 'Process orders & quick transactions for Melbourne CBD shop' },
     kds: { title: 'Order Tracking & Kitchen Display (KDS)', sub: 'Live barista order queue & preparation timer' },
     waitstaff: { title: 'Wait Staff Monitor', sub: 'Floor & table service status with ready-to-serve alerts' },
@@ -1803,7 +1813,7 @@ function switchModule(moduleKey) {
     audit: { title: 'Audit Trail & Compliance Logs', sub: 'Activity logging, security actions & inventory changes' }
   };
 
-  const info = titleMap[moduleKey] || { title: 'Ravenhill Management', sub: 'Shop Operations' };
+  const info = titleMap[moduleKey] || { title: 'Ravenhill Coffee Roasters', sub: 'Melbourne CBD Specialty Café' };
   document.getElementById('current-module-title').textContent = info.title;
   document.getElementById('current-module-subtitle').textContent = info.sub;
 
@@ -1815,6 +1825,10 @@ function switchModule(moduleKey) {
       if (window.innerWidth >= 1024) {
         cartDrawer.classList.remove('hidden');
       }
+    } else if (moduleKey === 'landing') {
+      // In landing page, keep drawer slide-out ready without blocking hero
+      cartDrawer.classList.add('hidden');
+      cartDrawer.classList.remove('mobile-open');
     } else {
       cartDrawer.classList.add('hidden');
       cartDrawer.classList.remove('mobile-open');
@@ -1822,7 +1836,7 @@ function switchModule(moduleKey) {
   }
 
   if (mobileCartBar) {
-    if (moduleKey === 'pos') {
+    if (moduleKey === 'pos' || moduleKey === 'landing') {
       mobileCartBar.classList.remove('hidden');
     } else {
       mobileCartBar.classList.add('hidden');
@@ -1955,6 +1969,9 @@ function renderCurrentModule() {
   }
 
   switch (modKey) {
+    case 'landing':
+      renderLandingPageView(container);
+      break;
     case 'pos':
       renderPOSView(container);
       break;
@@ -2678,6 +2695,7 @@ window.confirmAddToCart = function() {
     }
 
     renderCartUI();
+    window.openCartDrawer();
     showToast(`✨ Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
   }
 };
@@ -6366,6 +6384,499 @@ window.exportZReport = function() {
     alert(`==== RAVENHILL COFFEE ROASTERS ====\nEND OF DAY (Z-REPORT) — ${now}\n-----------------------------------\nGross Revenue: $1,842.50 AUD\nEFTPOS / Card Settlements: $1,428.80 AUD\nCash in Drawer: $325.50 AUD\nStaff Tips Pool: $88.20 AUD\nTransactions: 42\nStatus: BALANCED & RECONCILED`);
   }, 300);
 };
+
+// ==========================================
+// LANDING PAGE & CINEMATIC STOREFRONT EXPERIENCE
+// ==========================================
+
+let landingCountdownInterval = null;
+let landingSteamAnimFrame = null;
+let landingProgressionInterval = null;
+
+window.initPromoCountdown = function() {
+  if (landingCountdownInterval) clearInterval(landingCountdownInterval);
+  let totalSeconds = 2 * 3600 + 45 * 60 + 18;
+  const timerEl = document.getElementById('promo-countdown-timer');
+  
+  landingCountdownInterval = setInterval(() => {
+    if (totalSeconds <= 0) {
+      totalSeconds = 3 * 3600;
+    }
+    totalSeconds--;
+    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSeconds % 60).padStart(2, '0');
+    if (timerEl) {
+      timerEl.textContent = `${h}:${m}:${s}`;
+    }
+  }, 1000);
+};
+
+window.claimSpecialPromoCombo = function() {
+  const flatWhite = (DB.menuItems || defaultMenuItems).find(i => i.name === 'Flat White') || (DB.menuItems || defaultMenuItems)[0];
+  const croissant = (DB.menuItems || defaultMenuItems).find(i => i.name.includes('Croissant')) || (DB.menuItems || defaultMenuItems).find(i => i.catId === '6') || (DB.menuItems || defaultMenuItems)[1];
+
+  // Add Flat White with discount
+  if (flatWhite) {
+    addItemToCart(flatWhite, [{ customisation_id: 'cs-1', option_name: 'Regular (8oz)', extra_price: 0 }], 'Combo Special (15% OFF)', 1);
+  }
+  // Add Pastry
+  if (croissant) {
+    addItemToCart(croissant, [{ customisation_id: 'warm-1', option_name: 'Warm & Crispy', extra_price: 0 }], 'Combo Special (15% OFF)', 1);
+  }
+
+  // Set promo code
+  AppState.cart.promoCode = { code: 'COMBO15', val: 15, type: 'percent' };
+  renderCartUI();
+  window.openCartDrawer();
+  showToast('🔥 Special Combo Claimed! Flat White + Pastry (15% OFF) added to Cart!', 'success');
+};
+
+window.initSteamParticles = function() {
+  const canvas = document.getElementById('hero-steam-canvas');
+  if (!canvas || typeof canvas.getContext !== 'function') return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  function resizeCanvas() {
+    if (canvas && canvas.parentElement) {
+      canvas.width = canvas.parentElement.offsetWidth || window.innerWidth;
+      canvas.height = canvas.parentElement.offsetHeight || 600;
+    }
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const particles = [];
+  const particleCount = 28;
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * (canvas.width || 800),
+      y: Math.random() * (canvas.height || 600),
+      radius: Math.random() * 24 + 10,
+      alpha: Math.random() * 0.4 + 0.1,
+      speedY: Math.random() * 0.6 + 0.3,
+      speedX: (Math.random() - 0.5) * 0.4,
+      decay: Math.random() * 0.002 + 0.001
+    });
+  }
+
+  if (landingSteamAnimFrame) cancelAnimationFrame(landingSteamAnimFrame);
+
+  function animate() {
+    if (!document.getElementById('hero-steam-canvas')) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+      p.y -= p.speedY;
+      p.x += p.speedX;
+      p.alpha -= p.decay;
+
+      if (p.y < 0 || p.alpha <= 0) {
+        p.y = canvas.height + 20;
+        p.x = Math.random() * canvas.width;
+        p.alpha = Math.random() * 0.35 + 0.1;
+      }
+
+      ctx.beginPath();
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+      grad.addColorStop(0, `rgba(255, 235, 215, ${p.alpha})`);
+      grad.addColorStop(1, 'rgba(255, 235, 215, 0)');
+      ctx.fillStyle = grad;
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    landingSteamAnimFrame = requestAnimationFrame(animate);
+  }
+  animate();
+};
+
+window.initHeroBadgeProgression = function() {
+  if (landingProgressionInterval) clearInterval(landingProgressionInterval);
+  const steps = [
+    { text: 'WAKE UP.', icon: 'ri-sun-line' },
+    { text: 'SLOW DOWN.', icon: 'ri-cup-line' },
+    { text: 'SIP SOMETHING GOOD.', icon: 'ri-sparkling-fill' }
+  ];
+  let currentIdx = 0;
+  const badgeEl = document.getElementById('hero-progression-text');
+  const iconEl = document.getElementById('hero-progression-icon');
+
+  landingProgressionInterval = setInterval(() => {
+    const el = document.getElementById('hero-progression-text');
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(6px)';
+    setTimeout(() => {
+      currentIdx = (currentIdx + 1) % steps.length;
+      if (el) el.textContent = steps[currentIdx].text;
+      const ic = document.getElementById('hero-progression-icon');
+      if (ic) ic.className = steps[currentIdx].icon;
+      if (el) {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }
+    }, 300);
+  }, 2600);
+};
+
+window.filterLandingMenu = function(categoryKey) {
+  document.querySelectorAll('.category-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-cat') === categoryKey);
+  });
+
+  const grid = document.getElementById('digital-menu-grid');
+  if (!grid) return;
+
+  const items = DB.menuItems || defaultMenuItems;
+  let filtered = [];
+
+  if (categoryKey === 'coffee') {
+    filtered = items.filter(i => ['1', '2', '3'].includes(String(i.catId || i.category_id)));
+  } else if (categoryKey === 'breakfast') {
+    filtered = items.filter(i => ['4'].includes(String(i.catId || i.category_id)));
+  } else if (categoryKey === 'lunch') {
+    filtered = items.filter(i => ['5'].includes(String(i.catId || i.category_id)));
+  } else if (categoryKey === 'cold') {
+    filtered = items.filter(i => ['10', '13'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('iced')) || (i.name && i.name.toLowerCase().includes('cold')));
+  } else if (categoryKey === 'sweets') {
+    filtered = items.filter(i => ['6'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('croissant')) || (i.name && i.name.toLowerCase().includes('muffin')) || (i.name && i.name.toLowerCase().includes('bread')));
+  } else {
+    filtered = items.slice(0, 12);
+  }
+
+  if (!filtered.length) {
+    filtered = items.slice(0, 8);
+  }
+
+  grid.innerHTML = filtered.map(item => {
+    const badgeText = item.price > 7 ? 'Chef Special' : (item.catId === '1' ? 'House Blend' : 'Popular');
+    return `
+      <div class="digital-product-card" data-item-id="${item.id}">
+        <div class="product-img-box">
+          <img src="${item.image || './brand_recources/flat_white_coffee.png'}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
+          <span class="product-card-badge">${badgeText}</span>
+        </div>
+        <div class="product-content-box">
+          <div class="product-name-row">
+            <h4>${item.name}</h4>
+            <span class="product-price-pill">$${parseFloat(item.price).toFixed(2)}</span>
+          </div>
+          <p class="product-desc-text">${item.desc || 'Artisan specialty coffee crafted with precision in Melbourne CBD.'}</p>
+          <div class="product-action-row">
+            <button type="button" class="btn-card-order" onclick="openCustomiserModalAsync(DB.menuItems.find(i => String(i.id) === '${item.id}') || defaultMenuItems[0])">
+              <i class="ri-shopping-bag-3-fill"></i> Add to Cart
+            </button>
+            <button type="button" class="btn-card-customise" onclick="openCustomiserModalAsync(DB.menuItems.find(i => String(i.id) === '${item.id}') || defaultMenuItems[0])" title="Customise options">
+              <i class="ri-equalizer-line"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+};
+
+window.joinRavenhillRewards = function() {
+  const currentPts = AppState.cart.customer ? AppState.cart.customer.points : 120;
+  alert(`☕ WELCOME TO RAVENHILL REWARDS!\n\nYou currently have ${currentPts} points accrued.\n• 1 Free Coffee every 5 coffees stamped\n• Exclusive 15% discount on all retail bean bags\n• Complimentary Birthday Brew`);
+  showToast('⭐ Welcome to Ravenhill VIP Rewards!', 'success');
+};
+
+function renderLandingPageView(container) {
+  container.innerHTML = `
+    <div class="landing-page-container">
+      
+      <!-- 1. Hero Section -->
+      <section class="landing-hero" id="hero-section">
+        <div class="hero-video-wrapper">
+          <video class="hero-video-bg" autoplay muted loop playsinline poster="./brand_recources/roasted_coffee_beans.png">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-coffee-being-poured-into-a-cup-32860-large.mp4" type="video/mp4">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-barista-pouring-milk-into-a-cup-of-coffee-41712-large.mp4" type="video/mp4">
+          </video>
+          <div class="hero-video-overlay"></div>
+          <canvas id="hero-steam-canvas" class="hero-steam-canvas"></canvas>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-progression-badge">
+            <i class="ri-sparkling-fill" id="hero-progression-icon"></i>
+            <span id="hero-progression-text" class="hero-progression-text">WAKE UP.</span>
+          </div>
+
+          <h1 class="hero-headline">Coffee, Crafted for Your Moment.</h1>
+          <p class="hero-subheadline">Exceptional coffee. Fresh food. Good vibes. Right in the heart of Melbourne.</p>
+
+          <div class="hero-cta-group">
+            <button type="button" class="btn-hero-primary" onclick="document.getElementById('digital-menu-section')?.scrollIntoView({ behavior:'smooth' });">
+              <i class="ri-cup-fill"></i> ☕ Order Now
+            </button>
+            <button type="button" class="btn-hero-secondary" onclick="document.getElementById('digital-menu-section')?.scrollIntoView({ behavior:'smooth' });">
+              <i class="ri-restaurant-line"></i> 📖 Explore Menu
+            </button>
+            <button type="button" class="btn-hero-secondary" onclick="document.getElementById('loyalty-rewards-section')?.scrollIntoView({ behavior:'smooth' });">
+              <i class="ri-vip-crown-line"></i> ⭐ Join Rewards
+            </button>
+          </div>
+
+          <div class="hero-status-pill">
+            <span class="status-dot-pulse"></span>
+            <span>Open Today: 6:30 AM – 4:00 PM • 142 Flinders Lane, Melbourne CBD</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Good Vibes Storytelling Marquee Strip -->
+      <div class="vibes-marquee-strip">
+        <div class="vibes-marquee-track">
+          <span class="vibes-item">GOOD COFFEE. BETTER DAYS. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">YOUR DAILY RITUAL, MADE BETTER. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">BREWED FOR THE MOMENT. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">MORE THAN COFFEE. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">TAKE A MOMENT. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">MELBOURNE CBD SPECIALTY ROASTER <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">GOOD COFFEE. BETTER DAYS. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">YOUR DAILY RITUAL, MADE BETTER. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">BREWED FOR THE MOMENT. <i class="ri-star-fill vibes-star"></i></span>
+          <span class="vibes-item">MORE THAN COFFEE. <i class="ri-star-fill vibes-star"></i></span>
+        </div>
+      </div>
+
+      <!-- 3. Story & Roasting Heritage Section -->
+      <section class="landing-section" id="story-section">
+        <div class="story-grid">
+          <div class="story-card-visual">
+            <img src="./brand_recources/roasted_coffee_beans.png" alt="Roasted Coffee Beans" loading="lazy">
+            <div class="story-floating-badge">
+              <div class="story-badge-icon"><i class="ri-fire-fill"></i></div>
+              <div>
+                <strong style="color:#fff; font-size:14px; display:block;">Ethical Single Origin</strong>
+                <span style="color:var(--color-cream-muted); font-size:12px;">Small Batch Roasted in Melbourne</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="story-content-col">
+            <span class="section-tag">Crafted in Melbourne CBD</span>
+            <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
+            <p class="section-subtext">
+              Nestled along Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of specialty coffee. From hand-picked high-altitude micro-lots to our custom roasting curve, we brew for clarity, sweetness, and distinct origin profiles.
+            </p>
+
+            <div class="story-stats-grid">
+              <div class="story-stat-card">
+                <div class="story-stat-num">100%</div>
+                <div class="story-stat-label">Ethical Micro-Lots & Direct Trade</div>
+              </div>
+              <div class="story-stat-card">
+                <div class="story-stat-num">4.9 ★</div>
+                <div class="story-stat-label">1,450+ Verified Melbourne Reviews</div>
+              </div>
+              <div class="story-stat-card">
+                <div class="story-stat-num">15+</div>
+                <div class="story-stat-label">Barista & Roasting Industry Awards</div>
+              </div>
+              <div class="story-stat-card">
+                <div class="story-stat-num">28 sec</div>
+                <div class="story-stat-label">Golden Ratio Espresso Extraction</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Digital Menu Experience -->
+      <section class="digital-menu-wrap" id="digital-menu-section">
+        <div class="section-header-centered">
+          <span class="section-tag">Our Melbourne Menu</span>
+          <h2 class="section-main-title">Crafted with Passion. Served with Care.</h2>
+          <p class="section-subtext">Explore our specialty espresso bar, artisan toasties, fresh pastries, and refreshing iced botanicals.</p>
+        </div>
+
+        <div class="category-nav-pills">
+          <button type="button" class="category-pill-btn active" data-cat="coffee" onclick="filterLandingMenu('coffee')">
+            ☕ Coffee
+          </button>
+          <button type="button" class="category-pill-btn" data-cat="breakfast" onclick="filterLandingMenu('breakfast')">
+            🥐 Breakfast
+          </button>
+          <button type="button" class="category-pill-btn" data-cat="lunch" onclick="filterLandingMenu('lunch')">
+            🥪 Lunch
+          </button>
+          <button type="button" class="category-pill-btn" data-cat="cold" onclick="filterLandingMenu('cold')">
+            🧋 Cold Drinks
+          </button>
+          <button type="button" class="category-pill-btn" data-cat="sweets" onclick="filterLandingMenu('sweets')">
+            🍰 Sweets
+          </button>
+        </div>
+
+        <div class="digital-menu-grid" id="digital-menu-grid">
+          <!-- Dynamic Products inserted via filterLandingMenu -->
+        </div>
+      </section>
+
+      <!-- 5. Digital Loyalty Section -->
+      <section class="loyalty-section-wrap" id="loyalty-rewards-section">
+        <div class="loyalty-hero-card">
+          <div style="text-align:center; max-width:650px; margin:0 auto;">
+            <span class="section-tag" style="color:var(--color-accent-gold);">Ravenhill Loyalty Program</span>
+            <h2 class="section-main-title" style="margin-bottom:8px;">Every Coffee Brings You Closer to Your Next One.</h2>
+            <p class="section-subtext">Earn points on every cup, unlock VIP upgrades, and get your 6th coffee entirely free on us.</p>
+          </div>
+
+          <div class="loyalty-tracker-strip">
+            <div class="stamp-node filled">
+              <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+              <span class="stamp-label">Cup 1 ✓</span>
+            </div>
+            <div class="stamp-node filled">
+              <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+              <span class="stamp-label">Cup 2 ✓</span>
+            </div>
+            <div class="stamp-node filled">
+              <div class="stamp-circle"><i class="ri-cup-fill"></i></div>
+              <span class="stamp-label">Cup 3 ✓</span>
+            </div>
+            <div class="stamp-node">
+              <div class="stamp-circle"><i class="ri-cup-line"></i></div>
+              <span class="stamp-label">Cup 4</span>
+            </div>
+            <div class="stamp-node">
+              <div class="stamp-circle"><i class="ri-cup-line"></i></div>
+              <span class="stamp-label">Cup 5</span>
+            </div>
+            <div class="stamp-node free-reward">
+              <div class="stamp-circle"><i class="ri-gift-fill"></i></div>
+              <span class="stamp-label" style="color:#10b981; font-weight:800;">FREE COFFEE</span>
+            </div>
+          </div>
+
+          <div class="loyalty-tiers-row">
+            <div class="tier-badge-card active-tier">
+              <div style="font-size:20px; margin-bottom:4px;">🥉 Bronze Member</div>
+              <div style="font-size:12px; color:var(--color-cream-muted);">Earn 10 Pts per $1.00 spent. Redeem for $1.00 off per 20 Pts.</div>
+            </div>
+            <div class="tier-badge-card">
+              <div style="font-size:20px; margin-bottom:4px; color:var(--color-cream);">🥈 Silver Tier</div>
+              <div style="font-size:12px; color:var(--color-cream-muted);">1.2x Point multiplier + Free large size upgrade on your birthday.</div>
+            </div>
+            <div class="tier-badge-card">
+              <div style="font-size:20px; margin-bottom:4px; color:var(--color-accent-gold);">🥇 Gold VIP</div>
+              <div style="font-size:12px; color:var(--color-cream-muted);">1.5x Point multiplier + Free Oat / Almond milk upgrades forever.</div>
+            </div>
+          </div>
+
+          <div style="text-align:center; margin-top:32px;">
+            <button type="button" class="btn-hero-primary" onclick="joinRavenhillRewards()">
+              <i class="ri-vip-crown-fill"></i> ⭐ Join Ravenhill Rewards
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Visit & Flinders Lane Location Section -->
+      <section class="landing-section" id="visit-section">
+        <div class="visit-section-grid">
+          <div class="visit-info-card">
+            <div>
+              <span class="section-tag">Find Us in Melbourne CBD</span>
+              <h3 class="section-main-title" style="font-size:26px;">142 Flinders Lane</h3>
+              <p class="section-subtext">Located in Melbourne's iconic cultural coffee laneway corridor. Walk-ins welcome, express click & collect available.</p>
+
+              <table class="hours-table">
+                <tbody>
+                  <tr><td>Monday – Friday</td><td>6:30 AM – 4:00 PM</td></tr>
+                  <tr><td>Saturday</td><td>7:30 AM – 3:30 PM</td></tr>
+                  <tr><td>Sunday</td><td>8:00 AM – 3:00 PM</td></tr>
+                  <tr><td>Public Holidays</td><td>8:00 AM – 2:00 PM</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+              <button type="button" class="btn-hero-primary" onclick="window.switchModule('reservations')" style="padding:10px 20px; font-size:14px;">
+                <i class="ri-calendar-check-line"></i> Book a Table
+              </button>
+              <a href="https://maps.google.com/?q=142+Flinders+Lane+Melbourne" target="_blank" rel="noopener" class="btn-hero-secondary" style="padding:10px 20px; font-size:14px;">
+                <i class="ri-map-pin-2-line"></i> Open in Maps
+              </a>
+            </div>
+          </div>
+
+          <div class="visit-info-card" style="background:linear-gradient(135deg, #1c1510, #140e0a); justify-content:center; text-align:center; padding:40px 24px;">
+            <i class="ri-store-2-fill" style="font-size:48px; color:var(--color-primary-light); margin-bottom:12px;"></i>
+            <h4 style="font-size:22px; font-family:'Outfit', sans-serif; color:#fff; margin-bottom:8px;">Fast Laneway Pickup</h4>
+            <p style="color:var(--color-cream-muted); font-size:14px; max-width:380px; margin:0 auto 20px;">Order ahead online with zero wait time. Your barista has your order steaming when you arrive.</p>
+            <div>
+              <button type="button" class="btn-hero-primary" onclick="filterLandingMenu('coffee'); document.getElementById('digital-menu-section')?.scrollIntoView({ behavior:'smooth' });" style="padding:12px 24px;">
+                <i class="ri-smartphone-line"></i> Order Ahead Online
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Landing Page Footer -->
+      <footer class="landing-footer">
+        <div class="landing-footer-grid">
+          <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+              <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:36px; height:36px; border-radius:50%;">
+              <strong style="font-family:'Outfit', sans-serif; font-size:18px; color:#fff; letter-spacing:1px;">RAVENHILL</strong>
+            </div>
+            <p style="font-size:13px; line-height:1.6; color:var(--color-cream-subtle);">
+              Melbourne CBD Specialty Coffee Roasters. Dedicated to ethical sourcing, precision roasting, and extraordinary everyday coffee rituals.
+            </p>
+          </div>
+
+          <div>
+            <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Menu</h5>
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+              <a href="#digital-menu-section" onclick="filterLandingMenu('coffee')" style="color:inherit; text-decoration:none;">Espresso Bar</a>
+              <a href="#digital-menu-section" onclick="filterLandingMenu('breakfast')" style="color:inherit; text-decoration:none;">Artisan Breakfast</a>
+              <a href="#digital-menu-section" onclick="filterLandingMenu('lunch')" style="color:inherit; text-decoration:none;">Gourmet Lunch</a>
+              <a href="#digital-menu-section" onclick="filterLandingMenu('cold')" style="color:inherit; text-decoration:none;">Cold Drinks</a>
+            </div>
+          </div>
+
+          <div>
+            <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Quick Links</h5>
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+              <a href="#loyalty-rewards-section" style="color:inherit; text-decoration:none;">Rewards Program</a>
+              <a href="#visit-section" style="color:inherit; text-decoration:none;">Location & Hours</a>
+              <a href="#" onclick="window.switchModule('pos')" style="color:inherit; text-decoration:none;">Staff POS Register</a>
+              <a href="#" onclick="window.switchModule('customer_tracker')" style="color:inherit; text-decoration:none;">Live Order Tracker</a>
+            </div>
+          </div>
+
+          <div>
+            <h5 style="color:#fff; font-size:14px; margin-bottom:8px;">Get 10% Off First Order</h5>
+            <p style="font-size:12px;">Join our Melbourne coffee dispatch newsletter:</p>
+            <form onsubmit="event.preventDefault(); showToast('🎉 Subscribed! Use promo code MELB10 for 10% off at checkout.', 'success'); this.reset();" class="footer-newsletter-input">
+              <input type="email" placeholder="Enter your email..." required>
+              <button type="submit" class="btn-hero-primary" style="padding:8px 16px; font-size:12px; border-radius:20px;">Join</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="footer-bottom-row">
+          <span>© 2026 Ravenhill Coffee Roasters Pty Ltd. All Rights Reserved. ABN 88 142 904 883.</span>
+          <span>142 Flinders Lane, Melbourne VIC 3000 • hello@ravenhillcoffee.com.au</span>
+        </div>
+      </footer>
+
+    </div>
+  `;
+
+  // Initialize interactive components
+  window.initPromoCountdown();
+  window.initSteamParticles();
+  window.initHeroBadgeProgression();
+  window.filterLandingMenu('coffee');
+}
 
 // ── Non-Blocking Smart Polling Engine (Every 3s with mutex lock) ────
 let isPollInProgress = false;
