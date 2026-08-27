@@ -238,7 +238,7 @@ $csrfToken = getCSRFToken();
               <span>Current Sale</span>
               <span class="cart-order-id" id="cart-order-number">#ORD-9042</span>
             </div>
-            <button class="icon-btn close-cart" id="close-cart-btn" aria-label="Close sale cart"><i class="ri-close-line"></i></button>
+            <button type="button" class="icon-btn close-cart" id="close-cart-btn" onclick="closeCartDrawer()" aria-label="Close sale cart"><i class="ri-close-line"></i></button>
           </div>
 
           <!-- Order Context: Order Type & Table Selection -->
@@ -351,7 +351,7 @@ $csrfToken = getCSRFToken();
           <h3 id="customiser-item-name">Single Origin Flat White</h3>
           <span class="modal-subtitle" id="customiser-item-desc">House Espresso Blend • Seasonal Bean</span>
         </div>
-        <button class="icon-btn modal-close" id="close-customiser-btn"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-customiser-btn" onclick="closeCustomiserModal()" aria-label="Close customiser"><i class="ri-close-line"></i></button>
       </div>
 
       <div class="modal-body customiser-body">
@@ -368,12 +368,12 @@ $csrfToken = getCSRFToken();
 
       <div class="modal-footer">
         <div class="quantity-picker">
-          <button class="icon-btn-sm" id="qty-minus"><i class="ri-subtract-line"></i></button>
+          <button type="button" class="icon-btn-sm" id="qty-minus"><i class="ri-subtract-line"></i></button>
           <span id="customiser-qty">1</span>
-          <button class="icon-btn-sm" id="qty-plus"><i class="ri-add-line"></i></button>
+          <button type="button" class="icon-btn-sm" id="qty-plus"><i class="ri-add-line"></i></button>
         </div>
-        <button class="btn btn-primary btn-lg flex-1" id="add-to-cart-confirm-btn">
-          Add to Sale • <span id="customiser-calculated-price">$4.80</span>
+        <button type="button" class="btn btn-primary btn-lg flex-1" id="add-to-cart-confirm-btn" onclick="confirmAddToCart()">
+          Add to Cart • <span id="customiser-calculated-price">$4.80</span>
         </button>
       </div>
     </div>
@@ -387,7 +387,7 @@ $csrfToken = getCSRFToken();
           <h3>Payment Processing & Checkout</h3>
           <span class="modal-subtitle">Select payment tender type for Sale <strong id="pay-modal-order-id">#ORD-9042</strong></span>
         </div>
-        <button class="icon-btn modal-close" id="close-payment-btn"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-payment-btn" onclick="closePaymentModal()" aria-label="Close payment"><i class="ri-close-line"></i></button>
       </div>
 
       <div class="modal-body payment-body">
@@ -617,7 +617,7 @@ $csrfToken = getCSRFToken();
     <div class="modal-card modal-sm">
       <div class="modal-header">
         <h3>Sales Receipt & Tax Invoice</h3>
-        <button class="icon-btn modal-close" id="close-receipt-btn"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-receipt-btn" onclick="closeReceiptModal()" aria-label="Close receipt"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <div class="thermal-receipt" id="thermal-receipt-content">
@@ -680,7 +680,7 @@ $csrfToken = getCSRFToken();
     <div class="modal-card">
       <div class="modal-header">
         <h3>Attach Loyalty Customer</h3>
-        <button class="icon-btn modal-close" id="close-customer-modal-btn"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-customer-modal-btn" onclick="closeCustomerModal()" aria-label="Close customer modal"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -818,7 +818,8 @@ $csrfToken = getCSRFToken();
 
   <!-- User & Role Login Modal -->
   <div class="modal-backdrop hidden" id="role-select-modal" style="z-index:9999;">
-    <div class="role-select-card">
+    <div class="role-select-card" style="position:relative;">
+      <button type="button" class="icon-btn modal-close" id="close-role-modal-btn" onclick="closeLoginModal()" style="position:absolute; top:14px; right:14px; z-index:10; background:rgba(0,0,0,0.2);" aria-label="Close login dialog"><i class="ri-close-line"></i></button>
       <div class="role-select-brand">
         <div class="role-brand-icon" style="width:68px; height:68px; margin:0 auto 12px; border-radius:50%; overflow:hidden; border:2px solid var(--color-primary-light); box-shadow:0 4px 12px rgba(0,0,0,0.4);">
           <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:100%; height:100%; object-fit:cover;">

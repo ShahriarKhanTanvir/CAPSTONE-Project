@@ -917,6 +917,7 @@ function initApp() {
   // Load saved state from LocalStorage immediately to prevent initial reset on refresh
   loadLocalDB();
 
+  setupUniversalModalClosers();
   setupNavigation();
   setupRoleSwitcher();
   setupSidebarToggle();
@@ -2041,6 +2042,8 @@ function renderPOSView(container) {
         } else {
           // Non-modifier items (bakery, retail beans) bypass customiser with neutral defaults
           addItemToCart(item, [], '', 1);
+          window.openCartDrawer();
+          showToast(`Added 1x ${item.name} to cart!`, 'success');
         }
       });
 
@@ -2361,34 +2364,130 @@ function renderCartUI() {
   }
 }
 
+window.openCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.remove('hidden');
+    if (window.innerWidth < 1024) {
+      drawer.classList.add('mobile-open');
+    }
+    drawer.classList.remove('cart-pulse');
+    void drawer.offsetWidth;
+    drawer.classList.add('cart-pulse');
+  }
+  renderCartUI();
+};
+
+window.openMobileCartDrawer = window.openCartDrawer;
+
+window.closeCartDrawer = function() {
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.add('hidden');
+    drawer.classList.remove('mobile-open');
+  }
+};
+
+window.closeMobileCartDrawer = window.closeCartDrawer;
+
 window.toggleCartDrawer = function() {
   const drawer = document.getElementById('cart-drawer');
   if (!drawer) return;
-  const isHidden = drawer.classList.contains('hidden');
+  const isHidden = drawer.classList.contains('hidden') || (!drawer.classList.contains('mobile-open') && window.innerWidth < 1024);
   if (isHidden) {
-    drawer.classList.remove('hidden');
-    drawer.classList.add('mobile-open');
+    window.openCartDrawer();
   } else {
-    drawer.classList.add('hidden');
-    drawer.classList.remove('mobile-open');
+    window.closeCartDrawer();
   }
 };
 
-window.openMobileCartDrawer = function() {
-  const drawer = document.getElementById('cart-drawer');
-  if (drawer) {
-    drawer.classList.remove('hidden');
-    drawer.classList.add('mobile-open');
-  }
+// Explicit Global Modal Closers
+window.closeCustomiserModal = function() {
+  document.getElementById('customiser-modal')?.classList.add('hidden');
 };
 
-window.closeMobileCartDrawer = function() {
-  const drawer = document.getElementById('cart-drawer');
-  if (drawer) {
-    drawer.classList.add('hidden');
-    drawer.classList.remove('mobile-open');
-  }
+window.closePaymentModal = function() {
+  document.getElementById('payment-modal')?.classList.add('hidden');
 };
+
+window.closeReceiptModal = function() {
+  document.getElementById('receipt-modal')?.classList.add('hidden');
+  syncBackendData();
+};
+
+window.closeCustomerModal = function() {
+  document.getElementById('customer-modal')?.classList.add('hidden');
+};
+
+window.closeAddReservationModal = function() {
+  document.getElementById('add-reservation-modal')?.classList.add('hidden');
+};
+
+window.closeAddTableModal = function() {
+  document.getElementById('add-table-modal')?.classList.add('hidden');
+};
+
+window.closeLoginModal = function() {
+  document.getElementById('role-select-modal')?.classList.add('hidden');
+};
+
+window.closePrintableReceiptModal = function() {
+  document.getElementById('printable-receipt-modal')?.classList.add('hidden');
+};
+
+window.closeSidebar = function() {
+  document.getElementById('sidebar')?.classList.remove('mobile-open');
+  document.getElementById('sidebar-backdrop')?.classList.remove('active');
+};
+
+window.detachCustomer = function() {
+  AppState.cart.customer = null;
+  renderCartUI();
+  window.closeCustomerModal();
+  showToast('Customer detached. Order set to Walk-in Guest.', 'info');
+};
+
+// Universal Delegated Modal & Drawer Closer
+function setupUniversalModalClosers() {
+  document.addEventListener('click', (e) => {
+    // 1. Any click on a close button
+    const closeBtn = e.target.closest('.modal-close, .close-cart, [data-close-modal], #close-customiser-btn, #close-payment-btn, #close-receipt-btn, #close-customer-modal-btn, #close-cart-btn, #close-role-modal-btn');
+    if (closeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const modal = closeBtn.closest('.modal-backdrop, .modal-overlay, #cart-drawer');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('mobile-open');
+      } else {
+        document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+        document.getElementById('cart-drawer')?.classList.remove('mobile-open');
+      }
+      return;
+    }
+
+    // 2. Click on the backdrop background itself
+    if (e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal-overlay')) {
+      e.target.classList.add('hidden');
+    }
+  });
+
+  // 3. Escape key closes topmost modal or drawer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
+      if (openModals.length > 0) {
+        openModals[openModals.length - 1].classList.add('hidden');
+      } else {
+        const cartDrawer = document.getElementById('cart-drawer');
+        if (cartDrawer && cartDrawer.classList.contains('mobile-open')) {
+          cartDrawer.classList.add('hidden');
+          cartDrawer.classList.remove('mobile-open');
+        }
+      }
+    }
+  });
+}
 
 window.updateCartQty = function(index, delta) {
   const item = AppState.cart.items[index];
@@ -2405,6 +2504,34 @@ window.updateCartQty = function(index, delta) {
 window.removeCartItem = function(index) {
   AppState.cart.items.splice(index, 1);
   renderCartUI();
+};
+
+// Confirm Add to Cart from Customiser Modal
+window.confirmAddToCart = function() {
+  const modal = document.getElementById('customiser-modal');
+  if (!AppState.modalItem) {
+    if (modal) modal.classList.add('hidden');
+    return;
+  }
+  const customisations = [];
+  document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
+    customisations.push({
+      customisation_id: input.getAttribute('data-id'),
+      group_name: input.getAttribute('data-group'),
+      option_name: input.getAttribute('data-name'),
+      extra_price: parseFloat(input.getAttribute('data-extra') || 0)
+    });
+  });
+
+  const notes = document.getElementById('customiser-item-notes')?.value?.trim() || '';
+  const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+
+  addItemToCart(AppState.modalItem, customisations, notes, qty);
+  if (modal) modal.classList.add('hidden');
+
+  // Immediately take customer to cart
+  window.openCartDrawer();
+  showToast(`Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
 };
 
 // Customiser Modal Logic
@@ -2435,30 +2562,9 @@ function setupCustomiserModal() {
     });
   }
 
-  // Confirm Add to Cart
   const confirmBtn = document.getElementById('add-to-cart-confirm-btn');
   if (confirmBtn) {
-    confirmBtn.addEventListener('click', () => {
-      if (!AppState.modalItem) return;
-      const customisations = [];
-      
-      // Gather selections
-      document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
-        customisations.push({
-          customisation_id: input.getAttribute('data-id'),
-          group_name: input.getAttribute('data-group'),
-          option_name: input.getAttribute('data-name'),
-          extra_price: parseFloat(input.getAttribute('data-extra') || 0)
-        });
-      });
-
-      const notes = document.getElementById('customiser-item-notes')?.value?.trim() || '';
-      const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
-
-      addItemToCart(AppState.modalItem, customisations, notes, qty);
-      modal?.classList.add('hidden');
-      showToast(`Added ${qty}x ${AppState.modalItem.name || AppState.modalItem.product_name} to cart!`, 'success');
-    });
+    confirmBtn.addEventListener('click', window.confirmAddToCart);
   }
 }
 
@@ -3180,7 +3286,11 @@ function updateCashChange() {
   }
 }
 
-function openPaymentModal() {
+window.openPaymentModal = function() {
+  if (!AppState.cart || !AppState.cart.items || AppState.cart.items.length === 0) {
+    showToast('Your cart is empty! Please select food or beverages from the menu.', 'warning');
+    return;
+  }
   const subtotal = AppState.cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
   let discount = 0;
   if (AppState.cart.promoCode) {
@@ -3189,9 +3299,12 @@ function openPaymentModal() {
   const total = Math.max(0, subtotal - discount);
   const gst = total * 0.10;
 
-  document.getElementById('pay-modal-order-id').textContent = AppState.cart.orderId;
-  document.getElementById('pay-modal-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById('pay-modal-gst').textContent = `$${gst.toFixed(2)}`;
+  const orderIdEl = document.getElementById('pay-modal-order-id');
+  if (orderIdEl) orderIdEl.textContent = AppState.cart.orderId;
+  const subtotalEl = document.getElementById('pay-modal-subtotal');
+  if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  const gstEl = document.getElementById('pay-modal-gst');
+  if (gstEl) gstEl.textContent = `$${gst.toFixed(2)}`;
   
   if (discount > 0) {
     document.getElementById('pay-modal-discount-row')?.classList.remove('hidden');
@@ -3413,7 +3526,7 @@ function completePaymentProcess() {
   // Auto-switch to Live Customer Tracker if in Customer Role
   if (AppState.userRole === 'customer' || (AppState.currentUser && AppState.currentUser.role === 'customer')) {
     showToast(`Order ${savedOrderId} Confirmed! Watching live preparation tracker.`, 'success');
-    switchModule('tracker');
+    switchModule('customer_tracker');
   } else {
     showToast(`Payment successful for ${savedOrderId}! Order sent to KDS.`, 'success');
   }
@@ -3453,6 +3566,19 @@ function completePaymentProcess() {
     closeRecBtn.onclick = () => {
       document.getElementById('receipt-modal')?.classList.add('hidden');
       syncBackendData();
+    };
+  }
+  const sendDigitalBtn = document.getElementById('send-digital-receipt-btn');
+  if (sendDigitalBtn) {
+    sendDigitalBtn.onclick = () => {
+      const target = document.getElementById('digital-receipt-target')?.value?.trim();
+      if (!target) {
+        alert('Please enter an email address or mobile number.');
+        return;
+      }
+      showToast(`Digital tax invoice for ${savedOrderId} sent to ${target}!`, 'success');
+      const input = document.getElementById('digital-receipt-target');
+      if (input) input.value = '';
     };
   }
 }
@@ -4051,8 +4177,11 @@ function renderMenuView(container) {
                 <td>${item.hasModifiers ? '<span class="badge badge-info">Sizes / Milks</span>' : 'Standard'}</td>
                 <td>${item.badge ? `<span class="badge badge-gold">${item.badge}</span>` : '-'}</td>
                 <td>
-                  <button class="btn btn-outline btn-sm" onclick="editMenuItemPrice(${idx})"><i class="ri-price-tag-line"></i> Edit Price</button>
-                  <button class="btn btn-outline btn-sm text-danger" onclick="deleteMenuItem(${idx})"><i class="ri-delete-bin-line"></i></button>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="orderMenuItemFromCatalog(${idx})"><i class="ri-shopping-cart-2-line"></i> Order</button>
+                    <button class="btn btn-outline btn-sm" onclick="editMenuItemPrice(${idx})"><i class="ri-price-tag-line"></i> Edit Price</button>
+                    <button class="btn btn-outline btn-sm text-danger" onclick="deleteMenuItem(${idx})"><i class="ri-delete-bin-line"></i></button>
+                  </div>
                 </td>
               </tr>
             `).join('')}
@@ -4062,6 +4191,18 @@ function renderMenuView(container) {
     </div>
   `;
 }
+
+window.orderMenuItemFromCatalog = function(idx) {
+  const item = DB.menuItems[idx];
+  if (!item) return;
+  if (item.hasModifiers) {
+    openCustomiserModal(item);
+  } else {
+    addItemToCart(item, [], '', 1);
+    window.openCartDrawer();
+    showToast(`Added 1x ${item.name} to cart!`, 'success');
+  }
+};
 
 window.openAddMenuItemModal = function() {
   const name = prompt("Item Name:", "Iced Matcha Oat Latte");

@@ -280,11 +280,23 @@ button {
   background: var(--bg-surface);
   border: 1px solid var(--color-border-subtle);
   transition: all var(--transition-fast);
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none;
 }
 .icon-btn:hover {
   color: var(--color-cream);
   background: var(--bg-surface-elevated);
   border-color: var(--color-border);
+}
+
+.icon-btn *, .modal-close *, .close-cart * {
+  pointer-events: none;
+}
+
+.modal-close, .close-cart {
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .icon-btn-sm {
@@ -297,8 +309,18 @@ button {
   background: var(--bg-surface-elevated);
   color: var(--color-cream);
   border: 1px solid var(--color-border);
+  cursor: pointer !important;
 }
 .icon-btn-sm:hover { background: var(--color-primary); color: #fff; }
+
+@keyframes cartPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 107, 67, 0.7); }
+  50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(217, 107, 67, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 107, 67, 0); }
+}
+.cart-pulse {
+  animation: cartPulse 0.5s ease;
+}
 
 /* Forms & Inputs */
 .form-group {
