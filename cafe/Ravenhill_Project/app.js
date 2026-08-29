@@ -1204,7 +1204,7 @@ window.confirmRoleSelection = async function() {
     const btn = document.getElementById('confirm-role-login-btn');
     if (btn) btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Logging in...';
     
-    const res = await fetch('/api/users/login.php', {
+    const res = await fetch(`${API_BASE}/users/login.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -1247,6 +1247,8 @@ window.confirmRoleSelection = async function() {
       }
     }
   } catch (err) {
+    const btn = document.getElementById('confirm-role-login-btn');
+    if (btn) btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
     if (errorMsg) {
       errorMsg.textContent = 'Server error. Please try again later.';
       errorMsg.classList.remove('hidden');
@@ -1256,7 +1258,7 @@ window.confirmRoleSelection = async function() {
 
 window.logout = async function() {
   try {
-    await fetch('/api/users/logout.php', { method: 'POST' });
+    await fetch(`${API_BASE}/users/logout.php`, { method: 'POST' });
   } catch(e) {}
   
   AppState.isAuthenticated = false;
@@ -1270,7 +1272,7 @@ window.logout = async function() {
 
 window.initSession = async function() {
   try {
-    const res = await fetch('/api/users/me.php');
+    const res = await fetch(`${API_BASE}/users/me.php`);
     const data = await res.json();
     if (data.success && data.data) {
       AppState.isAuthenticated = true;
@@ -4867,7 +4869,7 @@ window.handleCustomerRegistration = async function(e) {
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ');
     
-    const res = await fetch('/api/users/register_customer.php', {
+    const res = await fetch(`${API_BASE}/users/register_customer.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -4887,7 +4889,7 @@ window.handleCustomerRegistration = async function(e) {
       closeRegisterCustomerModal();
       
       // Auto login the new user
-      const loginRes = await fetch('/api/users/login.php', {
+      const loginRes = await fetch(`${API_BASE}/users/login.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password: pass })
