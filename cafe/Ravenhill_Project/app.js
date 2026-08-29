@@ -6453,6 +6453,62 @@ window.showLandingView = function() {
   window.filterLandingMenu('coffee');
 };
 
+// --- Navigation, Section Scrolling & Mobile Drawer ---
+window.navigateToSection = function(sectionId) {
+  const landing = document.getElementById('landing-page-view');
+  const app = document.getElementById('app-container');
+  if (landing && landing.classList.contains('hidden')) {
+    landing.classList.remove('hidden');
+    landing.style.display = 'block';
+  }
+  if (app) {
+    app.classList.add('hidden');
+  }
+
+  const targetEl = document.getElementById(sectionId);
+  if (targetEl) {
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Update active nav link states
+  document.querySelectorAll('.landing-nav-link').forEach(link => {
+    if (link.getAttribute('href') === `#${sectionId}`) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+};
+
+window.toggleLandingMobileMenu = function(forceState) {
+  const drawer = document.getElementById('landing-mobile-menu-drawer');
+  if (!drawer) return;
+  if (typeof forceState === 'boolean') {
+    if (forceState) {
+      drawer.classList.remove('hidden');
+    } else {
+      drawer.classList.add('hidden');
+    }
+  } else {
+    drawer.classList.toggle('hidden');
+  }
+};
+
+window.showLandingView = function() {
+  const landing = document.getElementById('landing-page-view');
+  const app = document.getElementById('app-container');
+  if (landing) {
+    landing.classList.remove('hidden');
+    landing.style.display = 'block';
+  }
+  if (app) {
+    app.classList.add('hidden');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 window.showAppView = function(moduleKey) {
   const landing = document.getElementById('landing-page-view');
   const app = document.getElementById('app-container');
@@ -6481,29 +6537,219 @@ window.enterAsCustomer = function(targetModule) {
   showToast('☕ Welcome to Ravenhill! Explore our Melbourne menu & place your order.', 'success');
 };
 
-window.openRoleLoginModal = function(targetRole) {
+// --- Dedicated Login Portal Implementation ---
+window.openLoginModal = function(targetRole) {
   const modal = document.getElementById('role-select-modal');
   const roleSelect = document.getElementById('role-popup-select');
+  const usernameInput = document.getElementById('login-username-input');
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
+  const selectedRole = targetRole || 'cashier';
+
   if (roleSelect) {
-    if (targetRole === 'admin') {
-      roleSelect.value = 'admin';
-    } else if (targetRole === 'staff') {
-      roleSelect.value = 'cashier';
-    } else {
-      roleSelect.value = targetRole || 'cashier';
-    }
+    roleSelect.value = selectedRole;
+  }
+
+  if (usernameInput) {
+    if (selectedRole === 'admin') usernameInput.value = 'admin';
+    else if (selectedRole === 'manager') usernameInput.value = 'manager';
+    else if (selectedRole === 'barista') usernameInput.value = 'barista';
+    else if (selectedRole === 'kitchen') usernameInput.value = 'kitchen';
+    else if (selectedRole === 'waitstaff') usernameInput.value = 'waitstaff';
+    else if (selectedRole === 'customer') usernameInput.value = 'customer';
+    else usernameInput.value = 'cashier';
   }
 
   if (passInput) {
     passInput.value = '#DemoPass';
-    passInput.type = 'text';
+    passInput.type = 'password';
+    const toggleIcon = document.getElementById('toggle-pass-icon');
+    if (toggleIcon) toggleIcon.className = 'ri-eye-off-line';
   }
 
   if (errorMsg) errorMsg.classList.add('hidden');
   if (modal) modal.classList.remove('hidden');
+};
+window.openRoleLoginModal = window.openLoginModal;
+
+window.closeLoginModal = function() {
+  const modal = document.getElementById('role-select-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.handleRoleSelectChange = function(role) {
+  const usernameInput = document.getElementById('login-username-input');
+  if (usernameInput) {
+    if (role === 'admin') usernameInput.value = 'admin';
+    else if (role === 'manager') usernameInput.value = 'manager';
+    else if (role === 'barista') usernameInput.value = 'barista';
+    else if (role === 'kitchen') usernameInput.value = 'kitchen';
+    else if (role === 'waitstaff') usernameInput.value = 'waitstaff';
+    else if (role === 'customer') usernameInput.value = 'customer';
+    else usernameInput.value = 'cashier';
+  }
+};
+
+window.autofillLogin = function(role, pass) {
+  const roleSelect = document.getElementById('role-popup-select');
+  const usernameInput = document.getElementById('login-username-input');
+  const passInput = document.getElementById('role-password-input');
+  if (roleSelect) roleSelect.value = role;
+  if (usernameInput) usernameInput.value = role;
+  if (passInput) passInput.value = pass || '#DemoPass';
+  const errorMsg = document.getElementById('role-pass-error');
+  if (errorMsg) errorMsg.classList.add('hidden');
+};
+
+window.togglePasswordVisibility = function() {
+  const passInput = document.getElementById('role-password-input');
+  const toggleIcon = document.getElementById('toggle-pass-icon');
+  if (!passInput) return;
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    if (toggleIcon) toggleIcon.className = 'ri-eye-line';
+  } else {
+    passInput.type = 'password';
+    if (toggleIcon) toggleIcon.className = 'ri-eye-off-line';
+  }
+};
+
+window.handleLoginFormSubmit = async function(event) {
+  if (event) event.preventDefault();
+
+  const roleSelect = document.getElementById('role-popup-select');
+  const usernameInput = document.getElementById('login-username-input');
+  const passInput = document.getElementById('role-password-input');
+  const errorMsg = document.getElementById('role-pass-error');
+  const errorText = document.getElementById('role-pass-error-text');
+  const submitBtn = document.getElementById('login-submit-btn');
+  const btnLabel = document.getElementById('login-btn-label');
+
+  const role = roleSelect ? roleSelect.value : 'cashier';
+  const username = (usernameInput ? usernameInput.value : '').trim();
+  const password = (passInput ? passInput.value : '').trim();
+
+  if (!username || !password) {
+    if (errorMsg) {
+      if (errorText) errorText.textContent = 'Please enter both username and password.';
+      errorMsg.classList.remove('hidden');
+    }
+    return;
+  }
+
+  // Set loading state
+  if (submitBtn) submitBtn.disabled = true;
+  if (btnLabel) btnLabel.textContent = 'Authenticating...';
+
+  try {
+    let authSuccess = false;
+    let authUser = null;
+
+    // 1. Try Backend API login
+    try {
+      const resp = await fetch('api/users/login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await resp.json();
+      if (data && data.success) {
+        authSuccess = true;
+        authUser = data.data;
+      }
+    } catch (apiErr) {
+      console.warn('[Login Portal] API request fallback to local auth:', apiErr);
+    }
+
+    // 2. Fallback / Universal Demo Pass Check
+    if (!authSuccess) {
+      const lowerUser = username.toLowerCase();
+      const lowerPass = password.toLowerCase();
+
+      const validDemoLogins = {
+        'admin': ['admin123', '#demopass', 'admin'],
+        'manager': ['manager123', '#demopass', 'manager'],
+        'cashier': ['cashier123', '#demopass', 'cashier'],
+        'barista': ['barista123', '#demopass', 'barista'],
+        'kitchen': ['kitchen123', '#demopass', 'kitchen'],
+        'waitstaff': ['waitstaff123', '#demopass', 'waitstaff'],
+        'customer': ['customer123', '#demopass', 'customer'],
+        'slin': ['cashier123', '#demopass'],
+        'loconnor': ['barista123', '#demopass'],
+        'hwright': ['barista123', '#demopass']
+      };
+
+      if (lowerPass === '#demopass' || (validDemoLogins[lowerUser] && validDemoLogins[lowerUser].includes(lowerPass))) {
+        authSuccess = true;
+        authUser = {
+          username: username,
+          role: role,
+          first_name: username.charAt(0).toUpperCase() + username.slice(1)
+        };
+      }
+    }
+
+    if (authSuccess) {
+      if (errorMsg) errorMsg.classList.add('hidden');
+
+      // Set active role and user state
+      AppState.isAuthenticated = true;
+      AppState.activeRole = role;
+      AppState.currentUser = authUser || { username, role };
+      localStorage.setItem('RAVENHILL_USER_ROLE', role);
+      sessionStorage.setItem('RAVENHILL_AUTH_USER', JSON.stringify(AppState.currentUser));
+
+      if (window.applyRoleToUI) window.applyRoleToUI(role);
+      if (window.applyRolePermissionsUI) window.applyRolePermissionsUI();
+
+      window.closeLoginModal();
+
+      // Destination mapping based on role
+      let targetModule = 'pos';
+      if (role === 'admin') targetModule = 'reports';
+      else if (role === 'manager') targetModule = 'dashboard';
+      else if (role === 'barista' || role === 'kitchen') targetModule = 'kds';
+      else if (role === 'waitstaff') targetModule = 'waitstaff';
+      else if (role === 'customer') targetModule = 'pos';
+      else targetModule = 'pos';
+
+      window.showAppView(targetModule);
+      showToast(`👋 Logged in successfully as ${role.toUpperCase()}!`, 'success');
+    } else {
+      if (errorMsg) {
+        if (errorText) errorText.textContent = 'Invalid username or password. Password is #DemoPass to check the project.';
+        errorMsg.classList.remove('hidden');
+      }
+      showToast('❌ Invalid login credentials. Use password #DemoPass', 'error');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    if (errorMsg) {
+      if (errorText) errorText.textContent = 'Authentication error. Please use #DemoPass.';
+      errorMsg.classList.remove('hidden');
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+    if (btnLabel) btnLabel.textContent = 'Log In to Portal';
+  }
+};
+window.confirmRoleSelection = window.handleLoginFormSubmit;
+
+window.handleUserLogout = function() {
+  AppState.isAuthenticated = false;
+  AppState.currentUser = null;
+  AppState.activeRole = 'customer';
+  localStorage.removeItem('RAVENHILL_USER_ROLE');
+  sessionStorage.removeItem('RAVENHILL_AUTH_USER');
+
+  // Call backend logout API silently
+  try {
+    fetch('api/users/logout.php', { method: 'POST' });
+  } catch(e) {}
+
+  window.showLandingView();
+  showToast('👋 You have been logged out successfully.', 'info');
 };
 
 window.initPromoCountdown = function() {

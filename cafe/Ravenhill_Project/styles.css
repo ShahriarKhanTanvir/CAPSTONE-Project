@@ -4559,6 +4559,88 @@ select option, .form-select option, .form-select-sm option {
   transform: translateY(-1px);
 }
 
+/* Mobile Hamburger Toggle */
+.landing-mobile-menu-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 20px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.landing-mobile-menu-toggle:hover {
+  background: rgba(217, 107, 67, 0.25);
+  border-color: var(--color-primary);
+}
+
+/* Landing Mobile Slide-out Drawer */
+.landing-mobile-menu-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 290px;
+  max-width: 85vw;
+  height: 100vh;
+  background: rgba(18, 14, 11, 0.98);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-left: 1px solid rgba(229, 169, 59, 0.35);
+  z-index: 100005;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.7);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-mobile-menu-drawer.hidden {
+  transform: translateX(105%);
+  pointer-events: none;
+  display: flex !important;
+}
+
+.landing-mobile-nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.landing-mobile-nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-cream);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 11px 14px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.landing-mobile-nav-links a:hover,
+.landing-mobile-nav-links a.active {
+  background: rgba(217, 107, 67, 0.18);
+  color: var(--color-accent-gold);
+}
+
+@media (max-width: 900px) {
+  .landing-mobile-menu-toggle {
+    display: flex;
+  }
+}
+
 /* Return to Landing Page Floating / Topbar button */
 .btn-return-landing {
   background: rgba(255, 255, 255, 0.08);

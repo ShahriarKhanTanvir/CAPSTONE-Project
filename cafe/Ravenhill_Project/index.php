@@ -31,7 +31,7 @@ $csrfToken = getCSRFToken();
     <!-- Floating Glassmorphic Top Navigation Bar -->
     <div class="landing-navbar-wrapper">
       <header class="landing-navbar" id="landing-navbar">
-        <a href="#hero-section" class="landing-nav-brand" onclick="window.scrollTo({ top:0, behavior:'smooth' })">
+        <a href="#hero-section" class="landing-nav-brand" onclick="window.navigateToSection('hero-section'); return false;">
           <div class="brand-avatar-glow">
             <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Coffee Roasters Logo">
           </div>
@@ -43,25 +43,60 @@ $csrfToken = getCSRFToken();
 
         <nav class="landing-nav-menu">
           <ul class="landing-nav-links">
-            <li><a href="#hero-section" class="landing-nav-link active"><i class="ri-home-4-line"></i> Home</a></li>
-            <li><a href="#menu-preview-section" class="landing-nav-link"><i class="ri-cup-line"></i> Menu</a></li>
-            <li><a href="#story-section" class="landing-nav-link"><i class="ri-book-open-line"></i> Our Story</a></li>
-            <li><a href="#specials-section" class="landing-nav-link"><i class="ri-fire-line"></i> Specials</a></li>
-            <li><a href="#roles-section" class="landing-nav-link highlight-gold"><i class="ri-user-star-line"></i> Choose Role</a></li>
-            <li><a href="#rewards-section" class="landing-nav-link"><i class="ri-vip-crown-line"></i> Rewards</a></li>
-            <li><a href="#location-section" class="landing-nav-link"><i class="ri-map-pin-line"></i> Visit Us</a></li>
+            <li><a href="#hero-section" class="landing-nav-link active" onclick="window.navigateToSection('hero-section'); return false;"><i class="ri-home-4-line"></i> Home</a></li>
+            <li><a href="#menu-preview-section" class="landing-nav-link" onclick="window.navigateToSection('menu-preview-section'); return false;"><i class="ri-cup-line"></i> Menu</a></li>
+            <li><a href="#story-section" class="landing-nav-link" onclick="window.navigateToSection('story-section'); return false;"><i class="ri-book-open-line"></i> Our Story</a></li>
+            <li><a href="#specials-section" class="landing-nav-link" onclick="window.navigateToSection('specials-section'); return false;"><i class="ri-fire-line"></i> Specials</a></li>
+            <li><a href="#roles-section" class="landing-nav-link highlight-gold" onclick="window.navigateToSection('roles-section'); return false;"><i class="ri-user-star-line"></i> Choose Role</a></li>
+            <li><a href="#rewards-section" class="landing-nav-link" onclick="window.navigateToSection('rewards-section'); return false;"><i class="ri-vip-crown-line"></i> Rewards</a></li>
+            <li><a href="#location-section" class="landing-nav-link" onclick="window.navigateToSection('location-section'); return false;"><i class="ri-map-pin-line"></i> Visit Us</a></li>
           </ul>
         </nav>
 
         <div class="landing-nav-actions">
-          <button type="button" class="btn-nav-role" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
+          <button type="button" class="btn-nav-role" onclick="window.navigateToSection('roles-section')">
             <i class="ri-user-star-fill"></i> <span>Choose Your Role</span>
           </button>
-          <button type="button" class="btn-nav-login" onclick="window.openRoleLoginModal ? window.openRoleLoginModal('cashier') : window.openLoginModal('cashier')">
+          <button type="button" class="btn-nav-login" onclick="window.openLoginModal()">
             <i class="ri-lock-line"></i> <span>Login</span>
+          </button>
+          <button type="button" class="landing-mobile-menu-toggle" id="landing-mobile-menu-toggle" onclick="window.toggleLandingMobileMenu()" aria-label="Toggle mobile navigation menu">
+            <i class="ri-menu-3-line"></i>
           </button>
         </div>
       </header>
+    </div>
+
+    <!-- Mobile Slide-out Navigation Drawer -->
+    <div class="landing-mobile-menu-drawer hidden" id="landing-mobile-menu-drawer">
+      <div class="mobile-menu-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="brand-avatar-glow" style="width:36px; height:36px;">
+            <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo">
+          </div>
+          <span style="font-family:'Outfit', sans-serif; font-weight:800; color:#fff; font-size:15px; letter-spacing:1px;">RAVENHILL</span>
+        </div>
+        <button type="button" class="icon-btn modal-close" onclick="window.toggleLandingMobileMenu(false)" aria-label="Close mobile menu"><i class="ri-close-line"></i></button>
+      </div>
+
+      <ul class="landing-mobile-nav-links">
+        <li><a href="#hero-section" onclick="window.navigateToSection('hero-section'); window.toggleLandingMobileMenu(false);"><i class="ri-home-4-line"></i> Home</a></li>
+        <li><a href="#menu-preview-section" onclick="window.navigateToSection('menu-preview-section'); window.toggleLandingMobileMenu(false);"><i class="ri-cup-line"></i> Menu & Ordering</a></li>
+        <li><a href="#story-section" onclick="window.navigateToSection('story-section'); window.toggleLandingMobileMenu(false);"><i class="ri-book-open-line"></i> Our Story & Craft</a></li>
+        <li><a href="#specials-section" onclick="window.navigateToSection('specials-section'); window.toggleLandingMobileMenu(false);"><i class="ri-fire-line"></i> Today's Specials</a></li>
+        <li><a href="#roles-section" onclick="window.navigateToSection('roles-section'); window.toggleLandingMobileMenu(false);"><i class="ri-user-star-line"></i> Choose Your Role</a></li>
+        <li><a href="#rewards-section" onclick="window.navigateToSection('rewards-section'); window.toggleLandingMobileMenu(false);"><i class="ri-vip-crown-line"></i> Loyalty Rewards</a></li>
+        <li><a href="#location-section" onclick="window.navigateToSection('location-section'); window.toggleLandingMobileMenu(false);"><i class="ri-map-pin-line"></i> Location & Hours</a></li>
+      </ul>
+
+      <div class="landing-mobile-actions" style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
+        <button type="button" class="btn-hero-primary" style="width:100%; justify-content:center; padding:12px;" onclick="window.navigateToSection('roles-section'); window.toggleLandingMobileMenu(false);">
+          <i class="ri-user-star-fill"></i> Choose Your Role
+        </button>
+        <button type="button" class="btn-hero-secondary" style="width:100%; justify-content:center; padding:12px;" onclick="window.openLoginModal(); window.toggleLandingMobileMenu(false);">
+          <i class="ri-lock-line"></i> Staff & Admin Login
+        </button>
+      </div>
     </div>
 
     <!-- 1. Hero Section -->
@@ -95,13 +130,13 @@ $csrfToken = getCSRFToken();
         </p>
 
         <div class="hero-cta-group">
-          <button type="button" class="btn-hero-primary" onclick="document.getElementById('menu-preview-section')?.scrollIntoView({ behavior:'smooth' })">
+          <button type="button" class="btn-hero-primary" onclick="window.navigateToSection('menu-preview-section')">
             <i class="ri-cup-fill"></i> Explore Menu & Order Online <i class="ri-arrow-right-line"></i>
           </button>
-          <button type="button" class="btn-hero-secondary" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
+          <button type="button" class="btn-hero-secondary" onclick="window.navigateToSection('roles-section')">
             <i class="ri-user-star-line"></i> Choose Your Role
           </button>
-          <button type="button" class="btn-hero-secondary" onclick="window.enterAsCustomer('reservations')">
+          <button type="button" class="btn-hero-secondary" onclick="window.openAddReservationModal ? window.openAddReservationModal() : window.enterAsCustomer('reservations')">
             <i class="ri-calendar-check-line"></i> Book a Table
           </button>
         </div>
@@ -302,7 +337,7 @@ $csrfToken = getCSRFToken();
             <li><i class="ri-check-line"></i> Unique Receipt & Order Tracker</li>
             <li><i class="ri-check-line"></i> Loyalty Points & Free Coffee</li>
           </ul>
-          <button type="button" class="role-card-btn btn-role-customer" onclick="window.enterAsCustomer()">
+          <button type="button" class="role-card-btn btn-role-customer" onclick="window.enterAsCustomer('pos')">
             Continue as Customer <i class="ri-arrow-right-line"></i>
           </button>
         </div>
@@ -319,7 +354,7 @@ $csrfToken = getCSRFToken();
             <li><i class="ri-check-line"></i> Wait Staff Floor Table Monitor</li>
             <li><i class="ri-check-line"></i> Shift Attendance & Clock-In</li>
           </ul>
-          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openRoleLoginModal('cashier')">
+          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openLoginModal('cashier')">
             Staff Login <i class="ri-lock-line"></i>
           </button>
         </div>
@@ -336,7 +371,7 @@ $csrfToken = getCSRFToken();
             <li><i class="ri-check-line"></i> Supplier Purchase Orders</li>
             <li><i class="ri-check-line"></i> Full Role Permission Controls</li>
           </ul>
-          <button type="button" class="role-card-btn btn-role-admin" onclick="window.openRoleLoginModal('admin')">
+          <button type="button" class="role-card-btn btn-role-admin" onclick="window.openLoginModal('admin')">
             Admin Login <i class="ri-shield-keyhole-line"></i>
           </button>
         </div>
@@ -453,29 +488,29 @@ $csrfToken = getCSRFToken();
       </div>
 
       <div class="gallery-grid">
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('1')" title="Click to Order Single Origin Flat White">
           <img src="./brand_recources/flat_white_coffee.png" alt="Melbourne Flat White" loading="lazy">
-          <div class="gallery-overlay"><span>Velvety Micro-Foam Flat White</span></div>
+          <div class="gallery-overlay"><span>Velvety Micro-Foam Flat White • Order Now →</span></div>
         </div>
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('2')" title="Click to Order Cocoa-Dusted Cappuccino">
           <img src="./brand_recources/cappuccino_coffee.png" alt="Artisan Cappuccino" loading="lazy">
-          <div class="gallery-overlay"><span>Cocoa-Dusted Cappuccino</span></div>
+          <div class="gallery-overlay"><span>Cocoa-Dusted Cappuccino • Order Now →</span></div>
         </div>
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('3')" title="Click to Order Double Espresso">
           <img src="./brand_recources/double_espresso_short_black.png" alt="Double Espresso" loading="lazy">
-          <div class="gallery-overlay"><span>Crema-Rich Double Espresso</span></div>
+          <div class="gallery-overlay"><span>Crema-Rich Double Espresso • Order Now →</span></div>
         </div>
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('6')" title="Click to Order Fresh French Butter Croissant">
           <img src="./brand_recources/butter_croissant.png" alt="Butter Croissant" loading="lazy">
-          <div class="gallery-overlay"><span>Fresh Daily French Butter Pastries</span></div>
+          <div class="gallery-overlay"><span>Fresh French Butter Pastries • Order Now →</span></div>
         </div>
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('10')" title="Click to Order Chilled Single Origin Iced Latte">
           <img src="./brand_recources/iced_oat_milk_latte.png" alt="Iced Oat Milk Latte" loading="lazy">
-          <div class="gallery-overlay"><span>Chilled Single Origin Iced Latte</span></div>
+          <div class="gallery-overlay"><span>Chilled Single Origin Iced Latte • Order Now →</span></div>
         </div>
-        <div class="gallery-card">
+        <div class="gallery-card" onclick="window.orderFromLandingPage('1')" title="Click to Order Handcrafted V60 Pourover">
           <img src="./brand_recources/v60_pourover_coffee.png" alt="V60 Single Origin Pourover" loading="lazy">
-          <div class="gallery-overlay"><span>Precision Handcrafted V60 Pourover</span></div>
+          <div class="gallery-overlay"><span>Precision Handcrafted V60 Pourover • Order Now →</span></div>
         </div>
       </div>
     </section>
@@ -496,21 +531,21 @@ $csrfToken = getCSRFToken();
         <div>
           <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Navigation</h5>
           <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-            <a href="#hero-section" style="color:inherit; text-decoration:none;">Home</a>
-            <a href="#menu-preview-section" style="color:inherit; text-decoration:none;">Menu</a>
-            <a href="#story-section" style="color:inherit; text-decoration:none;">Our Story</a>
-            <a href="#specials-section" style="color:inherit; text-decoration:none;">Specials</a>
-            <a href="#location-section" style="color:inherit; text-decoration:none;">Location & Hours</a>
+            <a href="#hero-section" onclick="window.navigateToSection('hero-section'); return false;" style="color:inherit; text-decoration:none;">Home</a>
+            <a href="#menu-preview-section" onclick="window.navigateToSection('menu-preview-section'); return false;" style="color:inherit; text-decoration:none;">Menu</a>
+            <a href="#story-section" onclick="window.navigateToSection('story-section'); return false;" style="color:inherit; text-decoration:none;">Our Story</a>
+            <a href="#specials-section" onclick="window.navigateToSection('specials-section'); return false;" style="color:inherit; text-decoration:none;">Specials</a>
+            <a href="#location-section" onclick="window.navigateToSection('location-section'); return false;" style="color:inherit; text-decoration:none;">Location & Hours</a>
           </div>
         </div>
 
         <div>
           <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Access Portal</h5>
           <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-            <a href="#roles-section" style="color:inherit; text-decoration:none;">Choose Your Role</a>
-            <a href="#" onclick="window.enterAsCustomer()" style="color:inherit; text-decoration:none;">Customer Storefront</a>
-            <a href="#" onclick="window.openRoleLoginModal('cashier')" style="color:inherit; text-decoration:none;">Staff Login</a>
-            <a href="#" onclick="window.openRoleLoginModal('admin')" style="color:inherit; text-decoration:none;">Manager / Admin</a>
+            <a href="#roles-section" onclick="window.navigateToSection('roles-section'); return false;" style="color:inherit; text-decoration:none;">Choose Your Role</a>
+            <a href="#" onclick="window.enterAsCustomer('pos'); return false;" style="color:inherit; text-decoration:none;">Customer Storefront</a>
+            <a href="#" onclick="window.openLoginModal('cashier'); return false;" style="color:inherit; text-decoration:none;">Staff Login</a>
+            <a href="#" onclick="window.openLoginModal('admin'); return false;" style="color:inherit; text-decoration:none;">Manager / Admin</a>
           </div>
         </div>
 
@@ -726,8 +761,11 @@ $csrfToken = getCSRFToken();
               <span class="user-name" id="current-user-name">Sarah Lin</span>
               <span class="user-role-badge" id="current-user-role-badge">Lead Cashier</span>
             </div>
-            <button class="icon-btn-sm" id="lock-user-btn" onclick="openLoginModal()" title="Switch Account / Lock Session" aria-label="Switch Account or Lock Session" style="margin-left:4px;">
+            <button class="icon-btn-sm" id="lock-user-btn" onclick="window.openLoginModal()" title="Switch Account / Lock Session" aria-label="Switch Account or Lock Session" style="margin-left:4px;">
               <i class="ri-lock-line"></i>
+            </button>
+            <button class="icon-btn-sm" id="logout-user-btn" onclick="window.handleUserLogout()" title="Log out and return to Home" aria-label="Log out" style="margin-left:4px; color:var(--color-danger);">
+              <i class="ri-logout-box-r-line"></i>
             </button>
           </div>
         </div>
@@ -1338,70 +1376,109 @@ $csrfToken = getCSRFToken();
     </div>
   </div>
 
-  <!-- User & Role Login Modal -->
+  <!-- User & Role Authentication Login Portal Modal -->
   <div class="modal-backdrop hidden" id="role-select-modal" style="z-index:99999;">
-    <div class="role-select-card" style="position:relative;">
-      <button type="button" class="icon-btn modal-close" id="close-role-modal-btn" onclick="window.closeLoginModal ? window.closeLoginModal() : document.getElementById('role-select-modal').classList.add('hidden')" style="position:absolute; top:14px; right:14px; z-index:10; background:rgba(0,0,0,0.2);" aria-label="Close login dialog"><i class="ri-close-line"></i></button>
-      <div class="role-select-brand">
-        <div class="role-brand-icon" style="width:68px; height:68px; margin:0 auto 12px; border-radius:50%; overflow:hidden; border:2px solid var(--color-primary-light); box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+    <div class="role-select-card" style="position:relative; max-width:460px; width:100%; border-radius:24px; padding:32px; background:linear-gradient(135deg, #1f1712 0%, #15100c 100%); border:1px solid rgba(229, 169, 59, 0.35); box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+      
+      <!-- Close Button -->
+      <button type="button" class="icon-btn modal-close" id="close-role-modal-btn" onclick="window.closeLoginModal()" style="position:absolute; top:16px; right:16px; z-index:10; background:rgba(255,255,255,0.08); border-radius:50%; width:36px; height:36px;" aria-label="Close login dialog">
+        <i class="ri-close-line"></i>
+      </button>
+      
+      <!-- Brand Header -->
+      <div class="role-select-brand" style="text-align:center; margin-bottom:20px;">
+        <div class="role-brand-icon" style="width:64px; height:64px; margin:0 auto 10px; border-radius:50%; overflow:hidden; border:2px solid var(--color-primary-light); box-shadow:0 4px 16px rgba(217, 107, 67, 0.4);">
           <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:100%; height:100%; object-fit:cover;">
         </div>
-        <h2>RAVENHILL COFFEE</h2>
-        <p>User Authentication & Access Management</p>
+        <h2 style="font-family:'Outfit', sans-serif; font-size:22px; font-weight:800; color:#fff; margin:0; letter-spacing:1px;">RAVENHILL COFFEE</h2>
+        <p style="font-size:12px; color:var(--color-accent-gold); margin:4px 0 0; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">Secure Authentication Portal</p>
       </div>
-      <div class="role-select-body">
-        <h3>User & Dashboard Login</h3>
-        <p style="font-size:13px; color:var(--color-cream-muted); margin-bottom:16px;">Enter your password to access your role's dashboard features.</p>
-        
-        <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-weight:600; margin-bottom:6px; display:block;">Select Account / Role</label>
-          <select id="role-popup-select" class="form-select" style="width:100%; padding:12px 14px; font-size:15px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream); appearance:auto;">
-            <option value="admin">⚡ Admin (Full Control)</option>
-            <option value="manager">📊 Manager (Operations & Staff)</option>
-            <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
-            <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
-            <option value="barista">☕ Barista (Beverages KDS)</option>
-            <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
-            <option value="customer">👤 Customer (Live Tracker & Menu)</option>
+
+      <form id="landing-login-form" onsubmit="window.handleLoginFormSubmit(event)" novalidate>
+        <!-- Quick Role Preset Selector -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:var(--color-cream-muted); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Select Portal / Role</label>
+          <select id="role-popup-select" class="form-select" onchange="window.handleRoleSelectChange(this.value)" style="width:100%; padding:11px 14px; font-size:14px; font-weight:600; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream); appearance:auto;">
+            <option value="admin">⚡ Admin (Executive Dashboard & Reports)</option>
+            <option value="manager">📊 Manager (Store Operations & Roster)</option>
+            <option value="cashier" selected>💳 Cashier (POS Register & Sales)</option>
+            <option value="barista">☕ Barista (Beverages KDS Display)</option>
+            <option value="kitchen">🍳 Kitchen Staff (Food KDS Display)</option>
+            <option value="waitstaff">🤵 Wait Staff (Table Floor Monitor)</option>
+            <option value="customer">👤 Customer Storefront (Online Menu & Tracking)</option>
           </select>
         </div>
 
-        <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-weight:600; margin-bottom:6px; display:block;">Password</label>
+        <!-- Username / Email Field -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label for="login-username-input" style="font-size:12px; font-weight:700; color:var(--color-cream-muted); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Username or Email</label>
           <div style="position:relative; display:flex; align-items:center;">
+            <i class="ri-user-3-line" style="position:absolute; left:14px; color:var(--color-cream-subtle); font-size:16px;"></i>
             <input 
               type="text" 
+              id="login-username-input" 
+              class="form-input" 
+              value="cashier" 
+              placeholder="Username (e.g. admin, cashier, slin)" 
+              autocomplete="username"
+              required
+              style="width:100%; padding:11px 14px 11px 40px; font-size:14px; font-weight:600; border-radius:10px; background:var(--bg-canvas); border:1px solid var(--color-border); color:var(--color-cream);"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field with Show/Hide Toggle -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label for="role-password-input" style="font-size:12px; font-weight:700; color:var(--color-cream-muted); text-transform:uppercase; letter-spacing:0.5px;">Password</label>
+            <span style="font-size:11px; color:var(--color-cream-subtle);">Master Pass: <strong style="color:var(--color-accent-gold);">#DemoPass</strong></span>
+          </div>
+          <div style="position:relative; display:flex; align-items:center;">
+            <i class="ri-lock-2-line" style="position:absolute; left:14px; color:var(--color-cream-subtle); font-size:16px;"></i>
+            <input 
+              type="password" 
               id="role-password-input" 
               class="form-input" 
               value="#DemoPass" 
-              placeholder="#DemoPass"
-              onkeydown="if(event.key==='Enter'){ confirmRoleSelection(); }"
-              style="padding-right:44px; font-size:16px; font-weight:700; border-radius:10px; background:var(--bg-canvas);"
+              placeholder="Enter password..."
+              autocomplete="current-password"
+              required
+              style="width:100%; padding:11px 44px 11px 40px; font-size:14px; font-weight:600; border-radius:10px; background:var(--bg-canvas); border:1px solid var(--color-border); color:var(--color-cream);"
             />
             <button 
               type="button" 
-              onclick="togglePasswordVisibility()"
-              style="position:absolute; right:12px; background:none; border:none; color:var(--color-cream-muted); cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;"
+              id="toggle-pass-btn"
+              onclick="window.togglePasswordVisibility()"
+              style="position:absolute; right:12px; background:none; border:none; color:var(--color-cream-muted); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; padding:4px;"
               title="Toggle password visibility"
+              aria-label="Toggle password visibility"
             >
-              <i class="ri-eye-line" id="toggle-pass-icon"></i>
+              <i class="ri-eye-off-line" id="toggle-pass-icon"></i>
             </button>
           </div>
-          <div class="demo-pass-hint" style="font-size:12px; color:var(--color-accent-gold); margin-top:8px; display:flex; align-items:center; gap:6px; background:rgba(217, 119, 6, 0.12); padding:8px 12px; border-radius:8px; border:1px solid rgba(217, 119, 6, 0.3);">
-            <i class="ri-key-2-line" style="font-size:16px;"></i>
-            <span>Password is <strong>#DemoPass</strong> to check the project.</span>
-          </div>
         </div>
 
-        <div id="role-pass-error" class="hidden" role="alert" aria-live="assertive" style="color:var(--color-danger); font-size:12px; font-weight:600; margin-top:12px; padding:8px 12px; background:rgba(255,107,107,0.1); border-radius:6px; border:1px solid rgba(255,107,107,0.3);">
-          Invalid password! Password is #DemoPass to check the project.
+        <!-- Quick Demo Credential Autofill Chips -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+          <span style="font-size:11px; color:var(--color-cream-subtle); display:block; width:100%; margin-bottom:2px;">Quick Demo Autofill:</span>
+          <button type="button" class="btn btn-xs btn-outline" style="padding:2px 8px; font-size:11px; border-radius:12px;" onclick="window.autofillLogin('admin', '#DemoPass')">Admin</button>
+          <button type="button" class="btn btn-xs btn-outline" style="padding:2px 8px; font-size:11px; border-radius:12px;" onclick="window.autofillLogin('manager', '#DemoPass')">Manager</button>
+          <button type="button" class="btn btn-xs btn-outline" style="padding:2px 8px; font-size:11px; border-radius:12px;" onclick="window.autofillLogin('cashier', '#DemoPass')">Cashier</button>
+          <button type="button" class="btn btn-xs btn-outline" style="padding:2px 8px; font-size:11px; border-radius:12px;" onclick="window.autofillLogin('barista', '#DemoPass')">Barista</button>
+          <button type="button" class="btn btn-xs btn-outline" style="padding:2px 8px; font-size:11px; border-radius:12px;" onclick="window.autofillLogin('kitchen', '#DemoPass')">Kitchen</button>
         </div>
 
+        <!-- Error Message Container -->
+        <div id="role-pass-error" class="hidden" role="alert" aria-live="assertive" style="color:#ef4444; font-size:12.5px; font-weight:600; margin-bottom:14px; padding:10px 14px; background:rgba(239, 68, 68, 0.12); border-radius:8px; border:1px solid rgba(239, 68, 68, 0.35); display:flex; align-items:center; gap:8px;">
+          <i class="ri-error-warning-fill"></i>
+          <span id="role-pass-error-text">Invalid credentials! Please try again.</span>
+        </div>
 
-        <button class="btn btn-primary btn-lg" style="width:100%; margin-top:16px; padding:14px; font-size:16px; border-radius:12px; font-weight:700;" onclick="confirmRoleSelection()">
-          <i class="ri-lock-unlock-line"></i> Log In to Dashboard
+        <!-- Submit Button -->
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-lg" style="width:100%; padding:13px; font-size:15px; border-radius:12px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <i class="ri-login-box-line"></i> <span id="login-btn-label">Log In to Portal</span>
         </button>
-      </div>
+      </form>
     </div>
   </div>
   <!-- Thermal Printable Receipt Modal (FR36) -->
