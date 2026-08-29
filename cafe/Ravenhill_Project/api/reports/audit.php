@@ -41,73 +41,77 @@ function logAudit($action, $tableName = null, $details = null, $userId = null, $
     }
 }
 
-// ── OPTIONS preflight ──────────────────────────────────────────────────────
-if ($method === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
-
-// ── GET: View Audit Logs (Admin/Manager) ────────────────────────────────────
-if ($method === 'GET') {
-    requireAuth(['admin', 'manager']);
-
-    $search = $_GET['search'] ?? '';
-    $action = $_GET['action_filter'] ?? '';
-    $page   = max(1, (int)($_GET['page'] ?? 1));
-    $limit  = 50;
-    $offset = ($page - 1) * $limit;
-
-    $sql = "SELECT * FROM AuditLogs WHERE 1=1";
-    $params = [];
-
-    if ($search !== '') {
-        $sql .= " AND (action LIKE ? OR table_name LIKE ? OR user_name LIKE ? OR details LIKE ?)";
-        $like = '%' . $search . '%';
-        $params = [$like, $like, $like, $like];
+if (basename($_SERVER['SCRIPT_FILENAME']) === 'audit.php') {
+    // ── OPTIONS preflight ──────────────────────────────────────────────────────
+    if ($method === 'OPTIONS') {
+        http_response_code(204);
+        exit;
     }
 
-    if ($action !== '') {
-        $sql .= " AND action = ?";
-        $params[] = $action;
+    // ── GET: View Audit Logs (Admin/Manager) ────────────────────────────────────
+    if ($method === 'GET') {
+        requireAuth(['admin', 'manager']);
+
+        $search = $_GET['search'] ?? '';
+        $action = $_GET['action_filter'] ?? '';
+        $page   = max(1, (int)($_GET['page'] ?? 1));
+        $limit  = 50;
+        $offset = ($page - 1) * $limit;
+
+        $sql = "SELECT * FROM AuditLogs WHERE 1=1";
+        $params = [];
+
+        if ($search) {
+            $sql .= " AND (user_name LIKE ? OR action LIKE ? OR details LIKE ?)";
+            $wild = "%$search%";
+            $params[] = $wild;
+            $params[] = $wild;
+            $params[] = $wild;
+        }
+
+        if ($action) {
+            $sql .= " AND action = ?";
+            $params[] = $action;
+        }
+
+        $sql .= " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $logs = $stmt->fetchAll();
+
+        $countQuery = $db->query("SELECT COUNT(*) AS total FROM AuditLogs");
+        $totalLogs = (int)$countQuery->fetch()['total'];
+
+        sendResponse(true, 'Audit logs retrieved.', [
+            'total' => $totalLogs,
+            'page'  => $page,
+            'limit' => $limit,
+            'logs'  => $logs
+        ]);
     }
 
-    $sql .= " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
-    $params[] = $limit;
-    $params[] = $offset;
+    // ── POST: Manual Audit Log Entry ───────────────────────────────────────────
+    if ($method === 'POST') {
+        requireAuth(['admin', 'manager']);
+        $body = getRequestBody();
 
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
-    $logs = $stmt->fetchAll();
+        if (empty($body['action'])) {
+            sendResponse(false, 'action is required.', null, 422);
+        }
 
-    $countQuery = $db->query("SELECT COUNT(*) AS total FROM AuditLogs");
-    $totalLogs = (int)$countQuery->fetch()['total'];
+        logAudit(
+            $body['action'],
+            $body['table_name'] ?? null,
+            $body['details'] ?? null,
+            $body['user_id'] ?? null,
+            $body['user_name'] ?? null
+        );
 
-    sendResponse(true, 'Audit logs retrieved.', [
-        'total' => $totalLogs,
-        'page'  => $page,
-        'limit' => $limit,
-        'logs'  => $logs
-    ]);
-}
-
-// ── POST: Manual Audit Log Entry ───────────────────────────────────────────
-if ($method === 'POST') {
-    requireAuth(['admin', 'manager']);
-    $body = getRequestBody();
-
-    if (empty($body['action'])) {
-        sendResponse(false, 'action is required.', null, 422);
+        sendResponse(true, 'Audit log recorded.');
     }
 
-    logAudit(
-        $body['action'],
-        $body['table_name'] ?? null,
-        $body['details'] ?? null,
-        $body['user_id'] ?? null,
-        $body['user_name'] ?? null
-    );
-
-    sendResponse(true, 'Audit log recorded.');
+    sendResponse(false, 'Method not allowed.', null, 405);
 }
-
-sendResponse(false, 'Method not allowed.', null, 405);
