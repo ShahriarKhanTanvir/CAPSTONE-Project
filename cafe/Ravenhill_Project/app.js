@@ -1004,6 +1004,7 @@ const showToast = window.showToast;
 function initApp() {
   // Load saved state from LocalStorage immediately to prevent initial reset on refresh
   loadLocalDB();
+  renderCartUI();
 
   setupUniversalModalClosers();
   setupNavigation();
@@ -2107,7 +2108,7 @@ function renderPOSView(container) {
   if (AppState.searchQuery) {
     filteredItems = DB.menuItems.filter(item => 
       item.name.toLowerCase().includes(AppState.searchQuery) ||
-      item.desc.toLowerCase().includes(AppState.searchQuery)
+      (item.desc && item.desc.toLowerCase().includes(AppState.searchQuery))
     );
   }
 
@@ -2121,30 +2122,31 @@ function renderPOSView(container) {
     filteredItems.forEach(item => {
       const card = document.createElement('div');
       card.className = 'menu-card';
+      card.setAttribute('data-item-id', item.id);
       const imgSrc = getItemImage(item);
       card.innerHTML = `
         ${item.badge ? `<span class="menu-card-badge">${item.badge}</span>` : ''}
         <div class="menu-card-image">
-          <img src="${imgSrc}" alt="${item.name}" loading="lazy">
+          <img src="${imgSrc}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
         </div>
         <div class="menu-card-info">
           <h4>${item.name}</h4>
-          <p>${item.desc}</p>
+          <p>${item.desc || 'Artisan Melbourne CBD specialty selection.'}</p>
         </div>
         <div class="menu-card-bottom">
-          <span class="menu-card-price">$${item.price.toFixed(2)}</span>
-          <button class="add-item-btn"><i class="ri-add-line"></i></button>
+          <span class="menu-card-price">$${parseFloat(item.price).toFixed(2)}</span>
+          <button type="button" class="btn-card-add" aria-label="Add ${item.name} to Cart">
+            <i class="ri-add-line"></i> <span>Add</span>
+          </button>
         </div>
       `;
 
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
         if (item.hasModifiers) {
           openCustomiserModal(item);
         } else {
-          // Non-modifier items (bakery, retail beans) bypass customiser with neutral defaults
           addItemToCart(item, [], '', 1);
-          window.openCartDrawer();
-          showToast(`Added 1x ${item.name} to cart!`, 'success');
+          showToast(`✨ Added 1x ${item.name} to cart!`, 'success');
         }
       });
 
@@ -2289,6 +2291,15 @@ function setupCartDrawer() {
   // Legacy setup hook
 }
 
+function areCustomisationsEqual(c1, c2) {
+  if (!c1 && !c2) return true;
+  if (!c1 || !c2) return false;
+  if (c1.length !== c2.length) return false;
+  const s1 = c1.map(c => String(c.customisation_id || c.option_name || '')).sort().join('|');
+  const s2 = c2.map(c => String(c.customisation_id || c.option_name || '')).sort().join('|');
+  return s1 === s2;
+}
+
 function addItemToCart(item, customisations = [], notes = '', qty = 1) {
   if (!item) return;
   if (!AppState.cart) {
@@ -2303,7 +2314,7 @@ function addItemToCart(item, customisations = [], notes = '', qty = 1) {
       tipAmount: 0
     };
   }
-  if (!AppState.cart.items) AppState.cart.items = [];
+  if (!Array.isArray(AppState.cart.items)) AppState.cart.items = [];
 
   let extraPrice = 0;
   (customisations || []).forEach(c => {
@@ -2313,22 +2324,39 @@ function addItemToCart(item, customisations = [], notes = '', qty = 1) {
   const basePrice = parseFloat(item.price || item.unit_price || 0);
   const unitPrice = basePrice + extraPrice;
   const itemName = item.name || item.product_name || 'Menu Item';
+  const itemId = String(item.id || item.product_id || '');
 
   const normalizedItem = {
     ...item,
+    id: itemId,
     name: itemName,
     price: basePrice
   };
 
-  AppState.cart.items.push({
-    cartItemId: 'ci-' + Date.now() + Math.random().toString(36).substr(2, 4),
-    item: normalizedItem,
-    customisations: customisations,
-    notes: notes,
-    qty: qty,
-    unitPrice: unitPrice,
-    totalPrice: unitPrice * qty
-  });
+  const cleanNotes = (notes || '').trim();
+
+  // Check if identical item (same ID, matching customisations, and matching notes) already exists
+  const existingIdx = AppState.cart.items.findIndex(ci => 
+    String(ci.item.id) === itemId &&
+    areCustomisationsEqual(ci.customisations, customisations) &&
+    (ci.notes || '').trim().toLowerCase() === cleanNotes.toLowerCase()
+  );
+
+  if (existingIdx > -1) {
+    AppState.cart.items[existingIdx].qty += qty;
+    AppState.cart.items[existingIdx].unitPrice = unitPrice;
+    AppState.cart.items[existingIdx].totalPrice = unitPrice * AppState.cart.items[existingIdx].qty;
+  } else {
+    AppState.cart.items.push({
+      cartItemId: 'ci-' + Date.now() + Math.random().toString(36).substr(2, 4),
+      item: normalizedItem,
+      customisations: customisations,
+      notes: cleanNotes,
+      qty: qty,
+      unitPrice: unitPrice,
+      totalPrice: unitPrice * qty
+    });
+  }
 
   renderCartUI();
   saveLocalDB();
@@ -2343,8 +2371,8 @@ function renderCartUI() {
     cartOrderNumEl.textContent = AppState.cart.orderId;
   }
 
-  const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (i.qty || 1), 0);
-  let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (i.totalPrice || 0), 0);
+  const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (parseInt(i.qty) || 1), 0);
+  let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (parseFloat(i.totalPrice) || 0), 0);
   let discount = 0;
 
   if (AppState.cart.promoCode) {
@@ -2444,6 +2472,12 @@ function renderCartUI() {
     topbarCartBtn.title = `View Cart (${totalItemCount} item${totalItemCount === 1 ? '' : 's'} • $${finalTotal.toFixed(2)})`;
   }
 
+  // Update Landing Cart Badge if present
+  const landingCartCount = document.getElementById('landing-cart-count');
+  if (landingCartCount) {
+    landingCartCount.textContent = totalItemCount;
+  }
+
   // Mobile Floating Cart Bar Sync
   const mobileCartBar = document.getElementById('mobile-cart-bar');
   const mobileCartCount = document.getElementById('mobile-cart-count');
@@ -2515,6 +2549,7 @@ window.toggleCartDrawer = function() {
 window.closeCustomiserModal = function() {
   document.getElementById('customiser-modal')?.classList.add('hidden');
   AppState.editingCartIndex = null;
+  AppState.modalItem = null;
 };
 
 window.closePaymentModal = function() {
@@ -2542,6 +2577,10 @@ window.closeLoginModal = function() {
   document.getElementById('role-select-modal')?.classList.add('hidden');
 };
 
+window.closeClockShiftModal = function() {
+  document.getElementById('clock-shift-modal')?.classList.add('hidden');
+};
+
 window.closePrintableReceiptModal = function() {
   document.getElementById('printable-receipt-modal')?.classList.add('hidden');
 };
@@ -2562,42 +2601,50 @@ window.detachCustomer = function() {
 function setupUniversalModalClosers() {
   document.addEventListener('click', (e) => {
     // 1. Any click on a close button
-    const closeBtn = e.target.closest('.modal-close, .close-cart, [data-close-modal], #close-customiser-btn, #close-payment-btn, #close-receipt-btn, #close-customer-modal-btn, #close-cart-btn, #close-role-modal-btn');
+    const closeBtn = e.target.closest('.modal-close, .close-cart, .mobile-sidebar-close, [data-close-modal], #close-customiser-btn, #close-payment-btn, #close-receipt-btn, #close-customer-modal-btn, #close-cart-btn, #close-role-modal-btn, #mobile-sidebar-close-btn');
     if (closeBtn) {
       e.preventDefault();
-      e.stopPropagation();
-      const modal = closeBtn.closest('.modal-backdrop, .modal-overlay, #cart-drawer');
+      const modal = closeBtn.closest('.modal-backdrop, .modal-overlay, #cart-drawer, .sidebar');
       if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('mobile-open');
-        AppState.editingCartIndex = null;
+        if (modal.id === 'cart-drawer') {
+          window.closeCartDrawer();
+        } else if (modal.id === 'sidebar' || modal.classList.contains('sidebar')) {
+          window.closeSidebar();
+        } else {
+          modal.classList.add('hidden');
+        }
       } else {
-        document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
-        document.getElementById('cart-drawer')?.classList.remove('mobile-open');
+        document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => m.classList.add('hidden'));
+        window.closeCartDrawer();
+        window.closeSidebar();
       }
+      AppState.editingCartIndex = null;
+      AppState.modalItem = null;
       return;
     }
 
     // 2. Click on the backdrop background itself
-    if (e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal-overlay')) {
+    if (e.target.classList.contains('modal-backdrop') || e.target.id === 'sidebar-backdrop') {
       e.target.classList.add('hidden');
+      if (e.target.id === 'sidebar-backdrop') {
+        window.closeSidebar();
+      }
       AppState.editingCartIndex = null;
+      AppState.modalItem = null;
     }
   });
 
   // 3. Escape key closes topmost modal or drawer
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.keyCode === 27) {
-      const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
+      const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden)');
       if (openModals.length > 0) {
         openModals[openModals.length - 1].classList.add('hidden');
         AppState.editingCartIndex = null;
+        AppState.modalItem = null;
       } else {
-        const cartDrawer = document.getElementById('cart-drawer');
-        if (cartDrawer && cartDrawer.classList.contains('mobile-open')) {
-          cartDrawer.classList.add('hidden');
-          cartDrawer.classList.remove('mobile-open');
-        }
+        window.closeCartDrawer();
+        window.closeSidebar();
       }
     }
   });

@@ -760,7 +760,7 @@ $csrfToken = getCSRFToken();
               <span>Current Sale</span>
               <span class="cart-order-id" id="cart-order-number">#ORD-9042</span>
             </div>
-            <button type="button" class="icon-btn close-cart" id="close-cart-btn" onclick="closeCartDrawer()" aria-label="Close sale cart"><i class="ri-close-line"></i></button>
+            <button type="button" class="icon-btn close-cart" id="close-cart-btn" onclick="window.closeCartDrawer ? window.closeCartDrawer() : document.getElementById('cart-drawer').classList.add('hidden')" aria-label="Close sale cart"><i class="ri-close-line"></i></button>
           </div>
 
           <!-- Order Context: Order Type & Table Selection -->
@@ -873,7 +873,7 @@ $csrfToken = getCSRFToken();
           <h3 id="customiser-item-name">Single Origin Flat White</h3>
           <span class="modal-subtitle" id="customiser-item-desc">House Espresso Blend • Seasonal Bean</span>
         </div>
-        <button type="button" class="icon-btn modal-close" id="close-customiser-btn" onclick="closeCustomiserModal()" aria-label="Close customiser"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-customiser-btn" onclick="window.closeCustomiserModal ? window.closeCustomiserModal() : document.getElementById('customiser-modal').classList.add('hidden')" aria-label="Close customiser"><i class="ri-close-line"></i></button>
       </div>
 
       <div class="modal-body customiser-body">
@@ -909,7 +909,7 @@ $csrfToken = getCSRFToken();
           <h3>Payment Processing & Checkout</h3>
           <span class="modal-subtitle">Select payment tender type for Sale <strong id="pay-modal-order-id">#ORD-9042</strong></span>
         </div>
-        <button type="button" class="icon-btn modal-close" id="close-payment-btn" onclick="closePaymentModal()" aria-label="Close payment"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-payment-btn" onclick="window.closePaymentModal ? window.closePaymentModal() : document.getElementById('payment-modal').classList.add('hidden')" aria-label="Close payment"><i class="ri-close-line"></i></button>
       </div>
 
       <div class="modal-body payment-body">
@@ -1139,7 +1139,7 @@ $csrfToken = getCSRFToken();
     <div class="modal-card modal-sm">
       <div class="modal-header">
         <h3>Sales Receipt & Tax Invoice</h3>
-        <button type="button" class="icon-btn modal-close" id="close-receipt-btn" onclick="closeReceiptModal()" aria-label="Close receipt"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-receipt-btn" onclick="window.closeReceiptModal ? window.closeReceiptModal() : document.getElementById('receipt-modal').classList.add('hidden')" aria-label="Close receipt"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <div class="thermal-receipt" id="thermal-receipt-content">
@@ -1192,7 +1192,7 @@ $csrfToken = getCSRFToken();
       <div class="modal-footer" style="display: flex; gap: 8px; flex-wrap: wrap;">
         <button type="button" class="btn btn-secondary flex-1" id="print-receipt-btn" style="min-width: 130px;"><i class="ri-printer-line"></i> Print Receipt</button>
         <button type="button" class="btn btn-outline flex-1" id="download-pdf-receipt-btn" style="min-width: 140px; background: rgba(217, 107, 67, 0.15); border-color: var(--color-primary); color: #fff;"><i class="ri-file-pdf-line"></i> Download Receipt</button>
-        <button type="button" class="btn btn-primary" id="finish-receipt-btn" style="min-width: 80px;">Done</button>
+        <button type="button" class="btn btn-primary" id="finish-receipt-btn" onclick="window.closeReceiptModal ? window.closeReceiptModal() : document.getElementById('receipt-modal').classList.add('hidden')" style="min-width: 80px;">Done</button>
       </div>
     </div>
   </div>
@@ -1202,7 +1202,7 @@ $csrfToken = getCSRFToken();
     <div class="modal-card">
       <div class="modal-header">
         <h3>Attach Loyalty Customer</h3>
-        <button type="button" class="icon-btn modal-close" id="close-customer-modal-btn" onclick="closeCustomerModal()" aria-label="Close customer modal"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-customer-modal-btn" onclick="window.closeCustomerModal ? window.closeCustomerModal() : document.getElementById('customer-modal').classList.add('hidden')" aria-label="Close customer modal"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -1226,7 +1226,7 @@ $csrfToken = getCSRFToken();
           <h3>Create Table Booking</h3>
           <span class="modal-subtitle">Reserve a table & seating slot for guests</span>
         </div>
-        <button class="icon-btn modal-close" onclick="closeAddReservationModal()"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" onclick="window.closeAddReservationModal ? window.closeAddReservationModal() : document.getElementById('add-reservation-modal').classList.add('hidden')"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form id="add-reservation-form" onsubmit="submitNewReservation(event)">
@@ -1280,7 +1280,7 @@ $csrfToken = getCSRFToken();
             <input type="text" id="res-contact-phone" class="form-input" placeholder="e.g. 0412 889 201" style="width:100%; padding:10px 12px; border-radius:8px; background:var(--bg-canvas); border:1px solid var(--color-border); color:var(--color-cream);">
           </div>
           <div class="modal-footer" style="padding:0; margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" class="btn btn-outline" onclick="closeAddReservationModal()">Cancel</button>
+            <button type="button" class="btn btn-outline" onclick="window.closeAddReservationModal ? window.closeAddReservationModal() : document.getElementById('add-reservation-modal').classList.add('hidden')">Cancel</button>
             <button type="submit" class="btn btn-primary"><i class="ri-calendar-check-line"></i> Create Reservation</button>
           </div>
         </form>
@@ -1296,7 +1296,7 @@ $csrfToken = getCSRFToken();
           <h3>Add New Dining Table</h3>
           <span class="modal-subtitle">Configure floor plan seating layout</span>
         </div>
-        <button class="icon-btn modal-close" onclick="closeAddTableModal()"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" onclick="window.closeAddTableModal ? window.closeAddTableModal() : document.getElementById('add-table-modal').classList.add('hidden')"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form id="add-table-form" onsubmit="submitNewTable(event)">
@@ -1330,7 +1330,7 @@ $csrfToken = getCSRFToken();
             </div>
           </div>
           <div class="modal-footer" style="padding:0; margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" class="btn btn-outline" onclick="closeAddTableModal()">Cancel</button>
+            <button type="button" class="btn btn-outline" onclick="window.closeAddTableModal ? window.closeAddTableModal() : document.getElementById('add-table-modal').classList.add('hidden')">Cancel</button>
             <button type="submit" class="btn btn-primary"><i class="ri-add-line"></i> Add Table</button>
           </div>
         </form>
@@ -1339,9 +1339,9 @@ $csrfToken = getCSRFToken();
   </div>
 
   <!-- User & Role Login Modal -->
-  <div class="modal-backdrop hidden" id="role-select-modal" style="z-index:9999;">
+  <div class="modal-backdrop hidden" id="role-select-modal" style="z-index:99999;">
     <div class="role-select-card" style="position:relative;">
-      <button type="button" class="icon-btn modal-close" id="close-role-modal-btn" onclick="closeLoginModal()" style="position:absolute; top:14px; right:14px; z-index:10; background:rgba(0,0,0,0.2);" aria-label="Close login dialog"><i class="ri-close-line"></i></button>
+      <button type="button" class="icon-btn modal-close" id="close-role-modal-btn" onclick="window.closeLoginModal ? window.closeLoginModal() : document.getElementById('role-select-modal').classList.add('hidden')" style="position:absolute; top:14px; right:14px; z-index:10; background:rgba(0,0,0,0.2);" aria-label="Close login dialog"><i class="ri-close-line"></i></button>
       <div class="role-select-brand">
         <div class="role-brand-icon" style="width:68px; height:68px; margin:0 auto 12px; border-radius:50%; overflow:hidden; border:2px solid var(--color-primary-light); box-shadow:0 4px 12px rgba(0,0,0,0.4);">
           <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:100%; height:100%; object-fit:cover;">

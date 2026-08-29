@@ -913,140 +913,156 @@ select option, .form-select option, .form-select-sm option {
   box-shadow: 0 4px 14px rgba(217, 107, 67, 0.35);
 }
 
-/* POS Items Touch Grid */
+/* POS Items Touch Grid - Modern Cafe Layout */
 .pos-items-grid {
   flex: 1;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   grid-auto-rows: max-content;
   align-items: start;
   gap: 16px;
-  padding: 4px 4px 16px 4px;
+  padding: 6px 6px 24px 6px;
 }
 
 .menu-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-lg);
-  padding: 14px;
+  background: rgba(26, 20, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
   position: relative;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
 }
 
 .menu-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--color-primary);
-  background: var(--bg-surface-elevated);
-  box-shadow: var(--shadow-md);
+  background: rgba(36, 28, 22, 0.95);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 16px rgba(217, 107, 67, 0.2);
 }
 
 .menu-card:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 .menu-card-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+  top: 18px;
+  right: 18px;
+  z-index: 5;
   font-size: 10px;
   padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(217, 107, 67, 0.9);
-  color: #ffffff;
+  border-radius: 20px;
+  background: rgba(18, 14, 11, 0.85);
+  border: 1px solid rgba(229, 169, 59, 0.4);
+  color: var(--color-accent-gold);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
 }
 
 .menu-card-image {
   width: 100%;
-  height: 140px;
-  border-radius: var(--border-radius-md);
+  height: 120px;
+  border-radius: 12px;
   overflow: hidden;
   margin-bottom: 10px;
-  background: var(--bg-canvas);
+  background: #140f0c;
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .menu-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-normal);
+  transition: transform 0.5s ease;
 }
 
 .menu-card:hover .menu-card-image img {
-  transform: scale(1.06);
+  transform: scale(1.08);
 }
 
-.menu-card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--border-radius-md);
-  background: var(--bg-canvas);
-  color: var(--color-primary);
+.menu-card-info {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  flex: 1;
 }
 
 .menu-card-info h4 {
+  font-family: 'Outfit', sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-cream);
-  line-height: 1.3;
-  margin-bottom: 4px;
+  color: #ffffff;
+  line-height: 1.25;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu-card-info p {
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11.5px;
+  line-height: 1.35;
   color: var(--color-cream-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
+  height: 31px;
 }
 
 .menu-card-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 4px;
+  margin-top: auto;
   padding-top: 8px;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .menu-card-price {
-  font-size: 17px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
   font-weight: 800;
   color: var(--color-accent-gold);
 }
 
-.add-item-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--border-radius-sm);
-  background: var(--color-primary);
-  color: #fff;
-  display: flex;
+.btn-card-add {
+  background: linear-gradient(135deg, var(--color-primary), #b45309);
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: transform var(--transition-fast);
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217, 107, 67, 0.35);
+  transition: all 0.2s ease;
 }
-.menu-card:hover .add-item-btn {
-  transform: scale(1.1);
+
+.btn-card-add:hover {
+  background: linear-gradient(135deg, #ea580c, #d97706);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(217, 107, 67, 0.5);
+}
+
+.btn-card-add i {
+  font-size: 13px;
 }
 
 /* Cart Drawer (Embedded on POS / Slideable elsewhere) */
@@ -1688,17 +1704,24 @@ select option, .form-select option, .form-select-sm option {
   gap: 16px;
 }
 
-/* Modals Overlay */
+/* Modals Overlay - Bulletproof & High Priority */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 99999 !important;
   animation: fadeIn 0.2s ease;
+  pointer-events: auto !important;
+}
+
+.modal-backdrop.hidden {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 .modal-card {
@@ -1710,8 +1733,11 @@ select option, .form-select option, .form-select-sm option {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
   overflow: hidden;
+  position: relative;
+  z-index: 100000 !important;
+  pointer-events: auto !important;
   animation: slideUp 0.25s ease;
 }
 
@@ -1725,6 +1751,46 @@ select option, .form-select option, .form-select-sm option {
   align-items: center;
   justify-content: space-between;
   background: var(--bg-canvas);
+  position: relative;
+  z-index: 2;
+}
+
+.modal-close,
+.close-cart,
+.mobile-sidebar-close {
+  cursor: pointer !important;
+  z-index: 100002 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border);
+  color: var(--color-cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close i,
+.close-cart i,
+.mobile-sidebar-close i {
+  pointer-events: none !important;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-close:hover,
+.close-cart:hover,
+.mobile-sidebar-close:hover {
+  background: rgba(217, 107, 67, 0.25);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  transform: scale(1.08);
 }
 
 .modal-body {
@@ -4015,42 +4081,49 @@ select option, .form-select option, .form-select-sm option {
 
 .digital-menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 1240px;
   margin: 0 auto;
 }
 
 .digital-product-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--color-border-subtle);
+  background: rgba(26, 20, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 12px;
 }
 
 .digital-product-card:hover {
   transform: translateY(-6px);
   border-color: var(--color-primary);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  background: rgba(36, 28, 22, 0.95);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(217, 107, 67, 0.2);
 }
 
 .product-img-box {
   width: 100%;
-  height: 200px;
+  height: 140px;
   position: relative;
-  background: #1a1410;
+  background: #140f0c;
+  border-radius: 14px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .product-img-box img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.5s ease;
 }
 
 .digital-product-card:hover .product-img-box img {
@@ -4059,21 +4132,22 @@ select option, .form-select option, .form-select-sm option {
 
 .product-card-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(15, 12, 10, 0.8);
-  border: 1px solid rgba(229, 169, 59, 0.5);
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 12, 10, 0.85);
+  border: 1px solid rgba(229, 169, 59, 0.45);
   color: var(--color-accent-gold);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
+  padding: 3px 9px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .product-content-box {
-  padding: 20px;
+  padding: 12px 4px 4px 4px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -4084,15 +4158,19 @@ select option, .form-select option, .form-select-sm option {
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .product-name-row h4 {
   font-family: 'Outfit', sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--color-cream);
+  color: #ffffff;
   margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-price-pill {
@@ -4104,17 +4182,22 @@ select option, .form-select option, .form-select-sm option {
 }
 
 .product-desc-text {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-cream-muted);
-  line-height: 1.5;
-  margin-bottom: 18px;
-  flex: 1;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 33px;
 }
 
 .product-action-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-top: auto;
 }
 
 .btn-card-order {
@@ -4122,7 +4205,7 @@ select option, .form-select option, .form-select-sm option {
   background: linear-gradient(135deg, var(--color-primary), #b45309);
   color: #fff;
   border: none;
-  padding: 10px 16px;
+  padding: 9px 16px;
   border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
@@ -4131,19 +4214,21 @@ select option, .form-select option, .form-select-sm option {
   justify-content: center;
   gap: 6px;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217, 107, 67, 0.35);
   transition: all 0.2s ease;
 }
 
 .btn-card-order:hover {
   background: linear-gradient(135deg, #ea580c, #d97706);
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(217, 107, 67, 0.5);
 }
 
 .btn-card-customise {
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-cream);
   border: 1px solid var(--color-border);
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
@@ -4152,8 +4237,9 @@ select option, .form-select option, .form-select-sm option {
 }
 
 .btn-card-customise:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.16);
   border-color: var(--color-primary);
+  color: #fff;
 }
 
 /* Digital Loyalty Rewards Section */
