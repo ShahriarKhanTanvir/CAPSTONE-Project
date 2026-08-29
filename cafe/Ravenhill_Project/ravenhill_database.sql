@@ -160,9 +160,11 @@ CREATE TABLE Customers (
     last_name VARCHAR(100) NULL,
     phone VARCHAR(50) NULL,
     email VARCHAR(255) NULL,
+    user_id INT NULL,
     loyalty_points INT DEFAULT 0,
     loyalty_tier VARCHAR(50) DEFAULT 'Bronze',
-    joined_loyalty_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    joined_loyalty_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2.11 Inventory
@@ -413,7 +415,8 @@ INSERT INTO Roles (role_id, role_name, description) VALUES
 (2, 'Manager', 'Store operations, inventory management, staff scheduling, and reporting'),
 (3, 'Cashier', 'Front-of-house point of sale, order taking, table booking, and customer management'),
 (4, 'Barista', 'Beverage preparation and order status management via KDS'),
-(5, 'Kitchen', 'Kitchen display system and food preparation management');
+(5, 'Kitchen', 'Kitchen display system and food preparation management'),
+(6, 'Customer', 'Customer ordering portal and loyalty management');
 
 -- 3.2 Users (Passwords: admin123, manager123, cashier123, barista123)
 -- Password hashes generated with PASSWORD_BCRYPT
