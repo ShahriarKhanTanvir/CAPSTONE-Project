@@ -28,18 +28,6 @@ $csrfToken = getCSRFToken();
        ========================================================================= -->
   <div id="landing-page-view" class="landing-page-container">
     
-    <!-- Top Animated Promotional Banner -->
-    <div class="promo-top-banner" id="top-promo-banner">
-      <div class="promo-banner-content">
-        <span class="promo-tag"><i class="ri-fire-fill"></i> Today's Special</span>
-        <span class="promo-text">COFFEE + PASTRY COMBO ☕🥐 | SAVE 15%</span>
-        <span class="promo-timer" id="promo-countdown-timer">02:45:18</span>
-      </div>
-      <button type="button" class="promo-claim-btn" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.enterAsCustomer()">
-        <i class="ri-gift-line"></i> Claim Special Combo
-      </button>
-    </div>
-
     <!-- Floating Glassmorphic Top Navigation Bar -->
     <div class="landing-navbar-wrapper">
       <header class="landing-navbar" id="landing-navbar">
@@ -56,12 +44,12 @@ $csrfToken = getCSRFToken();
         <nav class="landing-nav-menu">
           <ul class="landing-nav-links">
             <li><a href="#hero-section" class="landing-nav-link active"><i class="ri-home-4-line"></i> Home</a></li>
-            <li><a href="#story-section" class="landing-nav-link"><i class="ri-book-open-line"></i> Our Story</a></li>
             <li><a href="#menu-preview-section" class="landing-nav-link"><i class="ri-cup-line"></i> Menu</a></li>
+            <li><a href="#story-section" class="landing-nav-link"><i class="ri-book-open-line"></i> Our Story</a></li>
             <li><a href="#specials-section" class="landing-nav-link"><i class="ri-fire-line"></i> Specials</a></li>
             <li><a href="#roles-section" class="landing-nav-link highlight-gold"><i class="ri-user-star-line"></i> Choose Role</a></li>
-            <li><a href="#location-section" class="landing-nav-link"><i class="ri-map-pin-line"></i> Location</a></li>
-            <li><a href="#gallery-section" class="landing-nav-link"><i class="ri-camera-lens-line"></i> Gallery</a></li>
+            <li><a href="#rewards-section" class="landing-nav-link"><i class="ri-vip-crown-line"></i> Rewards</a></li>
+            <li><a href="#location-section" class="landing-nav-link"><i class="ri-map-pin-line"></i> Visit Us</a></li>
           </ul>
         </nav>
 
@@ -95,7 +83,7 @@ $csrfToken = getCSRFToken();
           </div>
           <div class="hero-status-pill">
             <span class="status-dot-pulse"></span>
-            <span>Open Today • 6:30 AM – 4:00 PM • 142 Flinders Lane</span>
+            <span>Open Today • 6:30 AM – 4:00 PM • 142 Flinders Lane, Melbourne CBD</span>
           </div>
         </div>
 
@@ -108,10 +96,13 @@ $csrfToken = getCSRFToken();
 
         <div class="hero-cta-group">
           <button type="button" class="btn-hero-primary" onclick="document.getElementById('menu-preview-section')?.scrollIntoView({ behavior:'smooth' })">
-            <i class="ri-cup-fill"></i> Explore Menu & Order Now <i class="ri-arrow-right-line"></i>
+            <i class="ri-cup-fill"></i> Explore Menu & Order Online <i class="ri-arrow-right-line"></i>
           </button>
           <button type="button" class="btn-hero-secondary" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
             <i class="ri-user-star-line"></i> Choose Your Role
+          </button>
+          <button type="button" class="btn-hero-secondary" onclick="window.enterAsCustomer('reservations')">
+            <i class="ri-calendar-check-line"></i> Book a Table
           </button>
         </div>
 
@@ -144,73 +135,10 @@ $csrfToken = getCSRFToken();
         <span class="vibes-item">GOOD COFFEE. BETTER DAYS. <i class="ri-star-fill vibes-star"></i></span>
         <span class="vibes-item">YOUR DAILY RITUAL, MADE BETTER. <i class="ri-star-fill vibes-star"></i></span>
         <span class="vibes-item">MORE THAN COFFEE. <i class="ri-star-fill vibes-star"></i></span>
-        <span class="vibes-item">TAKE A MOMENT. <i class="ri-star-fill vibes-star"></i></span>
       </div>
     </div>
 
-    <!-- 3. Story & Roasting Heritage Section (Bento Grid Architecture) -->
-    <section class="landing-section" id="story-section">
-      <div class="section-header-centered">
-        <span class="section-tag">Roasting Craft & Heritage</span>
-        <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
-        <p class="section-subtext">Nestled along iconic Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of Melbourne specialty coffee.</p>
-      </div>
-
-      <div class="story-bento-grid">
-        <!-- Big Spotlight Card -->
-        <div class="bento-card bento-card-spotlight">
-          <div class="bento-visual-box">
-            <img src="./brand_recources/roasted_coffee_beans.png" alt="Ravenhill Roasted Coffee Beans" loading="lazy">
-            <div class="bento-badge-floating">
-              <i class="ri-fire-fill"></i>
-              <div>
-                <strong>Batch #142 Roasted Fresh</strong>
-                <span>Dialed In Daily at 6:00 AM</span>
-              </div>
-            </div>
-          </div>
-          <div class="bento-text-box">
-            <span class="section-tag" style="color:var(--color-accent-gold);">Our Roasting Philosophy</span>
-            <h3 style="font-family:'Outfit', sans-serif; font-size:24px; color:#fff; margin:6px 0 10px;">Precision Sourcing & Custom Curves</h3>
-            <p style="color:var(--color-cream-muted); font-size:14px; line-height:1.6; margin-bottom:16px;">
-              From high-altitude Ethiopian and Colombian estates to our gentle drum roasting profile, we accentuate floral aromatics, caramel sweetness, and silky mouthfeel.
-            </p>
-            <div class="tasting-notes-tags">
-              <span class="tasting-tag">🍫 Dark Cacao</span>
-              <span class="tasting-tag">🍯 Toffee & Caramel</span>
-              <span class="tasting-tag">🍊 Bergamot & Citrus</span>
-              <span class="tasting-tag">🫐 Wild Blueberries</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bento Card 2: 100% Ethical -->
-        <div class="bento-card bento-card-stat">
-          <div class="bento-icon-glow"><i class="ri-earth-line"></i></div>
-          <div class="bento-stat-num">100%</div>
-          <h4 class="bento-stat-title">Ethical Direct Trade</h4>
-          <p class="bento-stat-desc">Fair compensation & long-term partnerships directly with independent micro-lot coffee farming families.</p>
-        </div>
-
-        <!-- Bento Card 3: 28-Sec Extraction -->
-        <div class="bento-card bento-card-stat">
-          <div class="bento-icon-glow"><i class="ri-timer-flash-line"></i></div>
-          <div class="bento-stat-num">28 sec</div>
-          <h4 class="bento-stat-title">Golden Extraction Ratio</h4>
-          <p class="bento-stat-desc">Calibrated 1:2 extraction pressure at 93.5°C for the ultimate balance of crema, body, and brightness.</p>
-        </div>
-
-        <!-- Bento Card 4: Verified Reviews -->
-        <div class="bento-card bento-card-stat">
-          <div class="bento-icon-glow"><i class="ri-medal-fill"></i></div>
-          <div class="bento-stat-num">4.9 ★</div>
-          <h4 class="bento-stat-title">1,450+ Verified Reviews</h4>
-          <p class="bento-stat-desc">Voted among Melbourne CBD's finest laneway espresso destinations and roasting pioneers.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. Menu & Our Coffee Showcase -->
+    <!-- 3. Menu & Our Coffee Showcase (Placed Top for Best UX) -->
     <section class="digital-menu-wrap" id="menu-preview-section">
       <div class="section-header-centered">
         <span class="section-tag">Our Melbourne Menu</span>
@@ -242,8 +170,80 @@ $csrfToken = getCSRFToken();
 
       <div style="text-align:center; margin-top:36px;">
         <button type="button" class="btn-hero-primary" onclick="window.enterAsCustomer()">
-          <i class="ri-shopping-bag-3-fill"></i> View Full Menu & Order Online →
+          <i class="ri-shopping-bag-3-fill"></i> View Full Storefront Menu & Order Online →
         </button>
+      </div>
+    </section>
+
+    <!-- 4. Story & Roasting Heritage Section (Clean 3-Card Structure) -->
+    <section class="landing-section" id="story-section">
+      <div class="section-header-centered">
+        <span class="section-tag">Roasting Craft & Heritage</span>
+        <h2 class="section-main-title">Every cup is a ritual. Every bean tells a story.</h2>
+        <p class="section-subtext">Nestled along iconic Flinders Lane, Ravenhill Coffee Roasters is dedicated to the art and science of Melbourne specialty coffee.</p>
+      </div>
+
+      <div class="story-features-grid">
+        <!-- Feature Card 1: Roasting Craft -->
+        <div class="story-feature-card">
+          <div class="story-feature-img-box">
+            <img src="./brand_recources/roasted_coffee_beans.png" alt="Ravenhill Roasted Coffee Beans" loading="lazy">
+            <span class="story-feature-badge"><i class="ri-fire-fill"></i> Batch #142 Roasted Fresh</span>
+          </div>
+          <div class="story-feature-content">
+            <span class="section-tag" style="color:var(--color-accent-gold);">Roasting Profile</span>
+            <h3 class="story-feature-title">Precision Sourcing & Custom Curves</h3>
+            <p class="story-feature-desc">
+              From high-altitude Ethiopian and Colombian estates to our gentle drum roasting profile, we accentuate floral aromatics, caramel sweetness, and silky mouthfeel.
+            </p>
+            <div class="tasting-notes-tags">
+              <span class="tasting-tag">🍫 Dark Cacao</span>
+              <span class="tasting-tag">🍯 Toffee</span>
+              <span class="tasting-tag">🍊 Bergamot</span>
+              <span class="tasting-tag">🫐 Blueberries</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Card 2: 100% Ethical Direct Trade -->
+        <div class="story-feature-card">
+          <div class="story-feature-img-box">
+            <img src="./brand_recources/v60_pourover_coffee.png" alt="Single Origin Handcrafted Pourover" loading="lazy">
+            <span class="story-feature-badge"><i class="ri-earth-line"></i> 100% Ethical Trade</span>
+          </div>
+          <div class="story-feature-content">
+            <span class="section-tag" style="color:var(--color-accent-gold);">Ethical Direct Trade</span>
+            <h3 class="story-feature-title">Fair Farmer Partnerships</h3>
+            <p class="story-feature-desc">
+              We work directly with independent farming families and sustainable cooperatives, paying premium prices well above fair trade standards to support generational coffee agriculture.
+            </p>
+            <div class="tasting-notes-tags">
+              <span class="tasting-tag">🌱 Single Origin</span>
+              <span class="tasting-tag">🤝 Fair Trade</span>
+              <span class="tasting-tag">☕ Micro-Lots</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Card 3: 28-Sec Golden Extraction -->
+        <div class="story-feature-card">
+          <div class="story-feature-img-box">
+            <img src="./brand_recources/double_espresso_short_black.png" alt="Espresso Extraction Crema" loading="lazy">
+            <span class="story-feature-badge"><i class="ri-timer-flash-line"></i> 28s Golden Ratio</span>
+          </div>
+          <div class="story-feature-content">
+            <span class="section-tag" style="color:var(--color-accent-gold);">Barista Science</span>
+            <h3 class="story-feature-title">Calibrated 93.5°C Extraction</h3>
+            <p class="story-feature-desc">
+              Every shot is weighed to the tenth of a gram and extracted under 9 bars of pressure for exactly 28 seconds to capture the peak balance of crema, body, and vibrant origin notes.
+            </p>
+            <div class="tasting-notes-tags">
+              <span class="tasting-tag">⏱️ 28s Pour</span>
+              <span class="tasting-tag">🌡️ 93.5°C</span>
+              <span class="tasting-tag">⭐ 4.9 Rating</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -274,7 +274,7 @@ $csrfToken = getCSRFToken();
             </div>
             <span class="promo-timer" style="font-size:14px; padding:6px 12px;"><i class="ri-time-line"></i> Limited Time Offer</span>
           </div>
-          <button type="button" class="btn-hero-primary" onclick="window.claimSpecialPromoCombo()">
+          <button type="button" class="btn-hero-primary" onclick="window.claimSpecialPromoCombo ? window.claimSpecialPromoCombo() : window.enterAsCustomer()">
             <i class="ri-gift-line"></i> Claim Special Combo (15% OFF)
           </button>
         </div>
@@ -497,8 +497,8 @@ $csrfToken = getCSRFToken();
           <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Navigation</h5>
           <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
             <a href="#hero-section" style="color:inherit; text-decoration:none;">Home</a>
-            <a href="#story-section" style="color:inherit; text-decoration:none;">Our Story</a>
             <a href="#menu-preview-section" style="color:inherit; text-decoration:none;">Menu</a>
+            <a href="#story-section" style="color:inherit; text-decoration:none;">Our Story</a>
             <a href="#specials-section" style="color:inherit; text-decoration:none;">Specials</a>
             <a href="#location-section" style="color:inherit; text-decoration:none;">Location & Hours</a>
           </div>
