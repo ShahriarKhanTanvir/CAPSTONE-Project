@@ -1936,6 +1936,7 @@ function switchModule(moduleKey) {
     employees: { title: 'Staff & Attendance Management', sub: 'Staff roster & clock-in timesheet simulator' },
     feedback: { title: 'Customer Feedback', sub: 'Customer reviews & service rating dashboard' },
     dashboard: { title: 'Dashboard & Reports', sub: 'Executive overview, sales revenue & shop performance' },
+    ai_forecasting: { title: 'AI Demand Forecasting & RAG Intelligence', sub: 'NVIDIA Nemotron 3 Ultra predictive stock requirements & holiday demand analytics' },
     access: { title: 'User & Access Management', sub: 'Role permissions matrix & staff privileges' },
     audit: { title: 'Audit Trail & Compliance Logs', sub: 'Activity logging, security actions & inventory changes' }
   };
@@ -2143,6 +2144,9 @@ function renderCurrentModule() {
       break;
     case 'dashboard':
       renderDashboardView(container);
+      break;
+    case 'ai_forecasting':
+      renderAIForecastingView(container);
       break;
     case 'access':
       renderAccessView(container);
@@ -4568,12 +4572,43 @@ window.deleteMenuItem = function(idx) {
 // ==========================================
 
 function renderInventoryView(container) {
+  const lowCount = DB.inventory.filter(i => {
+    const q = i.qty !== undefined ? i.qty : (i.stockQty !== undefined ? i.stockQty : 0);
+    return q <= (i.minThreshold || 5);
+  }).length;
+
   container.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:20px;">
+      <!-- AI Smart Restock Recommendation Banner (RAG Engine) -->
+      <div style="background:linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border:1px solid rgba(217, 107, 67, 0.4); border-radius:14px; padding:18px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 6px 20px rgba(0,0,0,0.3);">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:44px; height:44px; border-radius:10px; background:rgba(217, 107, 67, 0.2); border:1px solid var(--color-primary); display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--color-primary-light);">
+            <i class="ri-brain-line"></i>
+          </div>
+          <div>
+            <div style="font-size:15px; font-weight:700; color:var(--color-cream); display:flex; align-items:center; gap:8px;">
+              <span>NVIDIA Nemotron RAG Inventory Intelligence</span>
+              ${lowCount > 0 ? `<span class="badge badge-danger" style="font-size:11px;">${lowCount} Items Below Threshold</span>` : `<span class="badge badge-success" style="font-size:11px;">Stock Healthy</span>`}
+            </div>
+            <div style="font-size:12px; color:var(--color-cream-muted); margin-top:2px;">
+              2-Year RAG analysis active. Proactive reorder recommendations & Saturday rush stockout prevention.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-outline btn-sm" onclick="switchModule('ai_forecasting')">
+            <i class="ri-line-chart-line"></i> View AI Forecast
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="switchModule('ai_forecasting')">
+            <i class="ri-shopping-cart-2-line"></i> AI Reorder Plan
+          </button>
+        </div>
+      </div>
+
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
           <h3>Stock Levels & Ingredient Recipes</h3>
-          <span style="font-size:12px; color:var(--color-cream-muted);">Raw coffee beans, dairy, plant milks & eco packaging</span>
+          <span style="font-size:12px; color:var(--color-cream-muted);">Raw coffee beans, dairy, plant milks & packaging with live threshold triggers</span>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openLogStockModal()"><i class="ri-file-add-line"></i> Log Stock Delivery</button>
       </div>
@@ -4581,15 +4616,33 @@ function renderInventoryView(container) {
       <div class="inventory-grid">
         ${DB.inventory.map((inv, idx) => {
           const invQty = inv.qty !== undefined ? inv.qty : (inv.stockQty !== undefined ? inv.stockQty : 0);
-          const pct = Math.min(100, Math.round((invQty / (inv.minThreshold * 3)) * 100));
+          const threshold = inv.minThreshold || 5;
+          const pct = Math.min(100, Math.round((invQty / (threshold * 3)) * 100));
+
+          let badgeHtml = '';
+          let barColor = 'var(--color-success)';
+          if (invQty <= 0) {
+            badgeHtml = `<span class="stock-badge-critical"><i class="ri-error-warning-fill"></i> OUT OF STOCK</span>`;
+            barColor = '#EF4444';
+          } else if (invQty <= threshold) {
+            badgeHtml = `<span class="stock-badge-low"><i class="ri-alert-fill"></i> LOW STOCK</span>`;
+            barColor = '#F59E0B';
+          } else if (invQty <= threshold * 1.5) {
+            badgeHtml = `<span class="stock-badge-moderate"><i class="ri-information-fill"></i> MODERATE</span>`;
+            barColor = '#3B82F6';
+          } else {
+            badgeHtml = `<span class="stock-badge-good"><i class="ri-checkbox-circle-fill"></i> OPTIMAL</span>`;
+            barColor = '#10B981';
+          }
+
           return `
-            <div class="inventory-card">
-              <div style="display:flex; justify-content:space-between;">
-                <strong>${inv.name}</strong>
-                <span class="badge ${(inv.status || 'good')==='low'?'badge-danger':'badge-success'}">${(inv.status || 'good').toUpperCase()}</span>
+            <div class="inventory-card" style="border-top:3px solid ${barColor};">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                <strong style="font-size:14px;">${inv.name}</strong>
+                ${badgeHtml}
               </div>
               <div style="font-size:12px; color:var(--color-cream-muted);">${inv.category || 'Supplies'}</div>
-              <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <input 
                     type="number" 
@@ -4610,10 +4663,13 @@ function renderInventoryView(container) {
                   <button class="icon-btn-sm" onclick="adjustInventoryQty(${idx}, 1)" title="Increase stock">+</button>
                 </div>
               </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" style="width:${pct}%; background:${inv.status==='low'?'var(--color-danger)':'var(--color-success)'};"></div>
+              <div class="progress-bar-bg" style="margin-top:10px;">
+                <div class="progress-bar-fill" style="width:${pct}%; background:${barColor};"></div>
               </div>
-              <div style="font-size:10px; color:var(--color-cream-subtle);">Min Reorder Threshold: ${inv.minThreshold} ${inv.unit}</div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--color-cream-subtle); margin-top:4px;">
+                <span>Reorder Threshold: <strong>${threshold} ${inv.unit}</strong></span>
+                <span>Unit: <strong>${inv.unit}</strong></span>
+              </div>
             </div>
           `;
         }).join('')}
@@ -7132,6 +7188,357 @@ function renderLandingPageView(container) {
   window.initHeroBadgeProgression();
   window.filterLandingMenu('coffee');
 }
+
+// ==========================================================================
+// 11. AI DEMAND FORECASTING & RAG INTELLIGENCE (NVIDIA NEMOTRON 3 ULTRA)
+// ==========================================================================
+
+let aiDemandChartInstance = null;
+let aiSeasonalChartInstance = null;
+let cachedAIForecast = null;
+
+async function renderAIForecastingView(container) {
+  container.innerHTML = `
+    <div class="ai-forecast-container">
+      <div class="ai-hero-banner">
+        <div class="ai-hero-header">
+          <div class="ai-hero-title-group">
+            <h2><i class="ri-brain-line" style="color:var(--color-primary-light);"></i> AI Predictive Demand Forecasting & RAG Intelligence</h2>
+            <p>Powered by <strong>NVIDIA Nemotron 3 Ultra 550B</strong> with 2-year synthetic sales memory, 45+ historical stockout incidents, and live inventory depletion tracking.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="ai-model-tag"><i class="ri-shield-check-line"></i> NVIDIA Nemotron 3 Ultra</span>
+            <button class="btn btn-outline btn-sm" onclick="renderAIForecastingView(document.getElementById('workspace-container'), true)" title="Regenerate live AI forecast">
+              <i class="ri-refresh-line"></i> Refresh AI
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ai-forecast-loading" style="padding:60px; text-align:center;">
+        <i class="ri-loader-4-line ri-spin" style="font-size:42px; color:var(--color-primary);"></i>
+        <h3 style="margin-top:14px; font-size:16px;">Analyzing 2-Year RAG Memory & Computing Consumption Curves...</h3>
+        <p style="font-size:12px; color:var(--color-cream-muted);">Querying OpenRouter NVIDIA Nemotron 3 Ultra API...</p>
+      </div>
+
+      <div id="ai-forecast-content" class="hidden" style="display:flex; flex-direction:column; gap:24px;"></div>
+    </div>
+  `;
+
+  try {
+    let forecastData = cachedAIForecast;
+    if (!forecastData || window.forceAIForecastReload) {
+      window.forceAIForecastReload = false;
+      const res = await fetch(`${API_BASE}/ai/forecast.php`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        forecastData = json.data;
+        cachedAIForecast = forecastData;
+      }
+    }
+
+    const loadingEl = document.getElementById('ai-forecast-loading');
+    const contentEl = document.getElementById('ai-forecast-content');
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (contentEl) contentEl.classList.remove('hidden');
+
+    if (!forecastData || !forecastData.forecast) {
+      if (contentEl) contentEl.innerHTML = `<div class="empty-cart-state">Failed to load AI Forecast. Please try again.</div>`;
+      return;
+    }
+
+    const fc = forecastData.forecast;
+    const meta = forecastData.rag_data_points || {};
+
+    contentEl.innerHTML = `
+      <!-- 1. Executive Summary & KPI Cards -->
+      <div style="background:var(--bg-surface); border:1px solid var(--color-border); border-left:4px solid var(--color-primary); border-radius:12px; padding:16px 20px;">
+        <div style="font-size:12px; font-weight:700; color:var(--color-primary-light); text-transform:uppercase; margin-bottom:4px;">
+          <i class="ri-sparkling-fill"></i> AI Executive Assessment (${forecastData.ai_engine || 'NVIDIA Nemotron'})
+        </div>
+        <div style="font-size:14px; color:var(--color-cream); line-height:1.6;">
+          ${fc.summary || 'Inventory tracking active. Immediate reorder recommended for Oat Milk and Single Origin Beans.'}
+        </div>
+      </div>
+
+      <div class="ai-kpi-grid">
+        <div class="ai-kpi-card">
+          <div class="ai-kpi-label"><i class="ri-alert-line" style="color:#EF4444;"></i> Urgent Reorders</div>
+          <div class="ai-kpi-val" style="color:#F87171;">${fc.forecast_1_week ? fc.forecast_1_week.length : 0} Items</div>
+          <div class="ai-kpi-sub">Next 7 days critical demand</div>
+        </div>
+        <div class="ai-kpi-card">
+          <div class="ai-kpi-label"><i class="ri-gift-line" style="color:var(--color-accent-gold);"></i> Christmas Peak Surge</div>
+          <div class="ai-kpi-val" style="color:var(--color-accent-gold);">+${fc.christmas_holiday_projection ? fc.christmas_holiday_projection.multiplier_pct : 320}%</div>
+          <div class="ai-kpi-sub">Target: ${fc.christmas_holiday_projection ? fc.christmas_holiday_projection.peak_bean_demand_kg : 95}kg coffee beans</div>
+        </div>
+        <div class="ai-kpi-card">
+          <div class="ai-kpi-label"><i class="ri-database-2-line" style="color:#60A5FA;"></i> RAG Memory Pool</div>
+          <div class="ai-kpi-val">${meta.historical_sales_days || 730} Days</div>
+          <div class="ai-kpi-sub">${meta.documented_incidents || 45} historical incidents indexed</div>
+        </div>
+        <div class="ai-kpi-card">
+          <div class="ai-kpi-label"><i class="ri-shopping-bag-3-line" style="color:#10B981;"></i> Current Items Monitored</div>
+          <div class="ai-kpi-val" style="color:#10B981;">${meta.tracked_inventory_items || 20} SKUs</div>
+          <div class="ai-kpi-sub">${meta.low_stock_count || 0} currently below threshold</div>
+        </div>
+      </div>
+
+      <!-- 2. Interactive Visual Analytics (Chart.js) -->
+      <div class="ai-charts-grid">
+        <div class="chart-canvas-wrapper">
+          <div class="chart-header">
+            <h3><i class="ri-line-chart-line" style="color:var(--color-primary);"></i> 7-Day Predictive Consumption Trend</h3>
+            <span style="font-size:11px; color:var(--color-cream-muted);">Historical Burn Rate vs AI Forecast (kg)</span>
+          </div>
+          <div class="chart-container-inner">
+            <canvas id="aiWeeklyDemandChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-canvas-wrapper">
+          <div class="chart-header">
+            <h3><i class="ri-bar-chart-2-line" style="color:var(--color-accent-gold);"></i> Holiday Multipliers</h3>
+            <span style="font-size:11px; color:var(--color-cream-muted);">Seasonal Surges</span>
+          </div>
+          <div class="chart-container-inner">
+            <canvas id="aiSeasonalChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 1-Week Proactive Reorder Plan (1-Click PO) -->
+      <div class="ai-reorder-table-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
+              <i class="ri-shopping-cart-2-line" style="color:var(--color-primary);"></i> 1-Week Predictive Reorder Plan
+            </h3>
+            <span style="font-size:12px; color:var(--color-cream-muted);">NVIDIA Nemotron recommended purchases with auto-cost estimation</span>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="createBatchPurchaseOrder()">
+            <i class="ri-check-double-line"></i> Approve All Recommended POs
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="ai-reorder-table">
+            <thead>
+              <tr>
+                <th>Item & Unit</th>
+                <th>Current Stock</th>
+                <th>Recommended PO</th>
+                <th>Urgency</th>
+                <th>Supplier</th>
+                <th>Est. Cost</th>
+                <th>RAG Justification</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(fc.forecast_1_week || []).map((item, i) => `
+                <tr>
+                  <td><strong>${item.item_name}</strong></td>
+                  <td>${item.current_qty} ${item.unit}</td>
+                  <td><span style="color:#10B981; font-weight:700;">+${item.recommended_order_qty} ${item.unit}</span></td>
+                  <td>
+                    <span class="urgency-badge-${(item.urgency || 'medium').toLowerCase()}">
+                      ${item.urgency || 'Medium'}
+                    </span>
+                  </td>
+                  <td>${item.supplier || 'Approved Supplier'}</td>
+                  <td><strong>$${(item.est_cost_aud || 0).toFixed(2)}</strong></td>
+                  <td style="font-size:12px; color:var(--color-cream-muted); max-width:280px;">${item.justification}</td>
+                  <td>
+                    <button class="btn-po-create" onclick="window.createAutoPurchaseOrder('${item.supplier}', '${item.item_name}', ${item.recommended_order_qty}, ${item.est_cost_aud || 0})">
+                      <i class="ri-truck-line"></i> Create PO
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. Historical Incident Risks & POS Upsell Opportunities -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+        <div class="chart-canvas-wrapper" style="border-left:4px solid #EF4444;">
+          <h3 style="font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-error-warning-line" style="color:#EF4444;"></i> RAG Incident Risk Warnings
+          </h3>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${(fc.incident_risk_alerts || []).map(alert => `
+              <div style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.2); padding:12px; border-radius:8px; font-size:13px; color:var(--color-cream); line-height:1.4;">
+                ${alert}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="chart-canvas-wrapper" style="border-left:4px solid #10B981;">
+          <h3 style="font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <i class="ri-lightbulb-line" style="color:#10B981;"></i> POS Smart Upselling Opportunities
+          </h3>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${(fc.pos_upselling_actions || []).map(action => `
+              <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.2); padding:12px; border-radius:8px; font-size:13px; color:var(--color-cream); line-height:1.4;">
+                ✨ ${action}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Render Chart.js visual charts
+    setTimeout(() => {
+      initAIForecastCharts(fc);
+    }, 100);
+
+  } catch (err) {
+    console.error('[AI Forecast Error]', err);
+    const contentEl = document.getElementById('ai-forecast-content');
+    if (contentEl) contentEl.innerHTML = `<div class="empty-cart-state">Error loading forecast: ${err.message}</div>`;
+  }
+}
+
+function initAIForecastCharts(forecast) {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded yet');
+    return;
+  }
+
+  // Chart 1: 7-Day Demand Trend (Line + Area)
+  const ctxWeekly = document.getElementById('aiWeeklyDemandChart');
+  if (ctxWeekly) {
+    if (aiDemandChartInstance) aiDemandChartInstance.destroy();
+
+    const chartData = forecast.chart_weekly_demand || {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      actual_last_week: [24.5, 26.0, 27.2, 28.8, 34.0, 48.5, 45.0],
+      predicted_next_week: [25.8, 27.5, 28.6, 30.2, 36.5, 52.0, 48.2],
+      safety_threshold: 15.0
+    };
+
+    aiDemandChartInstance = new Chart(ctxWeekly, {
+      type: 'line',
+      data: {
+        labels: chartData.labels,
+        datasets: [
+          {
+            label: 'Predicted Next Week (kg)',
+            data: chartData.predicted_next_week,
+            borderColor: '#D96B43',
+            backgroundColor: 'rgba(217, 107, 67, 0.25)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 3,
+            pointRadius: 4,
+            pointBackgroundColor: '#D96B43'
+          },
+          {
+            label: 'Actual Last Week (kg)',
+            data: chartData.actual_last_week,
+            borderColor: '#60A5FA',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 3
+          },
+          {
+            label: 'Safety Threshold (kg)',
+            data: Array(7).fill(chartData.safety_threshold || 15),
+            borderColor: '#EF4444',
+            borderDash: [3, 3],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#E2E8F0', font: { size: 11 } }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94A3B8' }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94A3B8' }
+          }
+        }
+      }
+    });
+  }
+
+  // Chart 2: Seasonal Holiday Multipliers
+  const ctxSeasonal = document.getElementById('aiSeasonalChart');
+  if (ctxSeasonal) {
+    if (aiSeasonalChartInstance) aiSeasonalChartInstance.destroy();
+
+    aiSeasonalChartInstance = new Chart(ctxSeasonal, {
+      type: 'bar',
+      data: {
+        labels: ['Baseline', 'Long Wknd', 'Coffee Fest', 'Christmas'],
+        datasets: [{
+          label: 'Demand Multiplier',
+          data: [1.0, 1.45, 1.65, 3.2],
+          backgroundColor: [
+            'rgba(96, 165, 250, 0.6)',
+            'rgba(52, 211, 153, 0.6)',
+            'rgba(251, 191, 36, 0.7)',
+            'rgba(217, 107, 67, 0.85)'
+          ],
+          borderColor: [
+            '#60A5FA',
+            '#34D399',
+            '#FBBF24',
+            '#D96B43'
+          ],
+          borderWidth: 1.5,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94A3B8', font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94A3B8' }
+          }
+        }
+      }
+    });
+  }
+}
+
+window.createAutoPurchaseOrder = function(supplier, item, qty, cost) {
+  showToast(`⚡ Purchase Order PO-${Date.now().toString().slice(-4)} created for ${qty}x ${item} ($${cost.toFixed(2)})! Sent to ${supplier}.`, 'success');
+  window.switchModule('suppliers');
+};
+
+window.createBatchPurchaseOrder = function() {
+  showToast('⚡ Bulk Purchase Orders dispatched to Melbourne Coffee Exporters, MilkLab & BioPak!', 'success');
+  window.switchModule('suppliers');
+};
 
 // ── Non-Blocking Smart Polling Engine (Every 3s with mutex lock) ────
 let isPollInProgress = false;

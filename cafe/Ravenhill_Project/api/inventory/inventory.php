@@ -45,10 +45,11 @@ $db->exec("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ");
 
-// Helper to compute item stock status
+// Helper to compute item stock status based on configurable thresholds
 function computeStockStatus($qty, $minThreshold) {
     if ($qty <= 0) return 'out_of_stock';
     if ($qty <= $minThreshold) return 'low';
+    if ($qty <= ($minThreshold * 1.5)) return 'moderate';
     return 'good';
 }
 

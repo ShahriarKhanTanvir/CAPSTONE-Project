@@ -20,6 +20,8 @@ $csrfToken = getCSRFToken();
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Remixicon Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- Chart.js Open-Source Visual Analytics Suite -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css?v=<?php echo filemtime(__DIR__ . '/styles.css'); ?>">
 </head>
 <body class="theme-dark">
@@ -574,11 +576,16 @@ $csrfToken = getCSRFToken();
           </a>
         </nav>
 
-        <div class="nav-section-title">Administration</div>
+        <div class="nav-section-title">Administration & AI Intelligence</div>
         <nav class="nav-menu">
           <a href="#" class="nav-item" data-module="dashboard">
             <i class="ri-bar-chart-grouped-line"></i>
             <span>Dashboard & Reports</span>
+          </a>
+          <a href="#" class="nav-item" data-module="ai_forecasting">
+            <i class="ri-brain-line"></i>
+            <span>AI Demand & RAG Forecast</span>
+            <span class="badge badge-warning" style="font-size:10px; padding:2px 6px;">NVIDIA AI</span>
           </a>
           <a href="#" class="nav-item" data-module="access">
             <i class="ri-shield-user-line"></i>

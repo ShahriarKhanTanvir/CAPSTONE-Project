@@ -38,6 +38,7 @@ try { $db->exec("ALTER TABLE Orders ADD COLUMN completed_at DATETIME NULL"); } c
 // Gracefully ensure extra columns exist in OrderItems
 try { $db->exec("ALTER TABLE OrderItems ADD COLUMN customisations_json TEXT NULL"); } catch (Exception $e) {}
 try { $db->exec("ALTER TABLE OrderItems ADD COLUMN item_notes TEXT NULL"); } catch (Exception $e) {}
+try { $db->exec("ALTER TABLE OrderItems ADD COLUMN ticket_id INT NULL"); } catch (Exception $e) {}
 
 // ── OPTIONS preflight ──────────────────────────────────────────────────────
 if ($method === 'OPTIONS') {
@@ -262,9 +263,8 @@ if ($method === 'POST' && !$action) {
 
             // Fetch product's category target station
             $catStmt = $db->prepare("
-                SELECT COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS target_station
+                SELECT CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END AS target_station
                 FROM Products p
-                LEFT JOIN Categories cat ON p.category_id = cat.category_id
                 WHERE p.product_id = ?
             ");
             $catStmt->execute([$d['product_id']]);
@@ -289,6 +289,78 @@ if ($method === 'POST' && !$action) {
                 $db->exec("UPDATE OrderItems SET ticket_id = $ticketId WHERE order_item_id IN ($inClause)");
             }
         }
+
+        // Deduct Ingredients from Inventory based on Recipe Matrix (FR47, RAG Real-time Engine)
+        $recipeStmt = $db->prepare("
+            SELECT inventory_id, quantity_required, unit
+            FROM Recipes
+            WHERE product_id = ?
+        ");
+
+        $deductInvStmt = $db->prepare("
+            UPDATE Inventory 
+            SET quantity = GREATEST(0, quantity - ?),
+                status = CASE 
+                    WHEN (quantity - ?) <= 0 THEN 'out_of_stock'
+                    WHEN (quantity - ?) <= reorder_level THEN 'low'
+                    WHEN (quantity - ?) <= (1.5 * reorder_level) THEN 'moderate'
+                    ELSE 'good'
+                END,
+                last_updated = NOW()
+            WHERE inventory_id = ?
+        ");
+
+        $logTransStmt = $db->prepare("
+            INSERT INTO InventoryTransactions (inventory_id, transaction_type, quantity_change, quantity_after, reason, performed_by, created_at)
+            VALUES (?, 'order_deduction', ?, (SELECT quantity FROM Inventory WHERE inventory_id = ?), ?, ?, NOW())
+        ");
+
+        foreach ($orderItemsData as $d) {
+            $recipeStmt->execute([$d['product_id']]);
+            $ingredients = $recipeStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Handle milk customisation overrides
+            $customisationsArr = !empty($d['customisations_json']) ? json_decode($d['customisations_json'], true) : [];
+            $altMilkId = null;
+            if (is_array($customisationsArr)) {
+                foreach ($customisationsArr as $cust) {
+                    $optName = strtolower($cust['option_name'] ?? '');
+                    if (strpos($optName, 'oat milk') !== false) $altMilkId = 6; // MilkLab Oat
+                    elseif (strpos($optName, 'almond milk') !== false) $altMilkId = 7; // MilkLab Almond
+                    elseif (strpos($optName, 'soy milk') !== false) $altMilkId = 8; // MilkLab Soy
+                    elseif (strpos($optName, 'lactose free') !== false) $altMilkId = 9; // MilkLab Lactose Free
+                    elseif (strpos($optName, 'skim milk') !== false) $altMilkId = 5; // Skim Milk
+                }
+            }
+
+            foreach ($ingredients as $ing) {
+                $invId = (int)$ing['inventory_id'];
+                
+                // If it's milk (inv_id 4) and an alternative milk was chosen, deduct from alternative milk instead
+                if ($invId === 4 && $altMilkId !== null) {
+                    $invId = $altMilkId;
+                }
+
+                $qtyToDeduct = (float)$ing['quantity_required'] * (int)$d['quantity'];
+                
+                $deductInvStmt->execute([$qtyToDeduct, $qtyToDeduct, $qtyToDeduct, $qtyToDeduct, $invId]);
+                $logTransStmt->execute([$invId, -$qtyToDeduct, $invId, "Auto-deduction for Order #ORD-{$orderId}", $employeeId]);
+            }
+        }
+
+        // Append to RAG Live Sync Stream
+        try {
+            $syncStmt = $db->prepare("
+                INSERT INTO RAG_Sync (event_type, payload_json, created_at)
+                VALUES ('order_created', ?, NOW())
+            ");
+            $syncStmt->execute([json_encode([
+                'order_id' => $orderId,
+                'total_amount' => $finalTotal,
+                'items_count' => count($orderItemsData),
+                'order_type' => $orderType
+            ])]);
+        } catch (Exception $e) {}
 
         // If table number given, auto mark table as occupied
         if ($tableNumber) {
