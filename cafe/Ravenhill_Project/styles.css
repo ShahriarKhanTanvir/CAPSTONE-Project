@@ -859,14 +859,52 @@ select option, .form-select option, .form-select-sm option {
 /* Workspace Container */
 .workspace {
   flex: 1;
+  min-height: 0;
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px;
   background: var(--bg-dark);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Sleek Scrollbar */
+.workspace::-webkit-scrollbar,
+.pos-main-panel::-webkit-scrollbar,
+.cart-items-list::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+.sidebar-nav-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.workspace::-webkit-scrollbar-track,
+.pos-main-panel::-webkit-scrollbar-track,
+.cart-items-list::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track,
+.sidebar-nav-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.workspace::-webkit-scrollbar-thumb,
+.pos-main-panel::-webkit-scrollbar-thumb,
+.cart-items-list::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb,
+.sidebar-nav-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.workspace::-webkit-scrollbar-thumb:hover,
+.pos-main-panel::-webkit-scrollbar-thumb:hover,
+.cart-items-list::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.sidebar-nav-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
 }
 
 /* POS VIEW LAYOUT */
@@ -876,6 +914,7 @@ select option, .form-select option, .form-select-sm option {
   gap: 16px;
   width: 100%;
   height: 100%;
+  min-height: 0;
   max-height: 100%;
   overflow: hidden;
   box-sizing: border-box;
@@ -886,8 +925,9 @@ select option, .form-select option, .form-select-sm option {
   flex-direction: column;
   gap: 12px;
   height: 100%;
+  min-height: 0;
   max-height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* POS Category Selector Tabs */
