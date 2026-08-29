@@ -57,6 +57,11 @@ $csrfToken = getCSRFToken();
           <button type="button" class="btn-nav-role" onclick="window.navigateToSection('roles-section')">
             <i class="ri-user-star-fill"></i> <span>Choose Your Role</span>
           </button>
+          <button type="button" class="landing-nav-cart-btn" id="landing-nav-cart-btn" onclick="window.openLandingCartDrawer()" title="View Current Order Cart" aria-label="View Shopping Cart">
+            <i class="ri-shopping-cart-2-line"></i>
+            <span class="landing-cart-text">Cart</span>
+            <span class="landing-cart-badge" id="landing-cart-count">0</span>
+          </button>
           <button type="button" class="btn-nav-login" onclick="window.openLoginModal()">
             <i class="ri-lock-line"></i> <span>Login</span>
           </button>
@@ -90,7 +95,10 @@ $csrfToken = getCSRFToken();
       </ul>
 
       <div class="landing-mobile-actions" style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-        <button type="button" class="btn-hero-primary" style="width:100%; justify-content:center; padding:12px;" onclick="window.navigateToSection('roles-section'); window.toggleLandingMobileMenu(false);">
+        <button type="button" class="btn-hero-primary" style="width:100%; justify-content:center; padding:12px;" onclick="window.openLandingCartDrawer(); window.toggleLandingMobileMenu(false);">
+          <i class="ri-shopping-cart-2-fill"></i> View Cart (<span id="landing-mobile-cart-count">0</span> items)
+        </button>
+        <button type="button" class="btn-hero-secondary" style="width:100%; justify-content:center; padding:12px;" onclick="window.navigateToSection('roles-section'); window.toggleLandingMobileMenu(false);">
           <i class="ri-user-star-fill"></i> Choose Your Role
         </button>
         <button type="button" class="btn-hero-secondary" style="width:100%; justify-content:center; padding:12px;" onclick="window.openLoginModal(); window.toggleLandingMobileMenu(false);">
@@ -1264,7 +1272,7 @@ $csrfToken = getCSRFToken();
           <h3>Create Table Booking</h3>
           <span class="modal-subtitle">Reserve a table & seating slot for guests</span>
         </div>
-        <button type="button" class="icon-btn modal-close" onclick="window.closeAddReservationModal ? window.closeAddReservationModal() : document.getElementById('add-reservation-modal').classList.add('hidden')"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-add-res-btn" onclick="window.closeAddReservationModal()" aria-label="Close reservation dialog"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form id="add-reservation-form" onsubmit="submitNewReservation(event)">
@@ -1318,7 +1326,7 @@ $csrfToken = getCSRFToken();
             <input type="text" id="res-contact-phone" class="form-input" placeholder="e.g. 0412 889 201" style="width:100%; padding:10px 12px; border-radius:8px; background:var(--bg-canvas); border:1px solid var(--color-border); color:var(--color-cream);">
           </div>
           <div class="modal-footer" style="padding:0; margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" class="btn btn-outline" onclick="window.closeAddReservationModal ? window.closeAddReservationModal() : document.getElementById('add-reservation-modal').classList.add('hidden')">Cancel</button>
+            <button type="button" class="btn btn-outline" onclick="window.closeAddReservationModal()">Cancel</button>
             <button type="submit" class="btn btn-primary"><i class="ri-calendar-check-line"></i> Create Reservation</button>
           </div>
         </form>
@@ -1334,7 +1342,7 @@ $csrfToken = getCSRFToken();
           <h3>Add New Dining Table</h3>
           <span class="modal-subtitle">Configure floor plan seating layout</span>
         </div>
-        <button type="button" class="icon-btn modal-close" onclick="window.closeAddTableModal ? window.closeAddTableModal() : document.getElementById('add-table-modal').classList.add('hidden')"><i class="ri-close-line"></i></button>
+        <button type="button" class="icon-btn modal-close" id="close-add-tbl-btn" onclick="window.closeAddTableModal()" aria-label="Close table dialog"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form id="add-table-form" onsubmit="submitNewTable(event)">
@@ -1368,7 +1376,7 @@ $csrfToken = getCSRFToken();
             </div>
           </div>
           <div class="modal-footer" style="padding:0; margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" class="btn btn-outline" onclick="window.closeAddTableModal ? window.closeAddTableModal() : document.getElementById('add-table-modal').classList.add('hidden')">Cancel</button>
+            <button type="button" class="btn btn-outline" onclick="window.closeAddTableModal()">Cancel</button>
             <button type="submit" class="btn btn-primary"><i class="ri-add-line"></i> Add Table</button>
           </div>
         </form>

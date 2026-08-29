@@ -1038,42 +1038,7 @@ function initApp() {
   syncBackendData();
 }
 
-window.openLoginModal = function(targetRole) {
-  const modal = document.getElementById('role-select-modal');
-  const roleSelect = document.getElementById('role-popup-select');
-  const passInput = document.getElementById('role-password-input');
-  const errorMsg = document.getElementById('role-pass-error');
 
-  if (roleSelect) {
-    roleSelect.value = targetRole || AppState.activeRole || 'cashier';
-  }
-
-  if (passInput) {
-    passInput.value = '#DemoPass';
-    passInput.type = 'text';
-  }
-
-  const icon = document.getElementById('toggle-pass-icon');
-  if (icon) icon.className = 'ri-eye-line';
-
-  if (errorMsg) errorMsg.classList.add('hidden');
-
-  if (modal) modal.classList.remove('hidden');
-};
-
-window.togglePasswordVisibility = function() {
-  const passInput = document.getElementById('role-password-input');
-  const icon = document.getElementById('toggle-pass-icon');
-  if (passInput) {
-    if (passInput.type === 'password') {
-      passInput.type = 'text';
-      if (icon) icon.className = 'ri-eye-line';
-    } else {
-      passInput.type = 'password';
-      if (icon) icon.className = 'ri-eye-off-line';
-    }
-  }
-};
 
 function applyRoleToUI(role) {
   const roleSelect = document.getElementById('user-role-select');
@@ -2041,33 +2006,33 @@ function renderAccessRestrictedNotice(container, moduleName, reason) {
 }
 
 window.getItemImage = function(item) {
-  if (!item) return 'flat_white_coffee.png';
+  if (!item) return './brand_recources/flat_white_coffee.png';
   
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
     let img = item.image.trim();
-    // If it includes path or full URL, return it
-    if (img.startsWith('http') || img.startsWith('./') || img.startsWith('/')) return img;
-    // Strip brand_recources prefix if present
-    img = img.replace(/^brand_recources\//, '').replace(/^brand_recources\//, '');
-    return img;
+    if (img.startsWith('http')) return img;
+    if (img.startsWith('./brand_recources/')) return img;
+    if (img.startsWith('brand_recources/')) return './' + img;
+    img = img.replace(/^\.?\//, '');
+    return './brand_recources/' + img;
   }
   
   const name = (item.name || item.product_name || '').toLowerCase();
 
-  if (name.includes('flat white') || name.includes('latte')) return 'flat_white_coffee.png';
-  if (name.includes('cappuccino') || name.includes('mocha') || name.includes('babycino') || name.includes('chocolate')) return 'cappuccino_coffee.png';
-  if (name.includes('espresso') || name.includes('short black') || name.includes('macchiato')) return 'double_espresso_short_black.png';
-  if (name.includes('long black') || name.includes('ristretto') || name.includes('americano')) return 'long_black_coffee.png';
-  if (name.includes('piccolo')) return 'piccolo_latte.png';
-  if (name.includes('batch brew') || name.includes('filter')) return 'batch_brew_filter.png';
-  if (name.includes('pour-over') || name.includes('v60')) return 'v60_pourover_coffee.png';
-  if (name.includes('cold brew') || name.includes('water') || name.includes('drink') || name.includes('juice')) return 'cold_brew_coffee.png';
-  if (name.includes('iced') || name.includes('shake') || name.includes('smoothie')) return 'iced_oat_milk_latte.png';
-  if (name.includes('chai') || name.includes('tea') || name.includes('matcha') || name.includes('turmeric')) return 'prana_sticky_chai_latte.png';
-  if (name.includes('croissant') || name.includes('toast') || name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('muffin') || name.includes('bread') || name.includes('scone') || name.includes('salad') || name.includes('chip') || name.includes('burger') || name.includes('egg') || name.includes('avocado')) return 'butter_croissant.png';
-  if (name.includes('bean') || name.includes('reserve')) return 'roasted_coffee_beans.png';
+  if (name.includes('flat white') || name.includes('latte')) return './brand_recources/flat_white_coffee.png';
+  if (name.includes('cappuccino') || name.includes('mocha') || name.includes('babycino') || name.includes('chocolate')) return './brand_recources/cappuccino_coffee.png';
+  if (name.includes('espresso') || name.includes('short black') || name.includes('macchiato')) return './brand_recources/double_espresso_short_black.png';
+  if (name.includes('long black') || name.includes('ristretto') || name.includes('americano')) return './brand_recources/long_black_coffee.png';
+  if (name.includes('piccolo')) return './brand_recources/piccolo_latte.png';
+  if (name.includes('batch brew') || name.includes('filter')) return './brand_recources/batch_brew_filter.png';
+  if (name.includes('pour-over') || name.includes('v60')) return './brand_recources/v60_pourover_coffee.png';
+  if (name.includes('cold brew') || name.includes('water') || name.includes('drink') || name.includes('juice')) return './brand_recources/cold_brew_coffee.png';
+  if (name.includes('iced') || name.includes('shake') || name.includes('smoothie')) return './brand_recources/iced_oat_milk_latte.png';
+  if (name.includes('chai') || name.includes('tea') || name.includes('matcha') || name.includes('turmeric')) return './brand_recources/prana_sticky_chai_latte.png';
+  if (name.includes('croissant') || name.includes('toast') || name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('muffin') || name.includes('bread') || name.includes('scone') || name.includes('salad') || name.includes('chip') || name.includes('burger') || name.includes('egg') || name.includes('avocado')) return './brand_recources/butter_croissant.png';
+  if (name.includes('bean') || name.includes('reserve')) return './brand_recources/roasted_coffee_beans.png';
 
-  return 'flat_white_coffee.png';
+  return './brand_recources/flat_white_coffee.png';
 };
 const getItemImage = window.getItemImage;
 
@@ -2135,18 +2100,25 @@ function renderPOSView(container) {
         </div>
         <div class="menu-card-bottom">
           <span class="menu-card-price">$${parseFloat(item.price).toFixed(2)}</span>
-          <button type="button" class="btn-card-add" aria-label="Add ${item.name} to Cart">
-            <i class="ri-add-line"></i> <span>Add</span>
-          </button>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="btn-card-add" aria-label="Add ${item.name} to Cart">
+              <i class="ri-add-line"></i> <span>Add</span>
+            </button>
+            <button type="button" class="icon-btn-sm btn-card-customise-mini" title="Customise options" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:var(--color-cream); display:flex; align-items:center; justify-content:center;">
+              <i class="ri-equalizer-line" style="font-size:13px;"></i>
+            </button>
+          </div>
         </div>
       `;
 
       card.addEventListener('click', (e) => {
-        if (item.hasModifiers) {
+        const isCustomiseClick = e.target.closest('.btn-card-customise-mini');
+        const isAddClick = e.target.closest('.btn-card-add');
+
+        if (isCustomiseClick || (!isAddClick && item.hasModifiers)) {
           openCustomiserModal(item);
         } else {
-          addItemToCart(item, [], '', 1);
-          showToast(`✨ Added 1x ${item.name} to cart!`, 'success');
+          window.quickAddToCart(item.id, e);
         }
       });
 
@@ -2729,19 +2701,28 @@ window.confirmAddToCart = function() {
     AppState.modalItem = null;
     if (modal) modal.classList.add('hidden');
     
-    // Animate topbar cart badge
+    // Animate topbar cart badge & landing cart badge
     const badge = document.getElementById('topbar-cart-toggle-btn');
     if (badge) {
       badge.classList.remove('cart-pulse');
       void badge.offsetWidth;
       badge.classList.add('cart-pulse');
     }
+    const landingNavCart = document.getElementById('landing-nav-cart-btn');
+    if (landingNavCart) {
+      landingNavCart.classList.remove('cart-pulse');
+      void landingNavCart.offsetWidth;
+      landingNavCart.classList.add('cart-pulse');
+    }
 
     renderCartUI();
-    window.openCartDrawer();
-    showToast(`✨ Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
+    if (AppState.activeModule === 'pos' && window.innerWidth >= 1024) {
+      window.openCartDrawer();
+    }
+    showToast(`🛒 Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
   }
 };
+window.confirmAddToCart = confirmAddToCart;
 
 // Customiser Modal Logic
 function setupCustomiserModal() {
@@ -6894,13 +6875,13 @@ window.filterLandingMenu = function(categoryKey) {
   if (categoryKey === 'coffee') {
     filtered = items.filter(i => ['1', '2', '3'].includes(String(i.catId || i.category_id)));
   } else if (categoryKey === 'breakfast') {
-    filtered = items.filter(i => ['4'].includes(String(i.catId || i.category_id)));
+    filtered = items.filter(i => ['4', '8'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('egg') || i.name.toLowerCase().includes('toast') || i.name.toLowerCase().includes('avocado'))));
   } else if (categoryKey === 'lunch') {
-    filtered = items.filter(i => ['5'].includes(String(i.catId || i.category_id)));
+    filtered = items.filter(i => ['5', '9', '13'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('sandwich') || i.name.toLowerCase().includes('salad') || i.name.toLowerCase().includes('wrap') || i.name.toLowerCase().includes('burger'))));
   } else if (categoryKey === 'cold') {
-    filtered = items.filter(i => ['10', '13'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('iced')) || (i.name && i.name.toLowerCase().includes('cold')));
+    filtered = items.filter(i => ['10', '13'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('iced') || i.name.toLowerCase().includes('cold') || i.name.toLowerCase().includes('shake') || i.name.toLowerCase().includes('juice') || i.name.toLowerCase().includes('water'))));
   } else if (categoryKey === 'sweets') {
-    filtered = items.filter(i => ['6'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('croissant')) || (i.name && i.name.toLowerCase().includes('muffin')) || (i.name && i.name.toLowerCase().includes('bread')));
+    filtered = items.filter(i => ['6', '11', '12'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('croissant') || i.name.toLowerCase().includes('muffin') || i.name.toLowerCase().includes('bread') || i.name.toLowerCase().includes('cake') || i.name.toLowerCase().includes('danish'))));
   } else {
     filtered = items.slice(0, 12);
   }
@@ -6911,10 +6892,11 @@ window.filterLandingMenu = function(categoryKey) {
 
   grid.innerHTML = filtered.map(item => {
     const badgeText = item.price > 7 ? 'Chef Special' : (item.catId === '1' ? 'House Blend' : 'Popular');
+    const imgSrc = getItemImage(item);
     return `
-      <div class="digital-product-card" data-item-id="${item.id}">
+      <div class="digital-product-card" data-item-id="${item.id}" onclick="window.openItemCustomiser('${item.id}')" title="Click to view details & options">
         <div class="product-img-box">
-          <img src="${item.image || './brand_recources/flat_white_coffee.png'}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
+          <img src="${imgSrc}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
           <span class="product-card-badge">${badgeText}</span>
         </div>
         <div class="product-content-box">
@@ -6923,12 +6905,12 @@ window.filterLandingMenu = function(categoryKey) {
             <span class="product-price-pill">$${parseFloat(item.price).toFixed(2)}</span>
           </div>
           <p class="product-desc-text">${item.desc || 'Artisan specialty coffee crafted with precision in Melbourne CBD.'}</p>
-          <div class="product-action-row">
-            <button type="button" class="btn-card-order" onclick="window.orderFromLandingPage('${item.id}')">
+          <div class="product-action-row" onclick="event.stopPropagation()">
+            <button type="button" class="btn-card-order" onclick="window.quickAddToCart('${item.id}', event)" aria-label="Add ${item.name} to Cart">
               <i class="ri-shopping-bag-3-fill"></i> Add to Cart
             </button>
-            <button type="button" class="btn-card-customise" onclick="window.orderFromLandingPage('${item.id}')" title="Customise options">
-              <i class="ri-equalizer-line"></i>
+            <button type="button" class="btn-card-customise" onclick="window.openItemCustomiser('${item.id}', event)" title="Customise size, milk & syrups">
+              <i class="ri-equalizer-line"></i> Customise
             </button>
           </div>
         </div>
@@ -6937,11 +6919,56 @@ window.filterLandingMenu = function(categoryKey) {
   }).join('');
 };
 
-window.orderFromLandingPage = function(itemId) {
-  const item = (DB.menuItems || defaultMenuItems).find(i => String(i.id) === String(itemId)) || defaultMenuItems[0];
-  window.enterAsCustomer('pos');
+window.quickAddToCart = function(itemId, e) {
+  if (e) e.stopPropagation();
+  const items = DB.menuItems || defaultMenuItems;
+  const item = items.find(i => String(i.id || i.product_id) === String(itemId)) || defaultMenuItems[0];
+  if (!item) return;
+
+  // Add with standard default modifiers
+  let defaultMods = [];
+  if (['1', '2', '3', '4', '10'].includes(String(item.catId || item.category_id))) {
+    defaultMods = [{ customisation_id: 'sz-reg', option_name: 'Regular (8oz)', extra_price: 0 }];
+  }
+  
+  addItemToCart(item, defaultMods, '', 1);
+
+  // Pulse Cart button animations
+  const landingNavCart = document.getElementById('landing-nav-cart-btn');
+  if (landingNavCart) {
+    landingNavCart.classList.remove('cart-pulse');
+    void landingNavCart.offsetWidth;
+    landingNavCart.classList.add('cart-pulse');
+  }
+
+  const topbarCartBtn = document.getElementById('topbar-cart-toggle-btn');
+  if (topbarCartBtn) {
+    topbarCartBtn.classList.remove('cart-pulse');
+    void topbarCartBtn.offsetWidth;
+    topbarCartBtn.classList.add('cart-pulse');
+  }
+
+  const totalCount = (AppState.cart.items || []).reduce((acc, i) => acc + (parseInt(i.qty) || 1), 0);
+  const totalVal = (AppState.cart.items || []).reduce((acc, i) => acc + (parseFloat(i.totalPrice) || 0), 0);
+
+  showToast(`🛒 Added 1x ${item.name} to Cart! (${totalCount} item${totalCount === 1 ? '' : 's'} • $${totalVal.toFixed(2)})`, 'success');
+};
+
+window.openItemCustomiser = function(itemId, e) {
+  if (e) e.stopPropagation();
+  const item = (DB.menuItems || defaultMenuItems).find(i => String(i.id || i.product_id) === String(itemId)) || defaultMenuItems[0];
+  if (!item) return;
   openCustomiserModalAsync(item);
 };
+
+window.openLandingCartDrawer = function() {
+  window.enterAsCustomer('pos');
+  setTimeout(() => {
+    window.openCartDrawer();
+  }, 100);
+};
+
+window.orderFromLandingPage = window.quickAddToCart;
 
 window.joinRavenhillRewards = function() {
   const currentPts = AppState.cart.customer ? AppState.cart.customer.points : 120;
