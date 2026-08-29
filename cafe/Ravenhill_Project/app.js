@@ -1004,7 +1004,6 @@ const showToast = window.showToast;
 function initApp() {
   // Load saved state from LocalStorage immediately to prevent initial reset on refresh
   loadLocalDB();
-  renderCartUI();
 
   setupUniversalModalClosers();
   setupNavigation();
@@ -1038,7 +1037,42 @@ function initApp() {
   syncBackendData();
 }
 
+window.openLoginModal = function(targetRole) {
+  const modal = document.getElementById('role-select-modal');
+  const roleSelect = document.getElementById('role-popup-select');
+  const passInput = document.getElementById('role-password-input');
+  const errorMsg = document.getElementById('role-pass-error');
 
+  if (roleSelect) {
+    roleSelect.value = targetRole || AppState.activeRole || 'cashier';
+  }
+
+  if (passInput) {
+    passInput.value = '#DemoPass';
+    passInput.type = 'text';
+  }
+
+  const icon = document.getElementById('toggle-pass-icon');
+  if (icon) icon.className = 'ri-eye-line';
+
+  if (errorMsg) errorMsg.classList.add('hidden');
+
+  if (modal) modal.classList.remove('hidden');
+};
+
+window.togglePasswordVisibility = function() {
+  const passInput = document.getElementById('role-password-input');
+  const icon = document.getElementById('toggle-pass-icon');
+  if (passInput) {
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      if (icon) icon.className = 'ri-eye-line';
+    } else {
+      passInput.type = 'password';
+      if (icon) icon.className = 'ri-eye-off-line';
+    }
+  }
+};
 
 function applyRoleToUI(role) {
   const roleSelect = document.getElementById('user-role-select');
@@ -2006,33 +2040,33 @@ function renderAccessRestrictedNotice(container, moduleName, reason) {
 }
 
 window.getItemImage = function(item) {
-  if (!item) return './brand_recources/flat_white_coffee.png';
+  if (!item) return 'flat_white_coffee.png';
   
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
     let img = item.image.trim();
-    if (img.startsWith('http')) return img;
-    if (img.startsWith('./brand_recources/')) return img;
-    if (img.startsWith('brand_recources/')) return './' + img;
-    img = img.replace(/^\.?\//, '');
-    return './brand_recources/' + img;
+    // If it includes path or full URL, return it
+    if (img.startsWith('http') || img.startsWith('./') || img.startsWith('/')) return img;
+    // Strip brand_recources prefix if present
+    img = img.replace(/^brand_recources\//, '').replace(/^brand_recources\//, '');
+    return img;
   }
   
   const name = (item.name || item.product_name || '').toLowerCase();
 
-  if (name.includes('flat white') || name.includes('latte')) return './brand_recources/flat_white_coffee.png';
-  if (name.includes('cappuccino') || name.includes('mocha') || name.includes('babycino') || name.includes('chocolate')) return './brand_recources/cappuccino_coffee.png';
-  if (name.includes('espresso') || name.includes('short black') || name.includes('macchiato')) return './brand_recources/double_espresso_short_black.png';
-  if (name.includes('long black') || name.includes('ristretto') || name.includes('americano')) return './brand_recources/long_black_coffee.png';
-  if (name.includes('piccolo')) return './brand_recources/piccolo_latte.png';
-  if (name.includes('batch brew') || name.includes('filter')) return './brand_recources/batch_brew_filter.png';
-  if (name.includes('pour-over') || name.includes('v60')) return './brand_recources/v60_pourover_coffee.png';
-  if (name.includes('cold brew') || name.includes('water') || name.includes('drink') || name.includes('juice')) return './brand_recources/cold_brew_coffee.png';
-  if (name.includes('iced') || name.includes('shake') || name.includes('smoothie')) return './brand_recources/iced_oat_milk_latte.png';
-  if (name.includes('chai') || name.includes('tea') || name.includes('matcha') || name.includes('turmeric')) return './brand_recources/prana_sticky_chai_latte.png';
-  if (name.includes('croissant') || name.includes('toast') || name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('muffin') || name.includes('bread') || name.includes('scone') || name.includes('salad') || name.includes('chip') || name.includes('burger') || name.includes('egg') || name.includes('avocado')) return './brand_recources/butter_croissant.png';
-  if (name.includes('bean') || name.includes('reserve')) return './brand_recources/roasted_coffee_beans.png';
+  if (name.includes('flat white') || name.includes('latte')) return 'flat_white_coffee.png';
+  if (name.includes('cappuccino') || name.includes('mocha') || name.includes('babycino') || name.includes('chocolate')) return 'cappuccino_coffee.png';
+  if (name.includes('espresso') || name.includes('short black') || name.includes('macchiato')) return 'double_espresso_short_black.png';
+  if (name.includes('long black') || name.includes('ristretto') || name.includes('americano')) return 'long_black_coffee.png';
+  if (name.includes('piccolo')) return 'piccolo_latte.png';
+  if (name.includes('batch brew') || name.includes('filter')) return 'batch_brew_filter.png';
+  if (name.includes('pour-over') || name.includes('v60')) return 'v60_pourover_coffee.png';
+  if (name.includes('cold brew') || name.includes('water') || name.includes('drink') || name.includes('juice')) return 'cold_brew_coffee.png';
+  if (name.includes('iced') || name.includes('shake') || name.includes('smoothie')) return 'iced_oat_milk_latte.png';
+  if (name.includes('chai') || name.includes('tea') || name.includes('matcha') || name.includes('turmeric')) return 'prana_sticky_chai_latte.png';
+  if (name.includes('croissant') || name.includes('toast') || name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('muffin') || name.includes('bread') || name.includes('scone') || name.includes('salad') || name.includes('chip') || name.includes('burger') || name.includes('egg') || name.includes('avocado')) return 'butter_croissant.png';
+  if (name.includes('bean') || name.includes('reserve')) return 'roasted_coffee_beans.png';
 
-  return './brand_recources/flat_white_coffee.png';
+  return 'flat_white_coffee.png';
 };
 const getItemImage = window.getItemImage;
 
@@ -2073,7 +2107,7 @@ function renderPOSView(container) {
   if (AppState.searchQuery) {
     filteredItems = DB.menuItems.filter(item => 
       item.name.toLowerCase().includes(AppState.searchQuery) ||
-      (item.desc && item.desc.toLowerCase().includes(AppState.searchQuery))
+      item.desc.toLowerCase().includes(AppState.searchQuery)
     );
   }
 
@@ -2087,38 +2121,30 @@ function renderPOSView(container) {
     filteredItems.forEach(item => {
       const card = document.createElement('div');
       card.className = 'menu-card';
-      card.setAttribute('data-item-id', item.id);
       const imgSrc = getItemImage(item);
       card.innerHTML = `
         ${item.badge ? `<span class="menu-card-badge">${item.badge}</span>` : ''}
         <div class="menu-card-image">
-          <img src="${imgSrc}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
+          <img src="${imgSrc}" alt="${item.name}" loading="lazy">
         </div>
         <div class="menu-card-info">
           <h4>${item.name}</h4>
-          <p>${item.desc || 'Artisan Melbourne CBD specialty selection.'}</p>
+          <p>${item.desc}</p>
         </div>
         <div class="menu-card-bottom">
-          <span class="menu-card-price">$${parseFloat(item.price).toFixed(2)}</span>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <button type="button" class="btn-card-add" aria-label="Add ${item.name} to Cart">
-              <i class="ri-add-line"></i> <span>Add</span>
-            </button>
-            <button type="button" class="icon-btn-sm btn-card-customise-mini" title="Customise options" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:var(--color-cream); display:flex; align-items:center; justify-content:center;">
-              <i class="ri-equalizer-line" style="font-size:13px;"></i>
-            </button>
-          </div>
+          <span class="menu-card-price">$${item.price.toFixed(2)}</span>
+          <button class="add-item-btn"><i class="ri-add-line"></i></button>
         </div>
       `;
 
-      card.addEventListener('click', (e) => {
-        const isCustomiseClick = e.target.closest('.btn-card-customise-mini');
-        const isAddClick = e.target.closest('.btn-card-add');
-
-        if (isCustomiseClick || (!isAddClick && item.hasModifiers)) {
+      card.addEventListener('click', () => {
+        if (item.hasModifiers) {
           openCustomiserModal(item);
         } else {
-          window.quickAddToCart(item.id, e);
+          // Non-modifier items (bakery, retail beans) bypass customiser with neutral defaults
+          addItemToCart(item, [], '', 1);
+          window.openCartDrawer();
+          showToast(`Added 1x ${item.name} to cart!`, 'success');
         }
       });
 
@@ -2263,15 +2289,6 @@ function setupCartDrawer() {
   // Legacy setup hook
 }
 
-function areCustomisationsEqual(c1, c2) {
-  if (!c1 && !c2) return true;
-  if (!c1 || !c2) return false;
-  if (c1.length !== c2.length) return false;
-  const s1 = c1.map(c => String(c.customisation_id || c.option_name || '')).sort().join('|');
-  const s2 = c2.map(c => String(c.customisation_id || c.option_name || '')).sort().join('|');
-  return s1 === s2;
-}
-
 function addItemToCart(item, customisations = [], notes = '', qty = 1) {
   if (!item) return;
   if (!AppState.cart) {
@@ -2286,7 +2303,7 @@ function addItemToCart(item, customisations = [], notes = '', qty = 1) {
       tipAmount: 0
     };
   }
-  if (!Array.isArray(AppState.cart.items)) AppState.cart.items = [];
+  if (!AppState.cart.items) AppState.cart.items = [];
 
   let extraPrice = 0;
   (customisations || []).forEach(c => {
@@ -2296,39 +2313,22 @@ function addItemToCart(item, customisations = [], notes = '', qty = 1) {
   const basePrice = parseFloat(item.price || item.unit_price || 0);
   const unitPrice = basePrice + extraPrice;
   const itemName = item.name || item.product_name || 'Menu Item';
-  const itemId = String(item.id || item.product_id || '');
 
   const normalizedItem = {
     ...item,
-    id: itemId,
     name: itemName,
     price: basePrice
   };
 
-  const cleanNotes = (notes || '').trim();
-
-  // Check if identical item (same ID, matching customisations, and matching notes) already exists
-  const existingIdx = AppState.cart.items.findIndex(ci => 
-    String(ci.item.id) === itemId &&
-    areCustomisationsEqual(ci.customisations, customisations) &&
-    (ci.notes || '').trim().toLowerCase() === cleanNotes.toLowerCase()
-  );
-
-  if (existingIdx > -1) {
-    AppState.cart.items[existingIdx].qty += qty;
-    AppState.cart.items[existingIdx].unitPrice = unitPrice;
-    AppState.cart.items[existingIdx].totalPrice = unitPrice * AppState.cart.items[existingIdx].qty;
-  } else {
-    AppState.cart.items.push({
-      cartItemId: 'ci-' + Date.now() + Math.random().toString(36).substr(2, 4),
-      item: normalizedItem,
-      customisations: customisations,
-      notes: cleanNotes,
-      qty: qty,
-      unitPrice: unitPrice,
-      totalPrice: unitPrice * qty
-    });
-  }
+  AppState.cart.items.push({
+    cartItemId: 'ci-' + Date.now() + Math.random().toString(36).substr(2, 4),
+    item: normalizedItem,
+    customisations: customisations,
+    notes: notes,
+    qty: qty,
+    unitPrice: unitPrice,
+    totalPrice: unitPrice * qty
+  });
 
   renderCartUI();
   saveLocalDB();
@@ -2343,8 +2343,8 @@ function renderCartUI() {
     cartOrderNumEl.textContent = AppState.cart.orderId;
   }
 
-  const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (parseInt(i.qty) || 1), 0);
-  let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (parseFloat(i.totalPrice) || 0), 0);
+  const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (i.qty || 1), 0);
+  let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (i.totalPrice || 0), 0);
   let discount = 0;
 
   if (AppState.cart.promoCode) {
@@ -2444,12 +2444,6 @@ function renderCartUI() {
     topbarCartBtn.title = `View Cart (${totalItemCount} item${totalItemCount === 1 ? '' : 's'} • $${finalTotal.toFixed(2)})`;
   }
 
-  // Update Landing Cart Badge if present
-  const landingCartCount = document.getElementById('landing-cart-count');
-  if (landingCartCount) {
-    landingCartCount.textContent = totalItemCount;
-  }
-
   // Mobile Floating Cart Bar Sync
   const mobileCartBar = document.getElementById('mobile-cart-bar');
   const mobileCartCount = document.getElementById('mobile-cart-count');
@@ -2521,7 +2515,6 @@ window.toggleCartDrawer = function() {
 window.closeCustomiserModal = function() {
   document.getElementById('customiser-modal')?.classList.add('hidden');
   AppState.editingCartIndex = null;
-  AppState.modalItem = null;
 };
 
 window.closePaymentModal = function() {
@@ -2549,10 +2542,6 @@ window.closeLoginModal = function() {
   document.getElementById('role-select-modal')?.classList.add('hidden');
 };
 
-window.closeClockShiftModal = function() {
-  document.getElementById('clock-shift-modal')?.classList.add('hidden');
-};
-
 window.closePrintableReceiptModal = function() {
   document.getElementById('printable-receipt-modal')?.classList.add('hidden');
 };
@@ -2573,50 +2562,42 @@ window.detachCustomer = function() {
 function setupUniversalModalClosers() {
   document.addEventListener('click', (e) => {
     // 1. Any click on a close button
-    const closeBtn = e.target.closest('.modal-close, .close-cart, .mobile-sidebar-close, [data-close-modal], #close-customiser-btn, #close-payment-btn, #close-receipt-btn, #close-customer-modal-btn, #close-cart-btn, #close-role-modal-btn, #mobile-sidebar-close-btn');
+    const closeBtn = e.target.closest('.modal-close, .close-cart, [data-close-modal], #close-customiser-btn, #close-payment-btn, #close-receipt-btn, #close-customer-modal-btn, #close-cart-btn, #close-role-modal-btn');
     if (closeBtn) {
       e.preventDefault();
-      const modal = closeBtn.closest('.modal-backdrop, .modal-overlay, #cart-drawer, .sidebar');
+      e.stopPropagation();
+      const modal = closeBtn.closest('.modal-backdrop, .modal-overlay, #cart-drawer');
       if (modal) {
-        if (modal.id === 'cart-drawer') {
-          window.closeCartDrawer();
-        } else if (modal.id === 'sidebar' || modal.classList.contains('sidebar')) {
-          window.closeSidebar();
-        } else {
-          modal.classList.add('hidden');
-        }
+        modal.classList.add('hidden');
+        modal.classList.remove('mobile-open');
+        AppState.editingCartIndex = null;
       } else {
-        document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => m.classList.add('hidden'));
-        window.closeCartDrawer();
-        window.closeSidebar();
+        document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+        document.getElementById('cart-drawer')?.classList.remove('mobile-open');
       }
-      AppState.editingCartIndex = null;
-      AppState.modalItem = null;
       return;
     }
 
     // 2. Click on the backdrop background itself
-    if (e.target.classList.contains('modal-backdrop') || e.target.id === 'sidebar-backdrop') {
+    if (e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal-overlay')) {
       e.target.classList.add('hidden');
-      if (e.target.id === 'sidebar-backdrop') {
-        window.closeSidebar();
-      }
       AppState.editingCartIndex = null;
-      AppState.modalItem = null;
     }
   });
 
   // 3. Escape key closes topmost modal or drawer
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.keyCode === 27) {
-      const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden)');
+      const openModals = document.querySelectorAll('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
       if (openModals.length > 0) {
         openModals[openModals.length - 1].classList.add('hidden');
         AppState.editingCartIndex = null;
-        AppState.modalItem = null;
       } else {
-        window.closeCartDrawer();
-        window.closeSidebar();
+        const cartDrawer = document.getElementById('cart-drawer');
+        if (cartDrawer && cartDrawer.classList.contains('mobile-open')) {
+          cartDrawer.classList.add('hidden');
+          cartDrawer.classList.remove('mobile-open');
+        }
       }
     }
   });
@@ -2701,28 +2682,19 @@ window.confirmAddToCart = function() {
     AppState.modalItem = null;
     if (modal) modal.classList.add('hidden');
     
-    // Animate topbar cart badge & landing cart badge
+    // Animate topbar cart badge
     const badge = document.getElementById('topbar-cart-toggle-btn');
     if (badge) {
       badge.classList.remove('cart-pulse');
       void badge.offsetWidth;
       badge.classList.add('cart-pulse');
     }
-    const landingNavCart = document.getElementById('landing-nav-cart-btn');
-    if (landingNavCart) {
-      landingNavCart.classList.remove('cart-pulse');
-      void landingNavCart.offsetWidth;
-      landingNavCart.classList.add('cart-pulse');
-    }
 
     renderCartUI();
-    if (AppState.activeModule === 'pos' && window.innerWidth >= 1024) {
-      window.openCartDrawer();
-    }
-    showToast(`🛒 Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
+    window.openCartDrawer();
+    showToast(`✨ Added ${qty}x ${currentItem.name || currentItem.product_name} to cart!`, 'success');
   }
 };
-window.confirmAddToCart = confirmAddToCart;
 
 // Customiser Modal Logic
 function setupCustomiserModal() {
@@ -6434,62 +6406,6 @@ window.showLandingView = function() {
   window.filterLandingMenu('coffee');
 };
 
-// --- Navigation, Section Scrolling & Mobile Drawer ---
-window.navigateToSection = function(sectionId) {
-  const landing = document.getElementById('landing-page-view');
-  const app = document.getElementById('app-container');
-  if (landing && landing.classList.contains('hidden')) {
-    landing.classList.remove('hidden');
-    landing.style.display = 'block';
-  }
-  if (app) {
-    app.classList.add('hidden');
-  }
-
-  const targetEl = document.getElementById(sectionId);
-  if (targetEl) {
-    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Update active nav link states
-  document.querySelectorAll('.landing-nav-link').forEach(link => {
-    if (link.getAttribute('href') === `#${sectionId}`) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
-};
-
-window.toggleLandingMobileMenu = function(forceState) {
-  const drawer = document.getElementById('landing-mobile-menu-drawer');
-  if (!drawer) return;
-  if (typeof forceState === 'boolean') {
-    if (forceState) {
-      drawer.classList.remove('hidden');
-    } else {
-      drawer.classList.add('hidden');
-    }
-  } else {
-    drawer.classList.toggle('hidden');
-  }
-};
-
-window.showLandingView = function() {
-  const landing = document.getElementById('landing-page-view');
-  const app = document.getElementById('app-container');
-  if (landing) {
-    landing.classList.remove('hidden');
-    landing.style.display = 'block';
-  }
-  if (app) {
-    app.classList.add('hidden');
-  }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 window.showAppView = function(moduleKey) {
   const landing = document.getElementById('landing-page-view');
   const app = document.getElementById('app-container');
@@ -6518,219 +6434,29 @@ window.enterAsCustomer = function(targetModule) {
   showToast('☕ Welcome to Ravenhill! Explore our Melbourne menu & place your order.', 'success');
 };
 
-// --- Dedicated Login Portal Implementation ---
-window.openLoginModal = function(targetRole) {
+window.openRoleLoginModal = function(targetRole) {
   const modal = document.getElementById('role-select-modal');
   const roleSelect = document.getElementById('role-popup-select');
-  const usernameInput = document.getElementById('login-username-input');
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
-  const selectedRole = targetRole || 'cashier';
-
   if (roleSelect) {
-    roleSelect.value = selectedRole;
-  }
-
-  if (usernameInput) {
-    if (selectedRole === 'admin') usernameInput.value = 'admin';
-    else if (selectedRole === 'manager') usernameInput.value = 'manager';
-    else if (selectedRole === 'barista') usernameInput.value = 'barista';
-    else if (selectedRole === 'kitchen') usernameInput.value = 'kitchen';
-    else if (selectedRole === 'waitstaff') usernameInput.value = 'waitstaff';
-    else if (selectedRole === 'customer') usernameInput.value = 'customer';
-    else usernameInput.value = 'cashier';
+    if (targetRole === 'admin') {
+      roleSelect.value = 'admin';
+    } else if (targetRole === 'staff') {
+      roleSelect.value = 'cashier';
+    } else {
+      roleSelect.value = targetRole || 'cashier';
+    }
   }
 
   if (passInput) {
     passInput.value = '#DemoPass';
-    passInput.type = 'password';
-    const toggleIcon = document.getElementById('toggle-pass-icon');
-    if (toggleIcon) toggleIcon.className = 'ri-eye-off-line';
+    passInput.type = 'text';
   }
 
   if (errorMsg) errorMsg.classList.add('hidden');
   if (modal) modal.classList.remove('hidden');
-};
-window.openRoleLoginModal = window.openLoginModal;
-
-window.closeLoginModal = function() {
-  const modal = document.getElementById('role-select-modal');
-  if (modal) modal.classList.add('hidden');
-};
-
-window.handleRoleSelectChange = function(role) {
-  const usernameInput = document.getElementById('login-username-input');
-  if (usernameInput) {
-    if (role === 'admin') usernameInput.value = 'admin';
-    else if (role === 'manager') usernameInput.value = 'manager';
-    else if (role === 'barista') usernameInput.value = 'barista';
-    else if (role === 'kitchen') usernameInput.value = 'kitchen';
-    else if (role === 'waitstaff') usernameInput.value = 'waitstaff';
-    else if (role === 'customer') usernameInput.value = 'customer';
-    else usernameInput.value = 'cashier';
-  }
-};
-
-window.autofillLogin = function(role, pass) {
-  const roleSelect = document.getElementById('role-popup-select');
-  const usernameInput = document.getElementById('login-username-input');
-  const passInput = document.getElementById('role-password-input');
-  if (roleSelect) roleSelect.value = role;
-  if (usernameInput) usernameInput.value = role;
-  if (passInput) passInput.value = pass || '#DemoPass';
-  const errorMsg = document.getElementById('role-pass-error');
-  if (errorMsg) errorMsg.classList.add('hidden');
-};
-
-window.togglePasswordVisibility = function() {
-  const passInput = document.getElementById('role-password-input');
-  const toggleIcon = document.getElementById('toggle-pass-icon');
-  if (!passInput) return;
-  if (passInput.type === 'password') {
-    passInput.type = 'text';
-    if (toggleIcon) toggleIcon.className = 'ri-eye-line';
-  } else {
-    passInput.type = 'password';
-    if (toggleIcon) toggleIcon.className = 'ri-eye-off-line';
-  }
-};
-
-window.handleLoginFormSubmit = async function(event) {
-  if (event) event.preventDefault();
-
-  const roleSelect = document.getElementById('role-popup-select');
-  const usernameInput = document.getElementById('login-username-input');
-  const passInput = document.getElementById('role-password-input');
-  const errorMsg = document.getElementById('role-pass-error');
-  const errorText = document.getElementById('role-pass-error-text');
-  const submitBtn = document.getElementById('login-submit-btn');
-  const btnLabel = document.getElementById('login-btn-label');
-
-  const role = roleSelect ? roleSelect.value : 'cashier';
-  const username = (usernameInput ? usernameInput.value : '').trim();
-  const password = (passInput ? passInput.value : '').trim();
-
-  if (!username || !password) {
-    if (errorMsg) {
-      if (errorText) errorText.textContent = 'Please enter both username and password.';
-      errorMsg.classList.remove('hidden');
-    }
-    return;
-  }
-
-  // Set loading state
-  if (submitBtn) submitBtn.disabled = true;
-  if (btnLabel) btnLabel.textContent = 'Authenticating...';
-
-  try {
-    let authSuccess = false;
-    let authUser = null;
-
-    // 1. Try Backend API login
-    try {
-      const resp = await fetch('api/users/login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await resp.json();
-      if (data && data.success) {
-        authSuccess = true;
-        authUser = data.data;
-      }
-    } catch (apiErr) {
-      console.warn('[Login Portal] API request fallback to local auth:', apiErr);
-    }
-
-    // 2. Fallback / Universal Demo Pass Check
-    if (!authSuccess) {
-      const lowerUser = username.toLowerCase();
-      const lowerPass = password.toLowerCase();
-
-      const validDemoLogins = {
-        'admin': ['admin123', '#demopass', 'admin'],
-        'manager': ['manager123', '#demopass', 'manager'],
-        'cashier': ['cashier123', '#demopass', 'cashier'],
-        'barista': ['barista123', '#demopass', 'barista'],
-        'kitchen': ['kitchen123', '#demopass', 'kitchen'],
-        'waitstaff': ['waitstaff123', '#demopass', 'waitstaff'],
-        'customer': ['customer123', '#demopass', 'customer'],
-        'slin': ['cashier123', '#demopass'],
-        'loconnor': ['barista123', '#demopass'],
-        'hwright': ['barista123', '#demopass']
-      };
-
-      if (lowerPass === '#demopass' || (validDemoLogins[lowerUser] && validDemoLogins[lowerUser].includes(lowerPass))) {
-        authSuccess = true;
-        authUser = {
-          username: username,
-          role: role,
-          first_name: username.charAt(0).toUpperCase() + username.slice(1)
-        };
-      }
-    }
-
-    if (authSuccess) {
-      if (errorMsg) errorMsg.classList.add('hidden');
-
-      // Set active role and user state
-      AppState.isAuthenticated = true;
-      AppState.activeRole = role;
-      AppState.currentUser = authUser || { username, role };
-      localStorage.setItem('RAVENHILL_USER_ROLE', role);
-      sessionStorage.setItem('RAVENHILL_AUTH_USER', JSON.stringify(AppState.currentUser));
-
-      if (window.applyRoleToUI) window.applyRoleToUI(role);
-      if (window.applyRolePermissionsUI) window.applyRolePermissionsUI();
-
-      window.closeLoginModal();
-
-      // Destination mapping based on role
-      let targetModule = 'pos';
-      if (role === 'admin') targetModule = 'reports';
-      else if (role === 'manager') targetModule = 'dashboard';
-      else if (role === 'barista' || role === 'kitchen') targetModule = 'kds';
-      else if (role === 'waitstaff') targetModule = 'waitstaff';
-      else if (role === 'customer') targetModule = 'pos';
-      else targetModule = 'pos';
-
-      window.showAppView(targetModule);
-      showToast(`👋 Logged in successfully as ${role.toUpperCase()}!`, 'success');
-    } else {
-      if (errorMsg) {
-        if (errorText) errorText.textContent = 'Invalid username or password. Password is #DemoPass to check the project.';
-        errorMsg.classList.remove('hidden');
-      }
-      showToast('❌ Invalid login credentials. Use password #DemoPass', 'error');
-    }
-  } catch (err) {
-    console.error('Login error:', err);
-    if (errorMsg) {
-      if (errorText) errorText.textContent = 'Authentication error. Please use #DemoPass.';
-      errorMsg.classList.remove('hidden');
-    }
-  } finally {
-    if (submitBtn) submitBtn.disabled = false;
-    if (btnLabel) btnLabel.textContent = 'Log In to Portal';
-  }
-};
-window.confirmRoleSelection = window.handleLoginFormSubmit;
-
-window.handleUserLogout = function() {
-  AppState.isAuthenticated = false;
-  AppState.currentUser = null;
-  AppState.activeRole = 'customer';
-  localStorage.removeItem('RAVENHILL_USER_ROLE');
-  sessionStorage.removeItem('RAVENHILL_AUTH_USER');
-
-  // Call backend logout API silently
-  try {
-    fetch('api/users/logout.php', { method: 'POST' });
-  } catch(e) {}
-
-  window.showLandingView();
-  showToast('👋 You have been logged out successfully.', 'info');
 };
 
 window.initPromoCountdown = function() {
@@ -6875,13 +6601,13 @@ window.filterLandingMenu = function(categoryKey) {
   if (categoryKey === 'coffee') {
     filtered = items.filter(i => ['1', '2', '3'].includes(String(i.catId || i.category_id)));
   } else if (categoryKey === 'breakfast') {
-    filtered = items.filter(i => ['4', '8'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('egg') || i.name.toLowerCase().includes('toast') || i.name.toLowerCase().includes('avocado'))));
+    filtered = items.filter(i => ['4'].includes(String(i.catId || i.category_id)));
   } else if (categoryKey === 'lunch') {
-    filtered = items.filter(i => ['5', '9', '13'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('sandwich') || i.name.toLowerCase().includes('salad') || i.name.toLowerCase().includes('wrap') || i.name.toLowerCase().includes('burger'))));
+    filtered = items.filter(i => ['5'].includes(String(i.catId || i.category_id)));
   } else if (categoryKey === 'cold') {
-    filtered = items.filter(i => ['10', '13'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('iced') || i.name.toLowerCase().includes('cold') || i.name.toLowerCase().includes('shake') || i.name.toLowerCase().includes('juice') || i.name.toLowerCase().includes('water'))));
+    filtered = items.filter(i => ['10', '13'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('iced')) || (i.name && i.name.toLowerCase().includes('cold')));
   } else if (categoryKey === 'sweets') {
-    filtered = items.filter(i => ['6', '11', '12'].includes(String(i.catId || i.category_id)) || (i.name && (i.name.toLowerCase().includes('croissant') || i.name.toLowerCase().includes('muffin') || i.name.toLowerCase().includes('bread') || i.name.toLowerCase().includes('cake') || i.name.toLowerCase().includes('danish'))));
+    filtered = items.filter(i => ['6'].includes(String(i.catId || i.category_id)) || (i.name && i.name.toLowerCase().includes('croissant')) || (i.name && i.name.toLowerCase().includes('muffin')) || (i.name && i.name.toLowerCase().includes('bread')));
   } else {
     filtered = items.slice(0, 12);
   }
@@ -6892,11 +6618,10 @@ window.filterLandingMenu = function(categoryKey) {
 
   grid.innerHTML = filtered.map(item => {
     const badgeText = item.price > 7 ? 'Chef Special' : (item.catId === '1' ? 'House Blend' : 'Popular');
-    const imgSrc = getItemImage(item);
     return `
-      <div class="digital-product-card" data-item-id="${item.id}" onclick="window.openItemCustomiser('${item.id}')" title="Click to view details & options">
+      <div class="digital-product-card" data-item-id="${item.id}">
         <div class="product-img-box">
-          <img src="${imgSrc}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
+          <img src="${item.image || './brand_recources/flat_white_coffee.png'}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
           <span class="product-card-badge">${badgeText}</span>
         </div>
         <div class="product-content-box">
@@ -6905,12 +6630,12 @@ window.filterLandingMenu = function(categoryKey) {
             <span class="product-price-pill">$${parseFloat(item.price).toFixed(2)}</span>
           </div>
           <p class="product-desc-text">${item.desc || 'Artisan specialty coffee crafted with precision in Melbourne CBD.'}</p>
-          <div class="product-action-row" onclick="event.stopPropagation()">
-            <button type="button" class="btn-card-order" onclick="window.quickAddToCart('${item.id}', event)" aria-label="Add ${item.name} to Cart">
+          <div class="product-action-row">
+            <button type="button" class="btn-card-order" onclick="window.orderFromLandingPage('${item.id}')">
               <i class="ri-shopping-bag-3-fill"></i> Add to Cart
             </button>
-            <button type="button" class="btn-card-customise" onclick="window.openItemCustomiser('${item.id}', event)" title="Customise size, milk & syrups">
-              <i class="ri-equalizer-line"></i> Customise
+            <button type="button" class="btn-card-customise" onclick="window.orderFromLandingPage('${item.id}')" title="Customise options">
+              <i class="ri-equalizer-line"></i>
             </button>
           </div>
         </div>
@@ -6919,56 +6644,11 @@ window.filterLandingMenu = function(categoryKey) {
   }).join('');
 };
 
-window.quickAddToCart = function(itemId, e) {
-  if (e) e.stopPropagation();
-  const items = DB.menuItems || defaultMenuItems;
-  const item = items.find(i => String(i.id || i.product_id) === String(itemId)) || defaultMenuItems[0];
-  if (!item) return;
-
-  // Add with standard default modifiers
-  let defaultMods = [];
-  if (['1', '2', '3', '4', '10'].includes(String(item.catId || item.category_id))) {
-    defaultMods = [{ customisation_id: 'sz-reg', option_name: 'Regular (8oz)', extra_price: 0 }];
-  }
-  
-  addItemToCart(item, defaultMods, '', 1);
-
-  // Pulse Cart button animations
-  const landingNavCart = document.getElementById('landing-nav-cart-btn');
-  if (landingNavCart) {
-    landingNavCart.classList.remove('cart-pulse');
-    void landingNavCart.offsetWidth;
-    landingNavCart.classList.add('cart-pulse');
-  }
-
-  const topbarCartBtn = document.getElementById('topbar-cart-toggle-btn');
-  if (topbarCartBtn) {
-    topbarCartBtn.classList.remove('cart-pulse');
-    void topbarCartBtn.offsetWidth;
-    topbarCartBtn.classList.add('cart-pulse');
-  }
-
-  const totalCount = (AppState.cart.items || []).reduce((acc, i) => acc + (parseInt(i.qty) || 1), 0);
-  const totalVal = (AppState.cart.items || []).reduce((acc, i) => acc + (parseFloat(i.totalPrice) || 0), 0);
-
-  showToast(`🛒 Added 1x ${item.name} to Cart! (${totalCount} item${totalCount === 1 ? '' : 's'} • $${totalVal.toFixed(2)})`, 'success');
-};
-
-window.openItemCustomiser = function(itemId, e) {
-  if (e) e.stopPropagation();
-  const item = (DB.menuItems || defaultMenuItems).find(i => String(i.id || i.product_id) === String(itemId)) || defaultMenuItems[0];
-  if (!item) return;
+window.orderFromLandingPage = function(itemId) {
+  const item = (DB.menuItems || defaultMenuItems).find(i => String(i.id) === String(itemId)) || defaultMenuItems[0];
+  window.enterAsCustomer('pos');
   openCustomiserModalAsync(item);
 };
-
-window.openLandingCartDrawer = function() {
-  window.enterAsCustomer('pos');
-  setTimeout(() => {
-    window.openCartDrawer();
-  }, 100);
-};
-
-window.orderFromLandingPage = window.quickAddToCart;
 
 window.joinRavenhillRewards = function() {
   const currentPts = AppState.cart.customer ? AppState.cart.customer.points : 120;

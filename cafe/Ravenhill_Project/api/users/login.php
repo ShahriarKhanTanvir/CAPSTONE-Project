@@ -73,10 +73,8 @@ $stmt = $db->prepare("
 $stmt->execute([$username]);
 $user = $stmt->fetch();
 
-// ── NFR08: Password verification using native Bcrypt algorithm (or #DemoPass master pass) ──
-$isValidPass = ($body['password'] === '#DemoPass' || $body['password'] === '#demopass' || password_verify($body['password'], $user['password_hash']));
-
-if (!$user || !$isValidPass) {
+// ── NFR08: Password verification using native Bcrypt algorithm ─────────────
+if (!$user || !password_verify($body['password'], $user['password_hash'])) {
     // Record failed attempt
     $db->prepare("INSERT INTO LoginAttempts (ip_address, username, attempted_at) VALUES (?, ?, NOW())")
        ->execute([$ip, $username]);
