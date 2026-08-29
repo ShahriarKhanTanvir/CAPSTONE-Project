@@ -20,7 +20,7 @@ $csrfToken = getCSRFToken();
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Remixicon Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=<?php echo filemtime(__DIR__ . '/styles.css'); ?>">
 </head>
 <body class="theme-dark">
   <!-- =========================================================================
@@ -1454,7 +1454,6 @@ $csrfToken = getCSRFToken();
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="https://www.paypal.com/sdk/js?client-id=AYJK7O3QBO-dlC1YlzWd8eujwC_mGTQjgwG2V6UiGgzIh3gdfFa1nviCwQ02LU7q6ZuwIGet0HjVelto&currency=AUD"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=<?php echo filemtime(__DIR__ . '/app.js'); ?>"></script>
 </body>
 </html>
-
