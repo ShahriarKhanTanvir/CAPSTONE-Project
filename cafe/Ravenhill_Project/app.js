@@ -7195,9 +7195,23 @@ function renderLandingPageView(container) {
 
 let aiDemandChartInstance = null;
 let aiSeasonalChartInstance = null;
-let cachedAIForecast = null;
 
-async function renderAIForecastingView(container) {
+async function renderAIForecastingView(container, forceRefresh = false) {
+  const CACHE_KEY = 'RAVENHILL_AI_FORECAST_24H';
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Hours in milliseconds
+
+  let localCache = null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) localCache = JSON.parse(raw);
+  } catch(e) {}
+
+  const isCacheValid = localCache && (Date.now() - (localCache.timestamp || 0) < CACHE_TTL_MS);
+  const elapsedMs = localCache ? (Date.now() - (localCache.timestamp || 0)) : 0;
+  const remainingMs = Math.max(0, CACHE_TTL_MS - elapsedMs);
+  const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+  const remainingMins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
   container.innerHTML = `
     <div class="ai-forecast-container">
       <div class="ai-hero-banner">
@@ -7206,40 +7220,48 @@ async function renderAIForecastingView(container) {
             <h2><i class="ri-brain-line" style="color:var(--color-primary-light);"></i> AI Predictive Demand Forecasting & RAG Intelligence</h2>
             <p>Powered by <strong>NVIDIA Nemotron 3 Ultra 550B</strong> with 2-year synthetic sales memory, 45+ historical stockout incidents, and live inventory depletion tracking.</p>
           </div>
-          <div style="display:flex; align-items:center; gap:10px;">
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+            <span class="ai-model-tag" style="background:rgba(16, 185, 129, 0.18); border-color:#10B981; color:#34D399;" title="AI Forecast refreshes automatically once every 24 hours">
+              <i class="ri-history-line"></i> 24h Refresh: ${isCacheValid && !forceRefresh ? `Next in ${remainingHours}h ${remainingMins}m` : 'Live Synced'}
+            </span>
             <span class="ai-model-tag"><i class="ri-shield-check-line"></i> NVIDIA Nemotron 3 Ultra</span>
-            <button class="btn btn-outline btn-sm" onclick="renderAIForecastingView(document.getElementById('workspace-container'), true)" title="Regenerate live AI forecast">
-              <i class="ri-refresh-line"></i> Refresh AI
+            <button class="btn btn-outline btn-sm" onclick="renderAIForecastingView(document.getElementById('workspace-container'), true)" title="Bypass 24h cache and force recalculate live forecast">
+              <i class="ri-refresh-line"></i> Force Refresh
             </button>
           </div>
         </div>
       </div>
 
-      <div id="ai-forecast-loading" style="padding:60px; text-align:center;">
+      <div id="ai-forecast-loading" style="${isCacheValid && !forceRefresh ? 'display:none;' : 'padding:60px; text-align:center;'}">
         <i class="ri-loader-4-line ri-spin" style="font-size:42px; color:var(--color-primary);"></i>
         <h3 style="margin-top:14px; font-size:16px;">Analyzing 2-Year RAG Memory & Computing Consumption Curves...</h3>
         <p style="font-size:12px; color:var(--color-cream-muted);">Querying OpenRouter NVIDIA Nemotron 3 Ultra API...</p>
       </div>
 
-      <div id="ai-forecast-content" class="hidden" style="display:flex; flex-direction:column; gap:24px;"></div>
+      <div id="ai-forecast-content" class="${isCacheValid && !forceRefresh ? '' : 'hidden'}" style="display:flex; flex-direction:column; gap:24px;"></div>
     </div>
   `;
 
   try {
-    let forecastData = cachedAIForecast;
-    if (!forecastData || window.forceAIForecastReload) {
-      window.forceAIForecastReload = false;
-      const res = await fetch(`${API_BASE}/ai/forecast.php`);
+    let forecastData = null;
+    if (!forceRefresh && isCacheValid && localCache.data) {
+      forecastData = localCache.data;
+    } else {
+      const url = forceRefresh ? `${API_BASE}/ai/forecast.php?force_refresh=1` : `${API_BASE}/ai/forecast.php`;
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success && json.data) {
         forecastData = json.data;
-        cachedAIForecast = forecastData;
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: forecastData }));
+        } catch(e) {}
+        if (forceRefresh) showToast('⚡ Live AI Forecast re-generated! Next auto-refresh in 24 hours.', 'success');
       }
     }
 
     const loadingEl = document.getElementById('ai-forecast-loading');
     const contentEl = document.getElementById('ai-forecast-content');
-    if (loadingEl) loadingEl.classList.add('hidden');
+    if (loadingEl) loadingEl.style.display = 'none';
     if (contentEl) contentEl.classList.remove('hidden');
 
     if (!forecastData || !forecastData.forecast) {
@@ -7254,7 +7276,7 @@ async function renderAIForecastingView(container) {
       <!-- 1. Executive Summary & KPI Cards -->
       <div style="background:var(--bg-surface); border:1px solid var(--color-border); border-left:4px solid var(--color-primary); border-radius:12px; padding:16px 20px;">
         <div style="font-size:12px; font-weight:700; color:var(--color-primary-light); text-transform:uppercase; margin-bottom:4px;">
-          <i class="ri-sparkling-fill"></i> AI Executive Assessment (${forecastData.ai_engine || 'NVIDIA Nemotron'})
+          <i class="ri-sparkling-fill"></i> AI Executive Assessment (${forecastData.ai_engine || 'NVIDIA Nemotron'}) • 24h Sync
         </div>
         <div style="font-size:14px; color:var(--color-cream); line-height:1.6;">
           ${fc.summary || 'Inventory tracking active. Immediate reorder recommended for Oat Milk and Single Origin Beans.'}

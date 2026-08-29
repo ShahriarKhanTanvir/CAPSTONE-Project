@@ -21,6 +21,26 @@ $openRouterKey = getenv('OPENROUTER_API_KEY') ?: base64_decode('c2stb3ItdjEtODhj
 $primaryModel  = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 $fallbackModel = 'meta-llama/llama-3.3-70b-instruct:free';
 
+// ── 24-Hour Server-Side Cache Check ───────────────────────────────────────
+$cacheFile = __DIR__ . '/forecast_cache.json';
+$forceRefresh = isset($_GET['force_refresh']) && ($_GET['force_refresh'] === '1' || $_GET['force_refresh'] === 'true');
+$cacheDuration = 86400; // 24 Hours in seconds (86,400s)
+
+if (!$forceRefresh && file_exists($cacheFile)) {
+    $fileAge = time() - filemtime($cacheFile);
+    if ($fileAge < $cacheDuration) {
+        $cachedContent = file_get_contents($cacheFile);
+        $cachedJson = json_decode($cachedContent, true);
+        if ($cachedJson && isset($cachedJson['success']) && $cachedJson['success']) {
+            $cachedJson['data']['cache_status'] = 'cached_24h';
+            $cachedJson['data']['cache_age_seconds'] = $fileAge;
+            $cachedJson['data']['cache_expires_in_seconds'] = $cacheDuration - $fileAge;
+            echo json_encode($cachedJson);
+            exit;
+        }
+    }
+}
+
 $db = getDB();
 
 try {
@@ -259,8 +279,20 @@ try {
             'low_stock_count' => count($lowStockItems)
         ],
         'timestamp' => date('Y-m-d H:i:s'),
+        'cache_status' => 'freshly_generated_24h',
+        'cache_expires_in_seconds' => $cacheDuration,
         'forecast' => $aiResult
     ];
+
+    // Save to 24-hour server-side cache
+    try {
+        $cachePayload = [
+            'success' => true,
+            'message' => 'AI RAG Demand Forecast generated successfully.',
+            'data' => $responsePayload
+        ];
+        file_put_contents($cacheFile, json_encode($cachePayload));
+    } catch (Exception $e) {}
 
     sendResponse(true, 'AI RAG Demand Forecast generated successfully.', $responsePayload);
 
