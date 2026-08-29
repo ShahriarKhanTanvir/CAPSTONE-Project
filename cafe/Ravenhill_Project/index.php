@@ -49,7 +49,7 @@ $csrfToken = getCSRFToken();
           </div>
           <div class="landing-brand-text">
             <span class="landing-brand-title">RAVENHILL</span>
-            <span class="landing-brand-sub">Coffee Roasters • Melb CBD</span>
+            <span class="landing-brand-sub">Coffee Roasters • Melbourne</span>
           </div>
         </a>
 
@@ -59,18 +59,17 @@ $csrfToken = getCSRFToken();
             <li><a href="#story-section" class="landing-nav-link"><i class="ri-book-open-line"></i> Our Story</a></li>
             <li><a href="#menu-preview-section" class="landing-nav-link"><i class="ri-cup-line"></i> Menu</a></li>
             <li><a href="#specials-section" class="landing-nav-link"><i class="ri-fire-line"></i> Specials</a></li>
-            <li><a href="#roles-section" class="landing-nav-link highlight-gold"><i class="ri-user-star-line"></i> Choose Role</a></li>
+            <li><a href="#rewards-section" class="landing-nav-link highlight-gold"><i class="ri-vip-crown-line"></i> Rewards</a></li>
             <li><a href="#location-section" class="landing-nav-link"><i class="ri-map-pin-line"></i> Location</a></li>
-            <li><a href="#gallery-section" class="landing-nav-link"><i class="ri-camera-lens-line"></i> Gallery</a></li>
           </ul>
         </nav>
 
         <div class="landing-nav-actions">
-          <button type="button" class="btn-nav-role" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
-            <i class="ri-user-star-fill"></i> <span>Choose Your Role</span>
+          <button type="button" class="btn-nav-role" onclick="window.enterAsCustomer('pos')">
+            <i class="ri-shopping-bag-3-fill"></i> <span>Order Online</span>
           </button>
-          <button type="button" class="btn-nav-login" onclick="window.openRoleLoginModal ? window.openRoleLoginModal('cashier') : window.openLoginModal('cashier')">
-            <i class="ri-lock-line"></i> <span>Login</span>
+          <button type="button" class="btn-nav-login" onclick="window.openLoginModal('cashier')">
+            <i class="ri-user-3-line"></i> <span>Sign In</span>
           </button>
         </div>
       </header>
@@ -107,11 +106,11 @@ $csrfToken = getCSRFToken();
         </p>
 
         <div class="hero-cta-group">
-          <button type="button" class="btn-hero-primary" onclick="document.getElementById('menu-preview-section')?.scrollIntoView({ behavior:'smooth' })">
-            <i class="ri-cup-fill"></i> Explore Menu & Order Now <i class="ri-arrow-right-line"></i>
+          <button type="button" class="btn-hero-primary" onclick="window.enterAsCustomer('pos')">
+            <i class="ri-shopping-bag-3-fill"></i> Order Online Now <i class="ri-arrow-right-line"></i>
           </button>
-          <button type="button" class="btn-hero-secondary" onclick="document.getElementById('roles-section')?.scrollIntoView({ behavior:'smooth' })">
-            <i class="ri-user-star-line"></i> Choose Your Role
+          <button type="button" class="btn-hero-secondary" onclick="window.enterAsCustomer('reservations')">
+            <i class="ri-calendar-check-line"></i> Book a Table
           </button>
         </div>
 
@@ -281,67 +280,7 @@ $csrfToken = getCSRFToken();
       </div>
     </section>
 
-    <!-- 6. Choose Your Role Experience Section -->
-    <section class="roles-section-wrap" id="roles-section">
-      <div class="section-header-centered">
-        <span class="section-tag">Explore the Experience</span>
-        <h2 class="section-main-title">Choose Your Role</h2>
-        <p class="section-subtext">Select how you would like to interact with the Ravenhill Coffee platform.</p>
-      </div>
 
-      <div class="roles-grid">
-        <!-- Customer Role Card -->
-        <div class="role-card-item featured-customer">
-          <span class="role-card-badge">Guest & Member</span>
-          <div class="role-card-icon">☕</div>
-          <h3 class="role-card-title">Customer</h3>
-          <p class="role-card-desc">Browse the menu, order food and drinks, make payments and receive an order number with real-time preparation tracking.</p>
-          <ul class="role-card-features">
-            <li><i class="ri-check-line"></i> Digital Menu & Customisations</li>
-            <li><i class="ri-check-line"></i> 6 Active Payment Gateways</li>
-            <li><i class="ri-check-line"></i> Unique Receipt & Order Tracker</li>
-            <li><i class="ri-check-line"></i> Loyalty Points & Free Coffee</li>
-          </ul>
-          <button type="button" class="role-card-btn btn-role-customer" onclick="window.enterAsCustomer()">
-            Continue as Customer <i class="ri-arrow-right-line"></i>
-          </button>
-        </div>
-
-        <!-- Staff Role Card -->
-        <div class="role-card-item role-card-staff">
-          <span class="role-card-badge staff-badge">Staff & Crew</span>
-          <div class="role-card-icon staff-icon">👨‍🍳</div>
-          <h3 class="role-card-title">Staff / Operations</h3>
-          <p class="role-card-desc">Access staff-related functions, manage kitchen and barista orders, floor tables and perform daily operational tasks.</p>
-          <ul class="role-card-features">
-            <li><i class="ri-check-line"></i> POS Register & Rapid Billing</li>
-            <li><i class="ri-check-line"></i> Barista & Kitchen KDS Display</li>
-            <li><i class="ri-check-line"></i> Wait Staff Floor Table Monitor</li>
-            <li><i class="ri-check-line"></i> Shift Attendance & Clock-In</li>
-          </ul>
-          <button type="button" class="role-card-btn btn-role-staff" onclick="window.openRoleLoginModal('cashier')">
-            Staff Login <i class="ri-lock-line"></i>
-          </button>
-        </div>
-
-        <!-- Manager / Admin Role Card -->
-        <div class="role-card-item role-card-admin">
-          <span class="role-card-badge admin-badge">Executive</span>
-          <div class="role-card-icon admin-icon">👨‍💼</div>
-          <h3 class="role-card-title">Manager / Admin</h3>
-          <p class="role-card-desc">Access executive management, sales analytics, inventory recipe tracking, staff rosters and system administration.</p>
-          <ul class="role-card-features">
-            <li><i class="ri-check-line"></i> Sales Revenue & Z-Reports</li>
-            <li><i class="ri-check-line"></i> Bean Stock & Recipe Maps</li>
-            <li><i class="ri-check-line"></i> Supplier Purchase Orders</li>
-            <li><i class="ri-check-line"></i> Full Role Permission Controls</li>
-          </ul>
-          <button type="button" class="role-card-btn btn-role-admin" onclick="window.openRoleLoginModal('admin')">
-            Admin Login <i class="ri-shield-keyhole-line"></i>
-          </button>
-        </div>
-      </div>
-    </section>
 
     <!-- 7. Digital Loyalty Program Section -->
     <section class="loyalty-section-wrap" id="rewards-section">
@@ -494,23 +433,24 @@ $csrfToken = getCSRFToken();
         </div>
 
         <div>
-          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Navigation</h5>
+          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Quick Links</h5>
           <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
             <a href="#hero-section" style="color:inherit; text-decoration:none;">Home</a>
             <a href="#story-section" style="color:inherit; text-decoration:none;">Our Story</a>
-            <a href="#menu-preview-section" style="color:inherit; text-decoration:none;">Menu</a>
-            <a href="#specials-section" style="color:inherit; text-decoration:none;">Specials</a>
+            <a href="#menu-preview-section" style="color:inherit; text-decoration:none;">Menu & Jars</a>
+            <a href="#specials-section" style="color:inherit; text-decoration:none;">Special Combos</a>
+            <a href="#rewards-section" style="color:inherit; text-decoration:none;">Rewards Club</a>
             <a href="#location-section" style="color:inherit; text-decoration:none;">Location & Hours</a>
           </div>
         </div>
 
         <div>
-          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Access Portal</h5>
+          <h5 style="color:#fff; font-size:14px; margin-bottom:12px;">Account & Staff</h5>
           <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-            <a href="#roles-section" style="color:inherit; text-decoration:none;">Choose Your Role</a>
-            <a href="#" onclick="window.enterAsCustomer()" style="color:inherit; text-decoration:none;">Customer Storefront</a>
-            <a href="#" onclick="window.openRoleLoginModal('cashier')" style="color:inherit; text-decoration:none;">Staff Login</a>
-            <a href="#" onclick="window.openRoleLoginModal('admin')" style="color:inherit; text-decoration:none;">Manager / Admin</a>
+            <a href="#" onclick="window.openRegisterCustomerModal()" style="color:inherit; text-decoration:none;">Create Customer Account</a>
+            <a href="#" onclick="window.enterAsCustomer('pos')" style="color:inherit; text-decoration:none;">Customer Portal</a>
+            <a href="#" onclick="window.enterAsCustomer('customer_tracker')" style="color:inherit; text-decoration:none;">Track Live Order</a>
+            <a href="#" onclick="window.openLoginModal('cashier')" style="color:var(--color-accent-gold); text-decoration:none;"><i class="ri-shield-user-line"></i> Staff & Admin Portal</a>
           </div>
         </div>
 
@@ -1378,7 +1318,7 @@ $csrfToken = getCSRFToken();
             </button>
           </div>
           <div class="demo-pass-hint" style="font-size:12px; color:var(--color-accent-gold); margin-top:8px; display:flex; align-items:center; gap:6px; background:rgba(217, 119, 6, 0.12); padding:8px 12px; border-radius:8px; border:1px solid rgba(217, 119, 6, 0.3);">
-            <i class="ri-information-fill"></i> System defaults: admin, slin, loconnor, hwright (pass: role+123 e.g. admin123)
+            <i class="ri-information-fill"></i> Quick Logins: <strong>admin/admin</strong>, <strong>manager/manager</strong>, <strong>cashier/cashier</strong>, <strong>barista/barista</strong>, <strong>kitchen/kitchen</strong>, <strong>waiter/waiter</strong>, <strong>customer/customer</strong>
           </div>
         </div>
 

@@ -1042,21 +1042,29 @@ function initApp() {
 
 window.openLoginModal = function(targetRole) {
   const modal = document.getElementById('role-select-modal');
-  const roleSelect = document.getElementById('role-popup-select');
+  const userRoleSelect = document.getElementById('role-popup-select');
+  const userInput = document.getElementById('role-username-input');
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
-  if (roleSelect) {
-    roleSelect.value = targetRole || AppState.activeRole || 'cashier';
+  if (userRoleSelect) {
+    userRoleSelect.value = targetRole || AppState.activeRole || 'cashier';
+  }
+
+  if (userInput) {
+    if (!userInput.value) {
+      if (targetRole === 'admin') userInput.value = 'admin';
+      else if (targetRole === 'cashier') userInput.value = 'slin';
+    }
   }
 
   if (passInput) {
-    passInput.value = '#DemoPass';
-    passInput.type = 'text';
+    passInput.value = '';
+    passInput.type = 'password';
   }
 
   const icon = document.getElementById('toggle-pass-icon');
-  if (icon) icon.className = 'ri-eye-line';
+  if (icon) icon.className = 'ri-eye-off-line';
 
   if (errorMsg) errorMsg.classList.add('hidden');
 
@@ -1084,6 +1092,22 @@ function applyRoleToUI(role) {
   const avatarEl = document.getElementById('current-user-avatar');
 
   if (roleSelect) roleSelect.value = role;
+
+  const u = AppState.currentUser;
+  if (u && (u.first_name || u.username)) {
+    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+    if (nameEl) nameEl.textContent = fullName;
+    if (badgeEl) badgeEl.textContent = (u.position || u.role || role).replace(/^./, str => str.toUpperCase());
+    
+    let initials = 'U';
+    if (u.first_name && u.last_name) {
+      initials = (u.first_name[0] + u.last_name[0]).toUpperCase();
+    } else if (fullName) {
+      initials = fullName.substring(0, 2).toUpperCase();
+    }
+    if (avatarEl) avatarEl.textContent = initials;
+    return;
+  }
 
   if (role === 'admin') {
     if (nameEl) nameEl.textContent = 'Ravenhill Admin';
@@ -1229,16 +1253,20 @@ window.confirmRoleSelection = async function() {
       const modal = document.getElementById('role-select-modal');
       if (modal) modal.classList.add('hidden');
 
-      // Routing logic
+      // Accurate Role-Based Routing & Dashboard Redirection
+      let targetMod = 'pos';
       if (role === 'admin' || role === 'manager') {
-        window.switchModule('reports');
+        targetMod = 'dashboard';
+      } else if (role === 'barista' || role === 'kitchen') {
+        targetMod = 'kds';
+      } else if (role === 'waitstaff') {
+        targetMod = 'waitstaff';
       } else if (role === 'customer') {
-        window.switchModule('customer_portal');
-      } else {
-        window.switchModule('pos');
+        targetMod = 'pos';
       }
-      
-      showToast(data.message || 'Login successful', 'success');
+
+      window.showAppView(targetMod);
+      showToast(data.message || `Welcome! Logged in as ${role.toUpperCase()}.`, 'success');
       
     } else {
       if (errorMsg) {
@@ -1262,12 +1290,18 @@ window.logout = async function() {
   } catch(e) {}
   
   AppState.isAuthenticated = false;
-  AppState.activeRole = 'cashier';
+  AppState.activeRole = 'customer';
   AppState.currentUser = null;
   localStorage.removeItem('RAVENHILL_USER_ROLE');
   
+  // Close any open modals
+  const roleModal = document.getElementById('role-select-modal');
+  if (roleModal) roleModal.classList.add('hidden');
+  const loginModal = document.getElementById('login-modal');
+  if (loginModal) loginModal.classList.add('hidden');
+
   showToast('Logged out successfully.', 'info');
-  openLoginModal();
+  window.showLandingView();
 };
 
 window.initSession = async function() {
@@ -1284,12 +1318,23 @@ window.initSession = async function() {
       applyRolePermissionsUI();
       
       // Module routing is handled by initApp if already authenticated,
-      // but if page is reloaded on landing, we might want to redirect.
+      // but if page is reloaded on landing, redirect to appropriate role dashboard
+      let targetMod = 'pos';
+      if (role === 'admin' || role === 'manager') {
+        targetMod = 'dashboard';
+      } else if (role === 'barista' || role === 'kitchen') {
+        targetMod = 'kds';
+      } else if (role === 'waitstaff') {
+        targetMod = 'waitstaff';
+      } else if (role === 'customer') {
+        targetMod = 'pos';
+      }
+
       const landing = document.getElementById('landing-page-view');
       if (landing && !landing.classList.contains('hidden')) {
-        if (role === 'admin' || role === 'manager') window.switchModule('reports');
-        else if (role === 'customer') window.switchModule('customer_portal');
-        else window.switchModule('pos');
+        window.showAppView(targetMod);
+      } else {
+        window.switchModule(targetMod);
       }
     } else {
       AppState.isAuthenticated = false;
@@ -4902,7 +4947,7 @@ window.handleCustomerRegistration = async function(e) {
         AppState.currentUser = loginData.data;
         applyRoleToUI('customer');
         applyRolePermissionsUI();
-        window.switchModule('customer_portal');
+        window.showAppView('pos');
         showToast('Account created and logged in successfully!', 'success');
       } else {
         showToast('Account created. Please login.', 'success');
@@ -6592,28 +6637,7 @@ window.enterAsCustomer = function(targetModule) {
 };
 
 window.openRoleLoginModal = function(targetRole) {
-  const modal = document.getElementById('role-select-modal');
-  const roleSelect = document.getElementById('role-popup-select');
-  const passInput = document.getElementById('role-password-input');
-  const errorMsg = document.getElementById('role-pass-error');
-
-  if (roleSelect) {
-    if (targetRole === 'admin') {
-      roleSelect.value = 'admin';
-    } else if (targetRole === 'staff') {
-      roleSelect.value = 'cashier';
-    } else {
-      roleSelect.value = targetRole || 'cashier';
-    }
-  }
-
-  if (passInput) {
-    passInput.value = '#DemoPass';
-    passInput.type = 'text';
-  }
-
-  if (errorMsg) errorMsg.classList.add('hidden');
-  if (modal) modal.classList.remove('hidden');
+  window.openLoginModal(targetRole);
 };
 
 window.initPromoCountdown = function() {
@@ -6808,9 +6832,12 @@ window.orderFromLandingPage = function(itemId) {
 };
 
 window.joinRavenhillRewards = function() {
-  const currentPts = AppState.cart.customer ? AppState.cart.customer.points : 120;
-  alert(`☕ WELCOME TO RAVENHILL REWARDS!\n\nYou currently have ${currentPts} points accrued.\n• 1 Free Coffee every 5 coffees stamped\n• Exclusive 15% discount on all retail bean bags\n• Complimentary Birthday Brew`);
-  showToast('⭐ Welcome to Ravenhill VIP Rewards!', 'success');
+  if (AppState.isAuthenticated && AppState.currentUser && AppState.activeRole === 'customer') {
+    showToast(`⭐ Welcome back, ${AppState.currentUser.first_name || 'Member'}! Viewing your loyalty rewards.`, 'info');
+    window.showAppView('pos');
+  } else {
+    window.openRegisterCustomerModal();
+  }
 };
 
 function renderLandingPageView(container) {

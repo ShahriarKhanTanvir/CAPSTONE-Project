@@ -650,7 +650,8 @@ select option, .form-select option, .form-select-sm option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
+  gap: 16px;
   z-index: 10;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -661,6 +662,8 @@ select option, .form-select option, .form-select-sm option {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 0 1 auto;
+  max-width: 45%;
   height: 100%;
 }
 
@@ -669,15 +672,18 @@ select option, .form-select option, .form-select-sm option {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
+  overflow: hidden;
 }
 
 .page-title-group h1 {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
   padding: 0;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--color-cream);
 }
 
@@ -687,7 +693,7 @@ select option, .form-select option, .form-select-sm option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 320px;
+  max-width: 280px;
   margin: 0;
   padding: 0;
   line-height: 1.2;
@@ -696,14 +702,17 @@ select option, .form-select option, .form-select-sm option {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 1 0 auto;
+  min-width: 0;
   height: 100%;
 }
 
 .global-search-box {
   position: relative;
-  width: 200px;
+  width: 150px;
+  flex-shrink: 1;
 }
 .global-search-box i {
   position: absolute;
@@ -4575,6 +4584,8 @@ select option, .form-select option, .form-select-sm option {
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
