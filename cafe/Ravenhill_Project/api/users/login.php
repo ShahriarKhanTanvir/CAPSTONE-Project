@@ -111,17 +111,26 @@ $_SESSION['role_name']     = $user['role_name'];
 $_SESSION['last_activity'] = time();
 
 
-// Fetch employee details (NFR18: Sensitive password hash excluded)
-$empStmt = $db->prepare("SELECT first_name, last_name, email, phone, position FROM Employees WHERE user_id = ?");
-$empStmt->execute([$user['user_id']]);
-$employee = $empStmt->fetch();
+// Fetch user details based on role
+$userDetails = [];
+if (strtolower($user['role_name']) === 'customer') {
+    $custStmt = $db->prepare("SELECT customer_id, first_name, last_name, email, phone FROM Customers WHERE user_id = ?");
+    $custStmt->execute([$user['user_id']]);
+    $userDetails = $custStmt->fetch();
+} else {
+    // Employee
+    $empStmt = $db->prepare("SELECT first_name, last_name, email, phone, position FROM Employees WHERE user_id = ?");
+    $empStmt->execute([$user['user_id']]);
+    $userDetails = $empStmt->fetch();
+}
 
 sendResponse(true, 'Login successful.', [
-    'user_id'    => (int)$user['user_id'],
-    'username'   => $user['username'],
-    'role'       => $user['role_name'],
-    'first_name' => $employee['first_name'] ?? '',
-    'last_name'  => $employee['last_name']  ?? '',
-    'email'      => $employee['email']      ?? '',
-    'position'   => $employee['position']   ?? ''
+    'user_id'     => (int)$user['user_id'],
+    'username'    => $user['username'],
+    'role'        => strtolower($user['role_name']), // normalized to lowercase
+    'first_name'  => $userDetails['first_name'] ?? '',
+    'last_name'   => $userDetails['last_name']  ?? '',
+    'email'       => $userDetails['email']      ?? '',
+    'customer_id' => $userDetails['customer_id'] ?? null,
+    'position'    => $userDetails['position']   ?? ''
 ]);

@@ -726,8 +726,8 @@ $csrfToken = getCSRFToken();
               <span class="user-name" id="current-user-name">Sarah Lin</span>
               <span class="user-role-badge" id="current-user-role-badge">Lead Cashier</span>
             </div>
-            <button class="icon-btn-sm" id="lock-user-btn" onclick="openLoginModal()" title="Switch Account / Lock Session" aria-label="Switch Account or Lock Session" style="margin-left:4px;">
-              <i class="ri-lock-line"></i>
+            <button class="icon-btn-sm" id="lock-user-btn" onclick="logout()" title="Logout" aria-label="Logout" style="margin-left:4px;">
+              <i class="ri-logout-box-r-line"></i>
             </button>
           </div>
         </div>
@@ -1347,34 +1347,24 @@ $csrfToken = getCSRFToken();
           <img src="./brand_recources/ravenhill_logo.png" alt="Ravenhill Logo" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <h2>RAVENHILL COFFEE</h2>
-        <p>User Authentication & Access Management</p>
       </div>
       <div class="role-select-body">
-        <h3>User & Dashboard Login</h3>
-        <p style="font-size:13px; color:var(--color-cream-muted); margin-bottom:16px;">Enter your password to access your role's dashboard features.</p>
+        <h3>Account Login</h3>
+        <p style="font-size:13px; color:var(--color-cream-muted); margin-bottom:16px;">Enter your credentials to access your dashboard.</p>
         
         <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-weight:600; margin-bottom:6px; display:block;">Select Account / Role</label>
-          <select id="role-popup-select" class="form-select" style="width:100%; padding:12px 14px; font-size:15px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream); appearance:auto;">
-            <option value="admin">⚡ Admin (Full Control)</option>
-            <option value="manager">📊 Manager (Operations & Staff)</option>
-            <option value="cashier" selected>💳 Cashier (POS & Sales)</option>
-            <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
-            <option value="barista">☕ Barista (Beverages KDS)</option>
-            <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
-            <option value="customer">👤 Customer (Live Tracker & Menu)</option>
-          </select>
+          <label style="font-weight:600; margin-bottom:6px; display:block;">Username or Email</label>
+          <input type="text" id="role-username-input" class="form-input" placeholder="e.g. admin or john@email.com" onkeydown="if(event.key==='Enter'){ document.getElementById('role-password-input').focus(); }" style="width:100%; padding:12px 14px; font-size:15px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream);" />
         </div>
 
         <div class="form-group" style="margin-bottom:16px;">
           <label style="font-weight:600; margin-bottom:6px; display:block;">Password</label>
           <div style="position:relative; display:flex; align-items:center;">
             <input 
-              type="text" 
+              type="password" 
               id="role-password-input" 
               class="form-input" 
-              value="#DemoPass" 
-              placeholder="#DemoPass"
+              placeholder="Enter your password"
               onkeydown="if(event.key==='Enter'){ confirmRoleSelection(); }"
               style="padding-right:44px; font-size:16px; font-weight:700; border-radius:10px; background:var(--bg-canvas);"
             />
@@ -1384,23 +1374,64 @@ $csrfToken = getCSRFToken();
               style="position:absolute; right:12px; background:none; border:none; color:var(--color-cream-muted); cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;"
               title="Toggle password visibility"
             >
-              <i class="ri-eye-line" id="toggle-pass-icon"></i>
+              <i class="ri-eye-off-line" id="toggle-pass-icon"></i>
             </button>
           </div>
           <div class="demo-pass-hint" style="font-size:12px; color:var(--color-accent-gold); margin-top:8px; display:flex; align-items:center; gap:6px; background:rgba(217, 119, 6, 0.12); padding:8px 12px; border-radius:8px; border:1px solid rgba(217, 119, 6, 0.3);">
-            <i class="ri-key-2-line" style="font-size:16px;"></i>
-            <span>Password is <strong>#DemoPass</strong> to check the project.</span>
+            <i class="ri-information-fill"></i> System defaults: admin, slin, loconnor, hwright (pass: role+123 e.g. admin123)
           </div>
         </div>
 
-        <div id="role-pass-error" class="hidden" role="alert" aria-live="assertive" style="color:var(--color-danger); font-size:12px; font-weight:600; margin-top:12px; padding:8px 12px; background:rgba(255,107,107,0.1); border-radius:6px; border:1px solid rgba(255,107,107,0.3);">
-          Invalid password! Password is #DemoPass to check the project.
+        <div id="role-pass-error" class="error-msg hidden" style="color:var(--color-danger); font-size:13px; margin-bottom:16px; padding:8px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.2);">
+          Invalid username or password.
         </div>
 
-
-        <button class="btn btn-primary btn-lg" style="width:100%; margin-top:16px; padding:14px; font-size:16px; border-radius:12px; font-weight:700;" onclick="confirmRoleSelection()">
-          <i class="ri-lock-unlock-line"></i> Log In to Dashboard
+        <button type="button" class="btn btn-primary" id="confirm-role-login-btn" onclick="confirmRoleSelection()" style="width:100%; padding:14px; font-size:16px; justify-content:center; margin-bottom: 12px;">
+          <i class="ri-login-circle-line"></i> Secure Login
         </button>
+        <button type="button" class="btn btn-outline" onclick="openRegisterCustomerModal()" style="width:100%; padding:14px; font-size:16px; justify-content:center;">
+          <i class="ri-user-add-line"></i> Create Customer Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Registration Modal -->
+  <div class="modal-backdrop hidden" id="register-customer-modal" style="z-index:9999;">
+    <div class="role-select-card" style="position:relative; max-width:450px;">
+      <button type="button" class="icon-btn modal-close" onclick="closeRegisterCustomerModal()" style="position:absolute; top:14px; right:14px; z-index:10; background:rgba(0,0,0,0.2);" aria-label="Close dialog"><i class="ri-close-line"></i></button>
+      <div class="role-select-brand" style="margin-bottom:20px;">
+        <h2>Create Account</h2>
+        <p>Join Ravenhill Rewards for exclusive perks</p>
+      </div>
+      <div class="role-select-body">
+        <form id="customer-registration-form" onsubmit="handleCustomerRegistration(event)">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:600; margin-bottom:6px; display:block;">Full Name *</label>
+            <input type="text" id="reg-name" class="form-input" required style="width:100%; padding:10px 14px; background:var(--bg-elevated); border:1px solid var(--color-border);" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:600; margin-bottom:6px; display:block;">Email Address *</label>
+            <input type="email" id="reg-email" class="form-input" required style="width:100%; padding:10px 14px; background:var(--bg-elevated); border:1px solid var(--color-border);" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:600; margin-bottom:6px; display:block;">Phone Number</label>
+            <input type="text" id="reg-phone" class="form-input" style="width:100%; padding:10px 14px; background:var(--bg-elevated); border:1px solid var(--color-border);" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:600; margin-bottom:6px; display:block;">Password *</label>
+            <input type="password" id="reg-password" class="form-input" required style="width:100%; padding:10px 14px; background:var(--bg-elevated); border:1px solid var(--color-border);" />
+          </div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="font-weight:600; margin-bottom:6px; display:block;">Confirm Password *</label>
+            <input type="password" id="reg-confirm-password" class="form-input" required style="width:100%; padding:10px 14px; background:var(--bg-elevated); border:1px solid var(--color-border);" />
+          </div>
+          <div id="reg-error" class="error-msg hidden" style="color:var(--color-danger); font-size:13px; margin-bottom:16px; padding:8px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.2);">
+          </div>
+          <button type="submit" class="btn btn-primary" id="submit-reg-btn" style="width:100%; padding:14px; font-size:16px; justify-content:center;">
+            <i class="ri-user-add-line"></i> Create Account
+          </button>
+        </form>
       </div>
     </div>
   </div>

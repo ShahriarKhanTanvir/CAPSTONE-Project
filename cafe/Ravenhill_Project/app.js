@@ -1035,6 +1035,9 @@ function initApp() {
 
   // Sync live data from Node.js Express Backend REST API
   syncBackendData();
+  
+  // Check backend session
+  initSession();
 }
 
 window.openLoginModal = function(targetRole) {
@@ -1181,34 +1184,116 @@ window.applyRolePermissionsUI = function() {
   }
 };
 
-window.confirmRoleSelection = function() {
-  const selectEl = document.getElementById('role-popup-select');
+window.confirmRoleSelection = async function() {
+  const userInp = document.getElementById('role-username-input');
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
-  const role = selectEl ? selectEl.value : 'cashier';
-  const enteredPass = passInput ? passInput.value.trim() : '';
+  const username = userInp ? userInp.value.trim() : '';
+  const password = passInput ? passInput.value.trim() : '';
 
-  if (enteredPass.toLowerCase() === '#demopass' || enteredPass === '#DemoPass') {
-    if (errorMsg) errorMsg.classList.add('hidden');
-
-    AppState.isAuthenticated = true;
-    AppState.activeRole = role;
-    localStorage.setItem('RAVENHILL_USER_ROLE', role);
-
-    applyRoleToUI(role);
-    applyRolePermissionsUI();
-
-    const modal = document.getElementById('role-select-modal');
-    if (modal) modal.classList.add('hidden');
-
-    renderCurrentModule();
-    saveLocalDB();
-  } else {
+  if (!username || !password) {
     if (errorMsg) {
-      errorMsg.textContent = 'Invalid password! Password is #DemoPass to check the project.';
+      errorMsg.textContent = 'Please enter both username/email and password.';
       errorMsg.classList.remove('hidden');
     }
+    return;
+  }
+  
+  try {
+    const btn = document.getElementById('confirm-role-login-btn');
+    if (btn) btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Logging in...';
+    
+    const res = await fetch('/api/users/login.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    
+    if (btn) btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
+    
+    if (data.success) {
+      if (errorMsg) errorMsg.classList.add('hidden');
+
+      AppState.isAuthenticated = true;
+      const role = data.data.role.toLowerCase();
+      AppState.activeRole = role;
+      
+      // Store user details in AppState
+      AppState.currentUser = data.data;
+
+      applyRoleToUI(role);
+      applyRolePermissionsUI();
+
+      const modal = document.getElementById('role-select-modal');
+      if (modal) modal.classList.add('hidden');
+
+      // Routing logic
+      if (role === 'admin' || role === 'manager') {
+        window.switchModule('reports');
+      } else if (role === 'customer') {
+        window.switchModule('customer_portal');
+      } else {
+        window.switchModule('pos');
+      }
+      
+      showToast(data.message || 'Login successful', 'success');
+      
+    } else {
+      if (errorMsg) {
+        errorMsg.textContent = data.message || 'Invalid username or password.';
+        errorMsg.classList.remove('hidden');
+      }
+    }
+  } catch (err) {
+    if (errorMsg) {
+      errorMsg.textContent = 'Server error. Please try again later.';
+      errorMsg.classList.remove('hidden');
+    }
+  }
+};
+
+window.logout = async function() {
+  try {
+    await fetch('/api/users/logout.php', { method: 'POST' });
+  } catch(e) {}
+  
+  AppState.isAuthenticated = false;
+  AppState.activeRole = 'cashier';
+  AppState.currentUser = null;
+  localStorage.removeItem('RAVENHILL_USER_ROLE');
+  
+  showToast('Logged out successfully.', 'info');
+  openLoginModal();
+};
+
+window.initSession = async function() {
+  try {
+    const res = await fetch('/api/users/me.php');
+    const data = await res.json();
+    if (data.success && data.data) {
+      AppState.isAuthenticated = true;
+      const role = data.data.role.toLowerCase();
+      AppState.activeRole = role;
+      AppState.currentUser = data.data;
+      
+      applyRoleToUI(role);
+      applyRolePermissionsUI();
+      
+      // Module routing is handled by initApp if already authenticated,
+      // but if page is reloaded on landing, we might want to redirect.
+      const landing = document.getElementById('landing-page-view');
+      if (landing && !landing.classList.contains('hidden')) {
+        if (role === 'admin' || role === 'manager') window.switchModule('reports');
+        else if (role === 'customer') window.switchModule('customer_portal');
+        else window.switchModule('pos');
+      }
+    } else {
+      AppState.isAuthenticated = false;
+    }
+  } catch(e) {
+    console.warn("Session check failed", e);
   }
 };
 
@@ -4741,25 +4826,95 @@ function renderCustomersView(container) {
 }
 
 window.openRegisterCustomerModal = function() {
-  const name = prompt("Member Full Name:", "Sophia Reed");
-  if (!name) return;
-  const mobile = prompt("Mobile Number:", "0499 123 456") || "0499 123 456";
-  const email = prompt("Email Address:", "sophia@melb.com") || "sophia@melb.com";
+  // If called from landing/login modal, close it first
+  closeLoginModal();
+  
+  const modal = document.getElementById('register-customer-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+};
 
-  const newCust = {
-    id: `CUST-${Date.now().toString().substr(-3)}`,
-    name: name,
-    mobile: mobile,
-    email: email,
-    points: 100,
-    tier: 'Bean Bronze',
-    visits: 1
-  };
+window.closeRegisterCustomerModal = function() {
+  const modal = document.getElementById('register-customer-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+};
 
-  DB.customers.unshift(newCust);
-  saveLocalDB();
-  renderCurrentModule();
-  API.createCustomer(newCust);
+window.handleCustomerRegistration = async function(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  const passConfirm = document.getElementById('reg-confirm-password').value;
+  const errorMsg = document.getElementById('reg-error');
+  const btn = document.getElementById('submit-reg-btn');
+  
+  if (pass !== passConfirm) {
+    errorMsg.textContent = "Passwords do not match.";
+    errorMsg.classList.remove('hidden');
+    return;
+  }
+  
+  try {
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Creating Account...';
+    
+    // Split name into first and last
+    const nameParts = name.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+    
+    const res = await fetch('/api/users/register_customer.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        phone: phone,
+        password: pass 
+      })
+    });
+    
+    const data = await res.json();
+    btn.innerHTML = '<i class="ri-user-add-line"></i> Create Account';
+    
+    if (data.success) {
+      errorMsg.classList.add('hidden');
+      closeRegisterCustomerModal();
+      
+      // Auto login the new user
+      const loginRes = await fetch('/api/users/login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password: pass })
+      });
+      const loginData = await loginRes.json();
+      
+      if (loginData.success) {
+        AppState.isAuthenticated = true;
+        AppState.activeRole = 'customer';
+        AppState.currentUser = loginData.data;
+        applyRoleToUI('customer');
+        applyRolePermissionsUI();
+        window.switchModule('customer_portal');
+        showToast('Account created and logged in successfully!', 'success');
+      } else {
+        showToast('Account created. Please login.', 'success');
+        openLoginModal();
+      }
+    } else {
+      errorMsg.textContent = data.message || "Registration failed.";
+      errorMsg.classList.remove('hidden');
+    }
+  } catch (err) {
+    btn.innerHTML = '<i class="ri-user-add-line"></i> Create Account';
+    errorMsg.textContent = "Server error during registration.";
+    errorMsg.classList.remove('hidden');
+  }
 };
 
 window.addBonusPoints = function(idx) {
