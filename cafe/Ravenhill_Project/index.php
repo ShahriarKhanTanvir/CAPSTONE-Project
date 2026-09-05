@@ -66,7 +66,7 @@ $csrfToken = getCSRFToken();
           </ul>
         </nav>
 
-        <div class="landing-nav-actions">
+        <div class="landing-nav-actions" id="landing-nav-actions">
           <button type="button" class="btn-nav-role" onclick="window.enterAsCustomer('pos')">
             <i class="ri-shopping-bag-3-fill"></i> <span>Order Online</span>
           </button>
@@ -452,7 +452,7 @@ $csrfToken = getCSRFToken();
             <a href="#" onclick="window.openRegisterCustomerModal()" style="color:inherit; text-decoration:none;">Create Customer Account</a>
             <a href="#" onclick="window.enterAsCustomer('pos')" style="color:inherit; text-decoration:none;">Customer Portal</a>
             <a href="#" onclick="window.enterAsCustomer('customer_tracker')" style="color:inherit; text-decoration:none;">Track Live Order</a>
-            <a href="#" onclick="window.openLoginModal('cashier')" style="color:var(--color-accent-gold); text-decoration:none;"><i class="ri-shield-user-line"></i> Staff & Admin Portal</a>
+            <a href="#" onclick="window.openLoginModal('admin')" style="color:var(--color-accent-gold); text-decoration:none;"><i class="ri-shield-user-line"></i> Staff & Admin Portal</a>
           </div>
         </div>
 
@@ -496,17 +496,12 @@ $csrfToken = getCSRFToken();
           <span class="brand-subtitle">Coffee Roasters • Melb CBD</span>
         </div>
         <button class="icon-btn mobile-sidebar-close" id="mobile-sidebar-close-btn" aria-label="Close navigation sidebar">
-          <i class="ri-close-line"></i>
         </button>
       </div>
 
       <div class="sidebar-nav-wrapper">
-        <div class="nav-section-title">Navigation & Storefront</div>
+        <div class="nav-section-title">Point of Sale & Operations</div>
         <nav class="nav-menu">
-          <a href="#" class="nav-item" onclick="window.showLandingView(); return false;" data-module="landing">
-            <i class="ri-home-4-line"></i>
-            <span>Brand Landing Page</span>
-          </a>
           <a href="#" class="nav-item active" data-module="pos">
             <i class="ri-shopping-bag-3-line"></i>
             <span>Point of Sale (POS)</span>
@@ -548,70 +543,72 @@ $csrfToken = getCSRFToken();
           <a href="#" class="nav-item" data-module="inventory">
             <i class="ri-box-3-line"></i>
             <span>Inventory & Recipes</span>
-            <span class="badge badge-danger hidden" id="low-stock-count">0</span>
           </a>
           <a href="#" class="nav-item" data-module="suppliers">
             <i class="ri-truck-line"></i>
             <span>Suppliers & Orders</span>
           </a>
-          <a href="#" class="nav-item" data-module="discounts">
-            <i class="ri-coupon-3-line"></i>
-            <span>Discounts & Promos</span>
-          </a>
         </nav>
 
-        <div class="nav-section-title">People & Relations</div>
+        <div class="nav-section-title">Administration</div>
         <nav class="nav-menu">
+          <a href="#" class="nav-item" data-module="dashboard">
+            <i class="ri-dashboard-line"></i>
+            <span>Manager Dashboard</span>
+          </a>
+          <a href="#" class="nav-item" data-module="ai_forecast">
+            <i class="ri-brain-line"></i>
+            <span>AI Demand Forecast</span>
+            <span class="badge badge-gold">AI</span>
+          </a>
+          <a href="#" class="nav-item" data-module="discounts">
+            <i class="ri-percent-line"></i>
+            <span>Discounts & Promotions</span>
+          </a>
           <a href="#" class="nav-item" data-module="customers">
             <i class="ri-user-heart-line"></i>
-            <span>Customers & Loyalty</span>
+            <span>Loyalty Customers</span>
           </a>
           <a href="#" class="nav-item" data-module="employees">
             <i class="ri-team-line"></i>
-            <span>Staff & Attendance</span>
+            <span>Staff Scheduling</span>
+          </a>
+          <a href="#" class="nav-item" data-module="reports">
+            <i class="ri-file-chart-line"></i>
+            <span>Reports & Audits</span>
+          </a>
+          <a href="#" class="nav-item" data-module="access">
+            <i class="ri-shield-keyhole-line"></i>
+            <span>Access Control</span>
           </a>
           <a href="#" class="nav-item" data-module="feedback">
             <i class="ri-chat-smile-2-line"></i>
             <span>Customer Feedback</span>
           </a>
-        </nav>
-
-        <div class="nav-section-title">Administration & AI Intelligence</div>
-        <nav class="nav-menu">
-          <a href="#" class="nav-item" data-module="dashboard">
-            <i class="ri-bar-chart-grouped-line"></i>
-            <span>Dashboard & Reports</span>
-          </a>
-          <a href="#" class="nav-item" data-module="ai_forecasting">
-            <i class="ri-brain-line"></i>
-            <span>AI Demand & RAG Forecast</span>
-            <span class="badge badge-warning" style="font-size:10px; padding:2px 6px;">NVIDIA AI</span>
-          </a>
-          <a href="#" class="nav-item" data-module="access">
+          <a href="#" class="nav-item" data-module="privacy">
             <i class="ri-shield-user-line"></i>
-            <span>Access Control</span>
-          </a>
-          <a href="#" class="nav-item" data-module="audit">
-            <i class="ri-file-list-3-line"></i>
-            <span>Audit & Compliance Logs</span>
+            <span>Privacy & GDPR</span>
           </a>
         </nav>
-
       </div>
 
-      <!-- Quick Session Footer -->
+      <!-- User Profile Card in Sidebar Footer -->
       <div class="sidebar-footer">
-        <div class="store-status">
-          <span class="status-indicator online"></span>
-          <span>Register #01 — Active</span>
+        <div class="sidebar-user-card" id="sidebar-user-card">
+          <div class="avatar" id="sidebar-user-avatar">RA</div>
+          <div class="sidebar-user-info">
+            <span class="sidebar-user-name" id="sidebar-user-name">Ravenhill Admin</span>
+            <span class="sidebar-user-role" id="sidebar-user-role">System Admin</span>
+          </div>
+          <button class="icon-btn-sm" onclick="logout()" title="Logout" aria-label="Logout user session">
+            <i class="ri-logout-box-r-line"></i>
+          </button>
         </div>
-        <div class="system-time" id="live-clock">10:42 AM • 06 Aug 2026</div>
       </div>
     </aside>
 
-    <!-- Main Content Shell -->
-    <main class="main-wrapper" id="main-content" role="main">
-      
+    <!-- Main Application Viewport -->
+    <main class="main-viewport" id="main-viewport">
       <!-- Top Navigation & Role Bar -->
       <header class="topbar" role="banner">
         <div class="topbar-left">
@@ -625,12 +622,6 @@ $csrfToken = getCSRFToken();
         </div>
 
         <div class="topbar-right">
-          <!-- Return to Dedicated Brand Landing Page -->
-          <button type="button" class="btn-return-landing" onclick="window.showLandingView ? window.showLandingView() : window.switchModule('landing')" title="Back to Dedicated Brand Landing Page">
-            <i class="ri-home-4-line"></i>
-            <span>Home</span>
-          </button>
-
           <!-- Quick Search -->
           <div class="global-search-box">
             <i class="ri-search-line" aria-hidden="true"></i>
@@ -833,6 +824,11 @@ $csrfToken = getCSRFToken();
           <textarea id="customiser-item-notes" class="form-textarea" placeholder="E.g., Extra hot, sauce on the side, nut allergy..."></textarea>
         </div>
 
+        <!-- Validation Notice Banner -->
+        <div id="customiser-validation-msg" class="customiser-validation-banner hidden">
+          <i class="ri-information-line"></i>
+          <span id="customiser-validation-text">Please select one milk option to continue.</span>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -1297,48 +1293,64 @@ $csrfToken = getCSRFToken();
       </div>
       <div class="role-select-body">
         <h3>Account Login</h3>
-        <p style="font-size:13px; color:var(--color-cream-muted); margin-bottom:16px;">Enter your credentials to access your dashboard.</p>
+        <p style="font-size:13px; color:var(--color-cream-muted); margin-bottom:16px;">Select your role and enter credentials to access your portal.</p>
         
-        <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-weight:600; margin-bottom:6px; display:block;">Username or Email</label>
-          <input type="text" id="role-username-input" class="form-input" placeholder="e.g. admin or john@email.com" onkeydown="if(event.key==='Enter'){ document.getElementById('role-password-input').focus(); }" style="width:100%; padding:12px 14px; font-size:15px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream);" />
-        </div>
-
-        <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-weight:600; margin-bottom:6px; display:block;">Password</label>
-          <div style="position:relative; display:flex; align-items:center;">
-            <input 
-              type="password" 
-              id="role-password-input" 
-              class="form-input" 
-              placeholder="Enter your password"
-              onkeydown="if(event.key==='Enter'){ confirmRoleSelection(); }"
-              style="padding-right:44px; font-size:16px; font-weight:700; border-radius:10px; background:var(--bg-canvas);"
-            />
-            <button 
-              type="button" 
-              onclick="togglePasswordVisibility()"
-              style="position:absolute; right:12px; background:none; border:none; color:var(--color-cream-muted); cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;"
-              title="Toggle password visibility"
-            >
-              <i class="ri-eye-off-line" id="toggle-pass-icon"></i>
-            </button>
+        <form id="role-login-form" onsubmit="event.preventDefault(); window.confirmRoleLogin();">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="role-popup-select" style="font-weight:600; margin-bottom:6px; display:block; font-size:13px;">Select Portal / Role</label>
+            <select id="role-popup-select" class="form-select" onchange="window.handleRoleModalSelectChange(this.value)" style="width:100%; padding:11px 14px; font-size:14px; font-weight:600; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream); cursor:pointer;">
+              <option value="admin">⚡ Admin (Full Control & Analytics)</option>
+              <option value="manager">📊 Manager (Operations & Staff)</option>
+              <option value="cashier">💳 Cashier (POS & Sales)</option>
+              <option value="barista">☕ Barista (Beverages KDS)</option>
+              <option value="kitchen">🍳 Kitchen Staff (Food KDS)</option>
+              <option value="waitstaff">🤵 Wait Staff (Table Service)</option>
+              <option value="customer">👤 Customer (Storefront & Order)</option>
+            </select>
           </div>
-          <div class="demo-pass-hint" style="font-size:12px; color:var(--color-accent-gold); margin-top:8px; display:flex; align-items:center; gap:6px; background:rgba(217, 119, 6, 0.12); padding:8px 12px; border-radius:8px; border:1px solid rgba(217, 119, 6, 0.3);">
-            <i class="ri-information-fill"></i> Quick Logins: <strong>admin/admin</strong>, <strong>manager/manager</strong>, <strong>cashier/cashier</strong>, <strong>barista/barista</strong>, <strong>kitchen/kitchen</strong>, <strong>waiter/waiter</strong>, <strong>customer/customer</strong>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="role-username-input" style="font-weight:600; margin-bottom:6px; display:block; font-size:13px;">Username or Email</label>
+            <input type="text" id="role-username-input" class="form-input" placeholder="e.g. admin or admin@ravenhill.au" autocomplete="username" style="width:100%; padding:11px 14px; font-size:14px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--color-border); color:var(--color-cream);" />
           </div>
-        </div>
 
-        <div id="role-pass-error" class="error-msg hidden" style="color:var(--color-danger); font-size:13px; margin-bottom:16px; padding:8px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.2);">
-          Invalid username or password.
-        </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="role-password-input" style="font-weight:600; margin-bottom:6px; display:block; font-size:13px;">Password</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input 
+                type="password" 
+                id="role-password-input" 
+                class="form-input" 
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                style="padding-right:44px; font-size:15px; font-weight:600; border-radius:10px; background:var(--bg-canvas); width:100%;"
+              />
+              <button 
+                type="button" 
+                onclick="togglePasswordVisibility()"
+                style="position:absolute; right:12px; background:none; border:none; color:var(--color-cream-muted); cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;"
+                title="Toggle password visibility"
+                aria-label="Toggle password visibility"
+              >
+                <i class="ri-eye-off-line" id="toggle-pass-icon"></i>
+              </button>
+            </div>
+            <div class="demo-pass-hint" style="font-size:12px; color:var(--color-accent-gold); margin-top:8px; display:flex; align-items:center; gap:6px; background:rgba(217, 119, 6, 0.12); padding:8px 12px; border-radius:8px; border:1px solid rgba(217, 119, 6, 0.3);">
+              <i class="ri-information-fill"></i> Quick Logins: <strong>admin/admin</strong>, <strong>manager/manager</strong>, <strong>cashier/cashier</strong>, <strong>barista/barista</strong>, <strong>kitchen/kitchen</strong>, <strong>waiter/waiter</strong>, <strong>customer/customer</strong>
+            </div>
+          </div>
 
-        <button type="button" class="btn btn-primary" id="confirm-role-login-btn" onclick="confirmRoleSelection()" style="width:100%; padding:14px; font-size:16px; justify-content:center; margin-bottom: 12px;">
-          <i class="ri-login-circle-line"></i> Secure Login
-        </button>
-        <button type="button" class="btn btn-outline" onclick="openRegisterCustomerModal()" style="width:100%; padding:14px; font-size:16px; justify-content:center;">
-          <i class="ri-user-add-line"></i> Create Customer Account
-        </button>
+          <div id="role-pass-error" class="error-msg hidden" role="alert" style="color:var(--color-danger); font-size:13px; margin-bottom:14px; padding:10px 12px; background:rgba(239, 68, 68, 0.12); border-radius:8px; border:1px solid rgba(239, 68, 68, 0.3);">
+            Invalid username or password.
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="confirm-role-login-btn" onclick="window.confirmRoleLogin()" style="width:100%; padding:14px; font-size:16px; justify-content:center; margin-bottom: 12px;">
+            <i class="ri-login-circle-line"></i> Secure Login
+          </button>
+          <button type="button" class="btn btn-outline" onclick="openRegisterCustomerModal()" style="width:100%; padding:14px; font-size:15px; justify-content:center;">
+            <i class="ri-user-add-line"></i> Create Customer Account
+          </button>
+        </form>
       </div>
     </div>
   </div>

@@ -10,14 +10,17 @@ require_once __DIR__ . '/../utils/response.php';
 
 function startSecureSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // NFR13: Secure cookie parameters
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+
         $cookieParams = [
-            'lifetime' => 1800, // 30 minutes
+            'lifetime' => 86400, // 24 hours
             'path'     => '/',
             'domain'   => '',
-            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+            'secure'   => $isHttps,
             'httponly' => true, // Protect from XSS cookie theft
-            'samesite' => 'Strict' // Protect from CSRF
+            'samesite' => 'Lax' // Protect from CSRF while supporting page reloads
         ];
         session_set_cookie_params($cookieParams);
         session_start();

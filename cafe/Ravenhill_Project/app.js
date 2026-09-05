@@ -181,10 +181,26 @@ const API = {
   },
   async fetchAuditLogs() {
     try {
-      const res = await fetch(`${API_BASE}/reports/audit.php`);
+      const res = await fetch(`${API_BASE}/reports/audit.php`, { credentials: 'same-origin' });
       const data = await res.json();
-      return data.success ? data.data : null;
-    } catch { return null; }
+      if (!data || !data.success || !data.data) return [];
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data.data.logs)) return data.data.logs;
+      return [];
+    } catch(e) {
+      console.warn('Audit logs fetch error:', e);
+      return [];
+    }
+  },
+  async fetchReports(type = 'sales', period = 'this_month') {
+    try {
+      const res = await fetch(`${API_BASE}/reports/reports.php?type=${encodeURIComponent(type)}&period=${encodeURIComponent(period)}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      return (data && data.success && data.data) ? data.data : null;
+    } catch(e) {
+      console.warn('Reports fetch error:', e);
+      return null;
+    }
   },
     async createPayPalOrder(orderId, amount) {
     try {
@@ -380,18 +396,45 @@ const API = {
       return await res.json();
     } catch { return null; }
   },
-  async fetchDiscounts() {
+  async fetchDiscounts(filters = {}) {
     try {
-      const res = await fetch(`${API_BASE}/discounts/discounts.php`);
+      const q = new URLSearchParams(filters).toString();
+      const res = await fetch(`${API_BASE}/discounts/discounts.php${q ? '?' + q : ''}`, { credentials: 'same-origin' });
       const data = await res.json();
       return data.success ? data.data : null;
     } catch { return null; }
   },
-  async addDiscount(discData) {
+  async fetchDiscountsAnalytics() {
+    try {
+      const res = await fetch(`${API_BASE}/discounts/discounts.php?action=analytics`, { credentials: 'same-origin' });
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch { return null; }
+  },
+  async fetchBannerPromo() {
+    try {
+      const res = await fetch(`${API_BASE}/discounts/discounts.php?action=banner`, { credentials: 'same-origin' });
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch { return null; }
+  },
+  async createDiscount(discData) {
     try {
       const res = await fetch(`${API_BASE}/discounts/discounts.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(discData)
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async updateDiscount(id, discData) {
+    try {
+      const res = await fetch(`${API_BASE}/discounts/discounts.php?id=${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(discData)
       });
       return await res.json();
@@ -400,7 +443,19 @@ const API = {
   async deleteDiscount(id) {
     try {
       const res = await fetch(`${API_BASE}/discounts/discounts.php?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'same-origin'
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async validateDiscount(payload) {
+    try {
+      const res = await fetch(`${API_BASE}/discounts/discounts.php?action=validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
       });
       return await res.json();
     } catch { return null; }
@@ -571,7 +626,10 @@ const defaultPermissions = {
     feedback: true,
     dashboard: true,
     access: true,
-    audit: true
+    audit: true,
+    reports: true,
+    ai_forecast: true,
+    ai_forecasting: true
   },
   manager: {
     pos: true,
@@ -590,7 +648,10 @@ const defaultPermissions = {
     feedback: true,
     dashboard: true,
     access: false,
-    audit: true
+    audit: true,
+    reports: true,
+    ai_forecast: true,
+    ai_forecasting: true
   },
   cashier: {
     pos: true,
@@ -1016,18 +1077,45 @@ function initApp() {
   setupLiveClock();
   setupKeyboardShortcuts();
 
-  // Set default role
-  if (!AppState.activeRole) {
-    AppState.activeRole = 'customer';
-    AppState.activeModule = 'landing';
-  }
+  // Set default role & restore authenticated session if exists
+  const savedRole = localStorage.getItem('RAVENHILL_USER_ROLE');
+  const savedAuth = localStorage.getItem('RAVENHILL_AUTH_SAVED');
+  const savedUserStr = localStorage.getItem('RAVENHILL_AUTH_USER');
+  let savedUser = null;
+  try { if (savedUserStr) savedUser = JSON.parse(savedUserStr); } catch(e) {}
 
-  // Default entry: Show the dedicated separate brand landing page
-  const hash = window.location.hash;
-  if (hash === '#pos' || hash === '#kds' || hash === '#admin' || hash === '#dashboard') {
-    window.showAppView(hash.replace('#', ''));
+  if (savedAuth === 'true' && savedRole) {
+    AppState.isAuthenticated = true;
+    AppState.activeRole = savedRole;
+    if (savedUser) AppState.currentUser = savedUser;
+
+    applyRoleToUI(savedRole);
+    applyRolePermissionsUI();
+
+    let targetMod = 'pos';
+    if (savedRole === 'admin' || savedRole === 'manager') targetMod = 'dashboard';
+    else if (savedRole === 'barista' || savedRole === 'kitchen') targetMod = 'kds';
+    else if (savedRole === 'waitstaff') targetMod = 'waitstaff';
+    else if (savedRole === 'customer') targetMod = 'pos';
+
+    const hash = window.location.hash;
+    if (hash && hash.length > 1) {
+      window.showAppView(hash.replace('#', ''));
+    } else {
+      window.showAppView(targetMod);
+    }
   } else {
-    window.showLandingView();
+    // Visitor / Guest landing page
+    if (!AppState.activeRole) {
+      AppState.activeRole = 'customer';
+      AppState.activeModule = 'landing';
+    }
+    const hash = window.location.hash;
+    if (hash === '#pos' || hash === '#kds' || hash === '#admin' || hash === '#dashboard') {
+      window.showAppView(hash.replace('#', ''));
+    } else {
+      window.showLandingView();
+    }
   }
 
   updateKDSBadge();
@@ -1047,15 +1135,21 @@ window.openLoginModal = function(targetRole) {
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
+  const desiredRole = targetRole || AppState.activeRole || 'admin';
+
   if (userRoleSelect) {
-    userRoleSelect.value = targetRole || AppState.activeRole || 'cashier';
+    userRoleSelect.value = desiredRole;
   }
 
   if (userInput) {
-    if (!userInput.value) {
-      if (targetRole === 'admin') userInput.value = 'admin';
-      else if (targetRole === 'cashier') userInput.value = 'slin';
-    }
+    if (desiredRole === 'admin') userInput.value = 'admin';
+    else if (desiredRole === 'manager') userInput.value = 'manager';
+    else if (desiredRole === 'cashier') userInput.value = 'cashier';
+    else if (desiredRole === 'barista') userInput.value = 'barista';
+    else if (desiredRole === 'kitchen') userInput.value = 'kitchen';
+    else if (desiredRole === 'waitstaff') userInput.value = 'waiter';
+    else if (desiredRole === 'customer') userInput.value = 'customer';
+    else userInput.value = '';
   }
 
   if (passInput) {
@@ -1069,6 +1163,32 @@ window.openLoginModal = function(targetRole) {
   if (errorMsg) errorMsg.classList.add('hidden');
 
   if (modal) modal.classList.remove('hidden');
+
+  setTimeout(() => {
+    if (passInput) passInput.focus();
+  }, 100);
+};
+
+window.handleRoleModalSelectChange = function(newRole) {
+  const userInput = document.getElementById('role-username-input');
+  const passInput = document.getElementById('role-password-input');
+  const errorMsg = document.getElementById('role-pass-error');
+  if (errorMsg) errorMsg.classList.add('hidden');
+
+  if (userInput) {
+    if (newRole === 'admin') userInput.value = 'admin';
+    else if (newRole === 'manager') userInput.value = 'manager';
+    else if (newRole === 'cashier') userInput.value = 'cashier';
+    else if (newRole === 'barista') userInput.value = 'barista';
+    else if (newRole === 'kitchen') userInput.value = 'kitchen';
+    else if (newRole === 'waitstaff') userInput.value = 'waiter';
+    else if (newRole === 'customer') userInput.value = 'customer';
+    else userInput.value = '';
+  }
+  if (passInput) {
+    passInput.value = '';
+    passInput.focus();
+  }
 };
 
 window.togglePasswordVisibility = function() {
@@ -1208,13 +1328,14 @@ window.applyRolePermissionsUI = function() {
   }
 };
 
-window.confirmRoleSelection = async function() {
-  const userInp = document.getElementById('role-username-input');
+window.confirmRoleLogin = async function() {
+  const userRoleSelect = document.getElementById('role-popup-select');
+  const userInput = document.getElementById('role-username-input');
   const passInput = document.getElementById('role-password-input');
   const errorMsg = document.getElementById('role-pass-error');
 
-  const username = userInp ? userInp.value.trim() : '';
-  const password = passInput ? passInput.value.trim() : '';
+  const username = userInput ? userInput.value.trim() : '';
+  const password = passInput ? passInput.value : '';
 
   if (!username || !password) {
     if (errorMsg) {
@@ -1224,31 +1345,48 @@ window.confirmRoleSelection = async function() {
     return;
   }
   
+  const btn = document.getElementById('confirm-role-login-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Authenticating...';
+  }
+  if (errorMsg) errorMsg.classList.add('hidden');
+  
   try {
-    const btn = document.getElementById('confirm-role-login-btn');
-    if (btn) btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Logging in...';
-    
     const res = await fetch(`${API_BASE}/users/login.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error('Server returned an unreadable response. Please check server logs.');
+    }
     
-    if (btn) btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
+    }
     
-    if (data.success) {
+    if (data && data.success && data.data) {
       if (errorMsg) errorMsg.classList.add('hidden');
 
       AppState.isAuthenticated = true;
-      const role = data.data.role.toLowerCase();
+      const role = (data.data.role || 'customer').toLowerCase();
       AppState.activeRole = role;
-      
-      // Store user details in AppState
       AppState.currentUser = data.data;
+
+      localStorage.setItem('RAVENHILL_USER_ROLE', role);
+      localStorage.setItem('RAVENHILL_AUTH_SAVED', 'true');
+      localStorage.setItem('RAVENHILL_AUTH_USER', JSON.stringify(data.data));
 
       applyRoleToUI(role);
       applyRolePermissionsUI();
+      if (window.updateLandingNavbarAuth) window.updateLandingNavbarAuth();
 
       const modal = document.getElementById('role-select-modal');
       if (modal) modal.classList.add('hidden');
@@ -1270,19 +1408,24 @@ window.confirmRoleSelection = async function() {
       
     } else {
       if (errorMsg) {
-        errorMsg.textContent = data.message || 'Invalid username or password.';
+        errorMsg.textContent = (data && data.message) ? data.message : 'Invalid username/email or password.';
         errorMsg.classList.remove('hidden');
       }
     }
   } catch (err) {
-    const btn = document.getElementById('confirm-role-login-btn');
-    if (btn) btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
+    console.error('Login error:', err);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ri-login-circle-line"></i> Secure Login';
+    }
     if (errorMsg) {
-      errorMsg.textContent = 'Server error. Please try again later.';
+      errorMsg.textContent = 'Connection error. Please check your network and try again.';
       errorMsg.classList.remove('hidden');
     }
   }
 };
+
+window.confirmRoleSelection = window.confirmRoleLogin;
 
 window.logout = async function() {
   try {
@@ -1293,6 +1436,8 @@ window.logout = async function() {
   AppState.activeRole = 'customer';
   AppState.currentUser = null;
   localStorage.removeItem('RAVENHILL_USER_ROLE');
+  localStorage.removeItem('RAVENHILL_AUTH_SAVED');
+  localStorage.removeItem('RAVENHILL_AUTH_USER');
   
   // Close any open modals
   const roleModal = document.getElementById('role-select-modal');
@@ -1301,43 +1446,41 @@ window.logout = async function() {
   if (loginModal) loginModal.classList.add('hidden');
 
   showToast('Logged out successfully.', 'info');
+  if (window.updateLandingNavbarAuth) window.updateLandingNavbarAuth();
   window.showLandingView();
 };
 
 window.initSession = async function() {
   try {
-    const res = await fetch(`${API_BASE}/users/me.php`);
+    const res = await fetch(`${API_BASE}/users/me.php`, {
+      credentials: 'same-origin'
+    });
     const data = await res.json();
-    if (data.success && data.data) {
+    if (data && data.success && data.data) {
       AppState.isAuthenticated = true;
       const role = data.data.role.toLowerCase();
       AppState.activeRole = role;
       AppState.currentUser = data.data;
-      
+
+      localStorage.setItem('RAVENHILL_USER_ROLE', role);
+      localStorage.setItem('RAVENHILL_AUTH_SAVED', 'true');
+      localStorage.setItem('RAVENHILL_AUTH_USER', JSON.stringify(data.data));
+
       applyRoleToUI(role);
       applyRolePermissionsUI();
+      if (window.updateLandingNavbarAuth) window.updateLandingNavbarAuth();
       
-      // Module routing is handled by initApp if already authenticated,
-      // but if page is reloaded on landing, redirect to appropriate role dashboard
-      let targetMod = 'pos';
-      if (role === 'admin' || role === 'manager') {
-        targetMod = 'dashboard';
-      } else if (role === 'barista' || role === 'kitchen') {
-        targetMod = 'kds';
-      } else if (role === 'waitstaff') {
-        targetMod = 'waitstaff';
-      } else if (role === 'customer') {
-        targetMod = 'pos';
-      }
-
       const landing = document.getElementById('landing-page-view');
-      if (landing && !landing.classList.contains('hidden')) {
-        window.showAppView(targetMod);
-      } else {
-        window.switchModule(targetMod);
+      if (!landing || landing.classList.contains('hidden')) {
+        let targetMod = 'pos';
+        if (role === 'admin' || role === 'manager') targetMod = 'dashboard';
+        else if (role === 'barista' || role === 'kitchen') targetMod = 'kds';
+        else if (role === 'waitstaff') targetMod = 'waitstaff';
+        else if (role === 'customer') targetMod = 'pos';
+        if (!AppState.activeModule || AppState.activeModule === 'landing') {
+          window.switchModule(targetMod);
+        }
       }
-    } else {
-      AppState.isAuthenticated = false;
     }
   } catch(e) {
     console.warn("Session check failed", e);
@@ -1936,9 +2079,11 @@ function switchModule(moduleKey) {
     employees: { title: 'Staff & Attendance Management', sub: 'Staff roster & clock-in timesheet simulator' },
     feedback: { title: 'Customer Feedback', sub: 'Customer reviews & service rating dashboard' },
     dashboard: { title: 'Dashboard & Reports', sub: 'Executive overview, sales revenue & shop performance' },
+    reports: { title: 'Reports & Audits', sub: 'Comprehensive financial statements, product performance & security audit trail' },
+    audit: { title: 'Audit Trail & Compliance Logs', sub: 'Activity logging, security actions & inventory changes' },
+    ai_forecast: { title: 'AI Demand Forecasting & RAG Intelligence', sub: 'NVIDIA Nemotron 3 Ultra predictive stock requirements & holiday demand analytics' },
     ai_forecasting: { title: 'AI Demand Forecasting & RAG Intelligence', sub: 'NVIDIA Nemotron 3 Ultra predictive stock requirements & holiday demand analytics' },
-    access: { title: 'User & Access Management', sub: 'Role permissions matrix & staff privileges' },
-    audit: { title: 'Audit Trail & Compliance Logs', sub: 'Activity logging, security actions & inventory changes' }
+    access: { title: 'User & Access Management', sub: 'Role permissions matrix & staff privileges' }
   };
 
   const info = titleMap[moduleKey] || { title: 'Ravenhill Coffee Roasters', sub: 'Melbourne CBD Specialty Café' };
@@ -2070,6 +2215,22 @@ function renderCurrentModule() {
     : (defaultPermissions[role] || {});
   const modKey = AppState.activeModule;
 
+  // Unauthenticated users cannot access Admin modules
+  const adminOnlyModules = ['dashboard', 'access', 'audit', 'reports', 'ai_forecasting', 'ai_forecast', 'employees'];
+  if (!AppState.isAuthenticated && adminOnlyModules.includes(modKey)) {
+    const modNames = {
+      dashboard: 'Admin Dashboard & Reports',
+      reports: 'Reports & Audits',
+      access: 'User & Access Management',
+      audit: 'Audit Trail & Compliance Logs',
+      ai_forecast: 'AI Demand Forecasting & RAG Intelligence',
+      ai_forecasting: 'AI Demand Forecasting & RAG Intelligence',
+      employees: 'Staff & Attendance Management'
+    };
+    renderAccessRestrictedNotice(container, modNames[modKey] || 'Admin Module', 'Authentication required. You must log in with an authorized Administrator account to view this section.');
+    return;
+  }
+
   // Access Control is ONLY visible and accessible to Admin
   if (modKey === 'access' && role !== 'admin') {
     renderAccessRestrictedNotice(container, 'Access Control', 'Only Administrators have permission to view and edit the Role Access Permissions Matrix.');
@@ -2090,7 +2251,11 @@ function renderCurrentModule() {
       customers: 'Customers & Loyalty',
       employees: 'Staff & Attendance',
       feedback: 'Customer Feedback',
-      dashboard: 'Dashboard & Reports'
+      dashboard: 'Dashboard & Reports',
+      reports: 'Reports & Audits',
+      audit: 'Audit Trail & Compliance Logs',
+      ai_forecast: 'AI Demand Forecasting & RAG Intelligence',
+      ai_forecasting: 'AI Demand Forecasting & RAG Intelligence'
     };
     renderAccessRestrictedNotice(container, modTitles[modKey] || modKey, `Your role (${role.toUpperCase()}) is restricted from accessing this module based on the Role Access Permissions Matrix.`);
     return;
@@ -2145,14 +2310,16 @@ function renderCurrentModule() {
     case 'dashboard':
       renderDashboardView(container);
       break;
+    case 'ai_forecast':
     case 'ai_forecasting':
       renderAIForecastingView(container);
       break;
     case 'access':
       renderAccessView(container);
       break;
+    case 'reports':
     case 'audit':
-      renderAuditView(container);
+      renderReportsAndAuditsView(container);
       break;
     default:
       renderPOSView(container);
@@ -2255,11 +2422,21 @@ function renderPOSView(container) {
       </div>`;
   } else {
     filteredItems.forEach(item => {
+      const promoInfo = window.getItemActiveDiscount ? window.getItemActiveDiscount(item) : null;
       const card = document.createElement('div');
       card.className = 'menu-card';
       const imgSrc = getItemImage(item);
+
+      let badgeHtml = item.badge ? `<span class="menu-card-badge">${item.badge}</span>` : '';
+      let priceHtml = `$${item.price.toFixed(2)}`;
+
+      if (promoInfo) {
+        badgeHtml = `<span class="product-promo-badge"><i class="ri-fire-fill"></i> SPECIAL ${promoInfo.percentText}</span>`;
+        priceHtml = `<span class="promo-strikethrough-price">$${item.price.toFixed(2)}</span><span class="promo-discounted-price">$${promoInfo.discountedPrice.toFixed(2)}</span>`;
+      }
+
       card.innerHTML = `
-        ${item.badge ? `<span class="menu-card-badge">${item.badge}</span>` : ''}
+        ${badgeHtml}
         <div class="menu-card-image">
           <img src="${imgSrc}" alt="${item.name}" loading="lazy">
         </div>
@@ -2268,7 +2445,7 @@ function renderPOSView(container) {
           <p>${item.desc}</p>
         </div>
         <div class="menu-card-bottom">
-          <span class="menu-card-price">$${item.price.toFixed(2)}</span>
+          <span class="menu-card-price">${priceHtml}</span>
           <button class="add-item-btn"><i class="ri-add-line"></i></button>
         </div>
       `;
@@ -2351,15 +2528,49 @@ function setupCartDrawerEvents() {
   // Apply Promo
   const applyPromoBtn = document.getElementById('apply-promo-btn');
   if (applyPromoBtn) {
-    applyPromoBtn.addEventListener('click', () => {
+    applyPromoBtn.addEventListener('click', async () => {
       const promoInput = document.getElementById('promo-code-input');
       const inputVal = promoInput ? promoInput.value.trim().toUpperCase() : '';
-      const match = DB.discounts.find(d => d.code === inputVal);
-      if (match) {
-        AppState.cart.promoCode = match;
+      if (!inputVal) {
+        showToast('Please enter a promotional code.', 'warning');
+        return;
+      }
+
+      const subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (i.totalPrice || 0), 0);
+      const items = (AppState.cart.items || []).map(i => ({
+        id: i.item.id || i.item.product_id,
+        category_id: i.item.catId || i.item.category_id,
+        price: i.unitPrice || i.item.price,
+        qty: i.qty || 1
+      }));
+
+      // Validate against server promotion engine
+      const res = await API.validateDiscount({ code: inputVal, subtotal, items });
+      if (res && res.success && res.data && res.data.is_valid) {
+        AppState.cart.promoCode = {
+          code: res.data.code,
+          name: res.data.name || res.data.code,
+          description: res.data.description,
+          type: res.data.promo_type,
+          discount_percentage: res.data.discount_percentage || 0,
+          fixed_amount: res.data.fixed_amount || 0,
+          val: res.data.deduction_amount,
+          deduction: res.data.deduction_amount,
+          formatted_saving: res.data.formatted_saving
+        };
         renderCartUI();
+        showToast(`Promo code applied successfully 🎉 (${res.data.formatted_saving})`, 'success');
       } else {
-        alert('Invalid promo code. Try "MELB10" or "COFFEELOVER"');
+        // Check local DB as fallback
+        const localMatch = (DB.discounts || []).find(d => d.code === inputVal);
+        if (localMatch && localMatch.is_active) {
+          AppState.cart.promoCode = localMatch;
+          renderCartUI();
+          showToast(`Promo code ${localMatch.code} applied successfully! 🎉`, 'success');
+        } else {
+          const errorMsg = (res && res.message) ? res.message : `Invalid promotional code "${inputVal}".`;
+          showToast(errorMsg, 'error');
+        }
       }
     });
   }
@@ -2368,7 +2579,10 @@ function setupCartDrawerEvents() {
   if (removePromoBtn) {
     removePromoBtn.addEventListener('click', () => {
       AppState.cart.promoCode = null;
+      const promoInput = document.getElementById('promo-code-input');
+      if (promoInput) promoInput.value = '';
       renderCartUI();
+      showToast('Promotional code removed.', 'info');
     });
   }
 
@@ -2482,21 +2696,94 @@ function renderCartUI() {
   const totalItemCount = (AppState.cart.items || []).reduce((acc, i) => acc + (i.qty || 1), 0);
   let subtotal = (AppState.cart.items || []).reduce((acc, i) => acc + (i.totalPrice || 0), 0);
   let discount = 0;
+  let promoTagText = '';
 
   if (AppState.cart.promoCode) {
     const promo = AppState.cart.promoCode;
-    if (promo.type === 'percent') {
-      discount = (subtotal * promo.val) / 100;
-    } else if (promo.type === 'fixed') {
-      discount = promo.val;
+    const percent = promo.discount_percentage || (promo.type === 'percent' || promo.type === 'percentage' ? promo.val : 0);
+    const fixed = promo.fixed_amount || (promo.type === 'fixed' || promo.type === 'fixed_amount' ? promo.val : 0);
+
+    if (promo.deduction) {
+      discount = promo.deduction;
+    } else if (percent > 0) {
+      discount = (subtotal * percent) / 100;
+    } else if (fixed > 0) {
+      discount = Math.min(subtotal, fixed);
+    } else if (promo.type === 'bogo') {
+      discount = subtotal * 0.25;
     }
-    const appliedTag = document.getElementById('applied-promo-tag');
-    const appliedName = document.getElementById('applied-promo-name');
-    if (appliedTag) appliedTag.classList.remove('hidden');
-    if (appliedName) appliedName.textContent = `${promo.code} (${promo.description})`;
+    promoTagText = `${promo.code} (${promo.name || promo.description || 'Promotional Voucher'})`;
+    AppState.cart.discount = discount;
+    AppState.cart.appliedPromoCode = promo.code;
   } else {
-    const appliedTag = document.getElementById('applied-promo-tag');
-    if (appliedTag) appliedTag.classList.add('hidden');
+    // Check eligible automatic promotions
+    let bestAutoDiscount = 0;
+    let bestAutoPromo = null;
+    const activeAutos = (DB.discounts || []).filter(d => d.is_active && d.is_automatic && (d.status === 'active' || !d.status));
+
+    for (const ap of activeAutos) {
+      const minSpend = parseFloat(ap.min_spend || 0);
+      if (subtotal < minSpend) continue;
+
+      let eligibleSubtotal = 0;
+      const scope = ap.applicable_scope || 'all';
+
+      if (scope === 'all') {
+        eligibleSubtotal = subtotal;
+      } else {
+        const prodIds = (ap.applicable_product_ids || []).map(String);
+        const catIds = (ap.applicable_category_ids || [ap.applicable_category_id]).map(String);
+
+        (AppState.cart.items || []).forEach(ci => {
+          const itId = String(ci.item.id || ci.item.product_id);
+          const cId = String(ci.item.catId || ci.item.category_id);
+          if (scope === 'products' && prodIds.includes(itId)) {
+            eligibleSubtotal += (ci.totalPrice || 0);
+          } else if (scope === 'categories' && catIds.includes(cId)) {
+            eligibleSubtotal += (ci.totalPrice || 0);
+          }
+        });
+      }
+
+      if (eligibleSubtotal > 0) {
+        let dVal = 0;
+        if (ap.type === 'percentage' || ap.discount_percentage > 0) {
+          dVal = (eligibleSubtotal * (ap.discount_percentage || 0)) / 100;
+        } else if (ap.type === 'fixed_amount' || ap.fixed_amount > 0) {
+          dVal = Math.min(eligibleSubtotal, ap.fixed_amount);
+        } else if (ap.type === 'bogo') {
+          dVal = eligibleSubtotal * 0.25;
+        }
+
+        if (dVal > bestAutoDiscount) {
+          bestAutoDiscount = dVal;
+          bestAutoPromo = ap;
+        }
+      }
+    }
+
+    if (bestAutoPromo && bestAutoDiscount > 0) {
+      discount = bestAutoDiscount;
+      promoTagText = `⚡ ${bestAutoPromo.name || bestAutoPromo.description || 'Automatic Promotion'}`;
+      AppState.cart.discount = discount;
+      AppState.cart.appliedPromoCode = bestAutoPromo.code;
+    } else {
+      AppState.cart.discount = 0;
+      AppState.cart.appliedPromoCode = null;
+    }
+  }
+
+  discount = Math.round(discount * 100) / 100;
+
+  const appliedTag = document.getElementById('applied-promo-tag');
+  const appliedName = document.getElementById('applied-promo-name');
+  if (appliedTag) {
+    if (discount > 0 && promoTagText) {
+      appliedTag.classList.remove('hidden');
+      if (appliedName) appliedName.textContent = promoTagText;
+    } else {
+      appliedTag.classList.add('hidden');
+    }
   }
 
   const finalTotal = Math.max(0, subtotal - discount);
@@ -2517,7 +2804,11 @@ function renderCartUI() {
       card.className = 'cart-item-card';
 
       const modPills = ci.customisations && ci.customisations.length > 0 
-        ? ci.customisations.map(c => `<span class="modifier-pill">${c.option_name}</span>`).join('') 
+        ? ci.customisations.map(c => {
+            const extra = parseFloat(c.extra_price || 0);
+            const extraTxt = extra > 0 ? ` +$${extra.toFixed(2)}` : '';
+            return `<span class="modifier-pill">${c.option_name}${extraTxt}</span>`;
+          }).join('') 
         : '';
 
       card.innerHTML = `
@@ -2770,14 +3061,24 @@ window.editCartItem = function(index) {
 let isAddingToCart = false;
 window.confirmAddToCart = function() {
   if (isAddingToCart) return;
-  isAddingToCart = true;
-  setTimeout(() => { isAddingToCart = false; }, 300);
 
   const modal = document.getElementById('customiser-modal');
   if (!AppState.modalItem) {
     if (modal) modal.classList.add('hidden');
     return;
   }
+
+  // Pre-validate required modifier sections before adding to cart
+  const unfulfilled = document.querySelectorAll('#dynamic-customiser-sections .customiser-section[data-required="true"].section-unfulfilled');
+  if (unfulfilled.length > 0) {
+    const firstMissing = unfulfilled[0].getAttribute('data-group-name') || 'required options';
+    showToast(`⚠️ Please make a selection for ${firstMissing} before adding to cart.`, 'error');
+    unfulfilled[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  isAddingToCart = true;
+  setTimeout(() => { isAddingToCart = false; }, 300);
 
   const customisations = [];
   document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
@@ -2873,6 +3174,33 @@ function getClientSideCustomisations(item) {
   const catId = String(item.category_id || item.catId || '1');
   const nameLower = (item.name || item.product_name || '').toLowerCase();
   const groups = {};
+
+  // Babycino Product-Specific Customisations (Children's treat)
+  if (nameLower.includes('babycino')) {
+    groups['Milk'] = [
+      { customisation_id: 'bc-m1', option_name: 'Full Cream Milk', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bc-m2', option_name: 'Skim Milk', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bc-m3', option_name: 'Almond Milk', extra_price: 0.80, is_default: false },
+      { customisation_id: 'bc-m4', option_name: 'Lactose Free Milk', extra_price: 0.80, is_default: false },
+      { customisation_id: 'bc-m5', option_name: 'Oat Milk', extra_price: 0.80, is_default: false },
+      { customisation_id: 'bc-m6', option_name: 'Soy Milk', extra_price: 0.80, is_default: false }
+    ];
+    groups['Size'] = [
+      { customisation_id: 'bc-s1', option_name: 'Standard / Regular', extra_price: 0.00, is_default: true },
+      { customisation_id: 'bc-s2', option_name: 'Large', extra_price: 0.80, is_default: false }
+    ];
+    groups['Flavours'] = [
+      { customisation_id: 'bc-f1', option_name: 'Caramel Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'bc-f2', option_name: 'Hazelnut Syrup', extra_price: 0.70, is_default: false },
+      { customisation_id: 'bc-f3', option_name: 'Vanilla Syrup', extra_price: 0.70, is_default: false }
+    ];
+    groups['Extras'] = [
+      { customisation_id: 'bc-e1', option_name: 'Extra Marshmallows (3 pcs)', extra_price: 0.60, is_default: false },
+      { customisation_id: 'bc-e2', option_name: 'Dust with Dark Cocoa', extra_price: 0.00, is_default: false },
+      { customisation_id: 'bc-e3', option_name: 'Dust with Cinnamon', extra_price: 0.00, is_default: false }
+    ];
+    return groups;
+  }
 
   const isCoffee = catId === '1' || nameLower.includes('latte') || nameLower.includes('cappuccino') || nameLower.includes('flat white') || nameLower.includes('espresso') || nameLower.includes('mocha') || nameLower.includes('long black') || nameLower.includes('piccolo') || nameLower.includes('macchiato');
   const isHotDrink = catId === '2' || nameLower.includes('chai') || nameLower.includes('chocolate') || nameLower.includes('matcha') || nameLower.includes('turmeric');
@@ -3163,6 +3491,92 @@ function getClientSideCustomisations(item) {
   return groups;
 }
 
+// Helper: Determine if a modifier group requires single-select (radio button) behavior
+function isSingleChoiceGroup(group) {
+  if (!group) return false;
+  const g = group.toLowerCase().trim();
+  const singleChoiceKeywords = [
+    'milk', 'milk choice', 'milk & dairy choice', 'milk on the side',
+    'cup size', 'size', 'cold size', 'size selection', 'pot size',
+    'espresso roast & origin', 'espresso roast', 'espresso strength', 'espresso strength & shots',
+    'liquid base', 'egg preparation style', 'bread & toast selection',
+    'bread choice', 'toasting preference', 'serving style', 'salad dressings',
+    'ice level', 'texture & sweetness'
+  ];
+  return singleChoiceKeywords.some(k => g === k || g.includes('milk') || g.includes('size'));
+}
+
+// Helper: Determine if a modifier group is mandatory / required for this product
+function isGroupRequiredForProduct(group, item) {
+  if (!group || !item) return false;
+  const g = group.toLowerCase().trim();
+  const nameLower = (item.name || item.product_name || '').toLowerCase();
+  const catId = String(item.category_id || item.catId || '1');
+
+  // Milk requirement
+  if (g.includes('milk')) {
+    // Espresso / Short Black / Long Black / Americano / Tea / Juices / Food do NOT require milk
+    if (nameLower.includes('espresso') || nameLower.includes('short black') || nameLower.includes('long black') || nameLower.includes('americano') || catId === '3' || catId === '7' || catId === '8' || catId === '9' || catId === '10' || catId === '11' || catId === '12' || catId === '13' || catId === '14') {
+      return false;
+    }
+    // Milky coffee, Babycino, Hot Chocolate, Chai, Matcha, Turmeric, Smoothies, Milkshakes REQUIRE milk
+    return true;
+  }
+
+  // Size requirement
+  if (g.includes('size')) {
+    return true;
+  }
+
+  // Bread choice requirement for breakfast/toasties/sandwiches
+  if (g.includes('bread') && (catId === '8' || catId === '9' || catId === '10')) {
+    return true;
+  }
+
+  // Egg style requirement
+  if (g.includes('egg') && catId === '8' && (nameLower.includes('egg') || nameLower.includes('benedict'))) {
+    return true;
+  }
+
+  return false;
+}
+
+// Helper: Product-specific modifier filtering rules
+function filterGroupsForProduct(groups, item) {
+  if (!groups || !item) return groups;
+  const nameLower = (item.name || item.product_name || '').toLowerCase();
+  const filtered = {};
+
+  for (const [group, options] of Object.entries(groups)) {
+    const g = group.toLowerCase().trim();
+
+    // Babycino: Children's frothed milk drink - suppress adult coffee shot & roast modifiers
+    if (nameLower.includes('babycino')) {
+      if (g.includes('coffee') || g.includes('espresso') || g.includes('shot') || g.includes('roast') || g.includes('strength')) {
+        continue;
+      }
+    }
+
+    // Espresso / Short Black: pure black espresso extraction - suppress milk
+    if (nameLower === 'espresso' || nameLower === 'espresso / short black' || nameLower === 'short black') {
+      if (g.includes('milk')) {
+        continue;
+      }
+    }
+
+    // Long Black: suppress compulsory milk choice
+    if (nameLower.includes('long black') || nameLower.includes('americano')) {
+      if (g === 'milk' || g === 'milk choice' || g === 'milk & dairy choice') {
+        continue;
+      }
+    }
+
+    filtered[group] = options;
+  }
+
+  return filtered;
+}
+
 async function openCustomiserModalAsync(item, editingData = null) {
   AppState.modalItem = item;
   document.getElementById('customiser-item-name').textContent = item.name || item.product_name;
@@ -3205,30 +3619,27 @@ async function openCustomiserModalAsync(item, editingData = null) {
     groupsToRender = getClientSideCustomisations(item);
   }
 
+  // Apply product-specific rule filters
+  groupsToRender = filterGroupsForProduct(groupsToRender, item);
+
   if (container) {
     container.innerHTML = '';
 
-    const singleChoiceGroups = [
-      'Cup Size', 'Size', 'Cold Size', 'Size Selection', 'Pot Size',
-      'Milk Choice', 'Milk & Dairy Choice', 'Milk on the Side',
-      'Espresso Roast & Origin', 'Espresso Strength', 'Espresso Strength & Shots',
-      'Liquid Base', 'Egg Preparation Style', 'Bread & Toast Selection',
-      'Bread Choice', 'Toasting Preference', 'Serving Style', 'Salad Dressings',
-      'Ice Level', 'Texture & Sweetness'
-    ];
-
     const groupIcons = {
-      'Cup Size': 'ri-cup-line',
-      'Size': 'ri-cup-line',
-      'Cold Size': 'ri-snow-line',
-      'Size Selection': 'ri-cup-line',
-      'Pot Size': 'ri-leaf-line',
+      'Milk': 'ri-drop-line',
       'Milk Choice': 'ri-drop-line',
       'Milk & Dairy Choice': 'ri-drop-line',
       'Milk on the Side': 'ri-drop-line',
+      'Size': 'ri-cup-line',
+      'Cup Size': 'ri-cup-line',
+      'Cold Size': 'ri-snow-line',
+      'Size Selection': 'ri-cup-line',
+      'Pot Size': 'ri-leaf-line',
+      'Coffee Modifiers': 'ri-flashlight-line',
       'Espresso Roast & Origin': 'ri-fire-line',
       'Espresso Strength & Shots': 'ri-flashlight-line',
       'Espresso Strength': 'ri-flashlight-line',
+      'Flavours': 'ri-heart-pulse-line',
       'Syrups & Flavours': 'ri-heart-pulse-line',
       'Temperature & Sweetener': 'ri-temp-hot-line',
       'Hot Drink Extras': 'ri-add-circle-line',
@@ -3257,17 +3668,27 @@ async function openCustomiserModalAsync(item, editingData = null) {
     };
 
     for (const [group, options] of Object.entries(groupsToRender)) {
-      const isSingle = singleChoiceGroups.includes(group);
+      const isSingle = isSingleChoiceGroup(group);
+      const isRequired = isGroupRequiredForProduct(group, item);
       const type = isSingle ? 'radio' : 'checkbox';
       const groupNameClean = group.replace(/[^a-zA-Z0-9]/g, '_');
-      const iconClass = groupIcons[group] || 'ri-checkbox-circle-line';
+      const iconClass = groupIcons[group] || (isSingle ? 'ri-radio-button-line' : 'ri-checkbox-circle-line');
       const isRemovalGroup = group.toLowerCase().includes('removal');
 
+      let badgeHtml = '';
+      if (isRequired) {
+        badgeHtml = `<span class="group-required-badge"><i class="ri-asterisk"></i> Required (Select 1)</span>`;
+      } else if (isSingle) {
+        badgeHtml = `<span class="group-optional-badge">(Select 1)</span>`;
+      } else {
+        badgeHtml = `<span class="group-optional-badge">(Optional)</span>`;
+      }
+
       let html = `
-        <div class="customiser-section">
-          <label class="section-label" style="display:flex; align-items:center; gap:6px; font-weight:700; color:var(--color-primary-light);">
-            <i class="${iconClass}"></i> <span>${group}</span>
-            ${isSingle ? '<span style="font-size:10px; color:var(--color-cream-muted); font-weight:normal; margin-left:auto;">(Select 1)</span>' : '<span style="font-size:10px; color:var(--color-cream-muted); font-weight:normal; margin-left:auto;">(Optional)</span>'}
+        <div class="customiser-section" data-required="${isRequired ? 'true' : 'false'}" data-group-name="${group}" data-group-type="${isSingle ? 'single' : 'multi'}">
+          <label class="section-label" style="display:flex; align-items:center; gap:8px; font-weight:700; color:var(--color-primary-light); margin-bottom:8px;">
+            <i class="${iconClass}"></i> <span>${group.toUpperCase()}${isRequired ? ' *' : ''}</span>
+            ${badgeHtml}
           </label>
           <div class="checkbox-options-grid">
       `;
@@ -3285,14 +3706,31 @@ async function openCustomiserModalAsync(item, editingData = null) {
 
         let isChecked = false;
         if (editingData && editingData.customisations && editingData.customisations.length > 0) {
-          isChecked = editingData.customisations.some(c => (c.customisation_id && c.customisation_id === opt.customisation_id) || (c.option_name && c.option_name === opt.option_name));
+          isChecked = editingData.customisations.some(c => 
+            (c.customisation_id && String(c.customisation_id) === String(opt.customisation_id)) || 
+            (c.option_name && c.option_name.toLowerCase() === opt.option_name.toLowerCase())
+          );
         } else {
-          isChecked = opt.is_default || (isSingle && optIdx === 0 && !options.some(o => o.is_default));
+          const gLower = group.toLowerCase().trim();
+          if (gLower.includes('milk')) {
+            // Requirement 3: DO NOT PRESELECT MULTIPLE MILKS - all milks start unselected
+            isChecked = false;
+          } else if (isSingle && gLower.includes('size')) {
+            // Requirement 5: Size is single select. Default size Standard/Regular is preselected
+            isChecked = opt.is_default || (optIdx === 0 && !options.some(o => o.is_default));
+          } else if (isSingle && (gLower.includes('bread') || gLower.includes('egg') || gLower.includes('roast') || gLower.includes('ice'))) {
+            isChecked = opt.is_default || (optIdx === 0 && !options.some(o => o.is_default));
+          } else {
+            // Requirement 4: Optional Modifiers MUST start UNSELECTED
+            isChecked = false;
+          }
         }
+
+        const inputName = isSingle ? `customiser_group_${groupNameClean}` : `customiser_opt_${groupNameClean}_${opt.customisation_id || opt.option_name.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
         html += `
           <label class="checkbox-card ${isRemovalGroup ? 'removal-card' : ''}" style="cursor:pointer;">
-            <input type="${type}" name="group_${groupNameClean}" 
+            <input type="${type}" name="${inputName}" 
                    value="${opt.customisation_id || opt.option_name}" 
                    data-id="${opt.customisation_id || opt.option_name}"
                    data-group="${group}"
@@ -3328,10 +3766,81 @@ function recalculateCustomiserPrice() {
   const calcEl = document.getElementById('customiser-calculated-price');
   if (calcEl) calcEl.textContent = `$${total.toFixed(2)}`;
 
+  validateCustomiserState(total);
+}
+
+function validateCustomiserState(currentTotal = null) {
+  if (!AppState.modalItem) return;
+  const item = AppState.modalItem;
+  const sections = document.querySelectorAll('#dynamic-customiser-sections .customiser-section');
   const confirmBtn = document.getElementById('add-to-cart-confirm-btn');
-  if (confirmBtn) {
-    const isEdit = AppState.editingCartIndex !== null && AppState.editingCartIndex !== undefined;
-    confirmBtn.innerHTML = `${isEdit ? '<i class="ri-check-line"></i> Update Item' : '<i class="ri-shopping-cart-2-line"></i> Add to Cart'} • <span id="customiser-calculated-price">$${total.toFixed(2)}</span>`;
+  const validationBanner = document.getElementById('customiser-validation-msg');
+  const validationText = document.getElementById('customiser-validation-text');
+
+  let missingRequiredGroup = null;
+
+  sections.forEach(sec => {
+    const isReq = sec.getAttribute('data-required') === 'true';
+    const groupName = sec.getAttribute('data-group-name') || '';
+    if (isReq) {
+      const checkedInSec = sec.querySelectorAll('input:checked');
+      if (checkedInSec.length === 0) {
+        sec.classList.add('section-unfulfilled');
+        if (!missingRequiredGroup) {
+          missingRequiredGroup = groupName;
+        }
+      } else {
+        sec.classList.remove('section-unfulfilled');
+      }
+    }
+  });
+
+  const isEdit = AppState.editingCartIndex !== null && AppState.editingCartIndex !== undefined;
+  
+  if (missingRequiredGroup) {
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      const gLower = missingRequiredGroup.toLowerCase();
+      if (gLower.includes('milk')) {
+        confirmBtn.innerHTML = `<i class="ri-lock-line"></i> Please select 1 Milk option`;
+      } else if (gLower.includes('size')) {
+        confirmBtn.innerHTML = `<i class="ri-lock-line"></i> Please select 1 Size option`;
+      } else {
+        confirmBtn.innerHTML = `<i class="ri-lock-line"></i> Select required options to continue`;
+      }
+    }
+
+    if (validationBanner && validationText) {
+      validationBanner.classList.remove('hidden');
+      const gLower = missingRequiredGroup.toLowerCase();
+      if (gLower.includes('milk')) {
+        validationText.textContent = "Please select one milk option to continue.";
+      } else if (gLower.includes('size')) {
+        validationText.textContent = "Please select a size option to continue.";
+      } else {
+        validationText.textContent = `Please select a required option for ${missingRequiredGroup} to continue.`;
+      }
+    }
+  } else {
+    // All required satisfied
+    let total = currentTotal;
+    if (total === null) {
+      let base = parseFloat(item.price || item.unit_price || 0);
+      document.querySelectorAll('#dynamic-customiser-sections input:checked').forEach(input => {
+        base += parseFloat(input.getAttribute('data-extra') || 0);
+      });
+      const qty = parseInt(document.getElementById('customiser-qty')?.textContent || '1');
+      total = base * qty;
+    }
+
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `${isEdit ? '<i class="ri-check-line"></i> Update Item' : '<i class="ri-shopping-cart-2-line"></i> Add to Cart'} • <span id="customiser-calculated-price">$${total.toFixed(2)}</span>`;
+    }
+
+    if (validationBanner) {
+      validationBanner.classList.add('hidden');
+    }
   }
 }
 
@@ -3703,12 +4212,16 @@ function completePaymentProcess() {
     id: AppState.cart.orderId,
     orderId: AppState.cart.orderId,
     type: AppState.cart.orderType,
+    order_type: AppState.cart.orderType === 'dine_in' ? 'dine-in' : (AppState.cart.orderType === 'takeaway' ? 'takeaway' : 'pickup'),
     tableId: AppState.cart.orderType === 'dine_in' ? AppState.cart.tableId : null,
+    table_number: AppState.cart.orderType === 'dine_in' ? AppState.cart.tableId : null,
     customerName: AppState.cart.customer ? AppState.cart.customer.name : 'Walk-in Guest',
     items: kdsNewOrder.items,
     subtotal,
     tax: total * 0.10,
     discount,
+    discount_amount: discount,
+    discount_code: AppState.cart.appliedPromoCode || (AppState.cart.promoCode ? AppState.cart.promoCode.code : null),
     tip,
     total,
     paymentMethod: activeTab,
@@ -4803,79 +5316,790 @@ window.openCreatePOModal = function() {
 };
 
 // ==========================================
-// 12. DISCOUNTS & PROMOTIONS MODULE
+// 12. DISCOUNTS & PROMOTIONS MANAGEMENT SYSTEM
 // ==========================================
 
-function renderDiscountsView(container) {
+let promoFilterState = { status: 'all', type: 'all', search: '' };
+let promoBannerTimerInterval = null;
+
+async function renderDiscountsView(container) {
+  // Fetch fresh promotions list and analytics
+  let promotions = await API.fetchDiscounts();
+  if (promotions && Array.isArray(promotions)) {
+    DB.discounts = promotions;
+    saveLocalDB();
+  } else {
+    promotions = DB.discounts || [];
+  }
+
+  const analytics = await API.fetchDiscountsAnalytics() || {
+    total_promotions: promotions.length,
+    active_promotions: promotions.filter(p => p.status === 'active' || p.is_active).length,
+    orders_using_promotions: 0,
+    total_discount_given: 0,
+    best_promotion: 'None'
+  };
+
+  const activeCount = promotions.filter(p => p.status === 'active' || (p.is_active && p.status !== 'expired' && p.status !== 'scheduled')).length;
+
   container.innerHTML = `
-    <div class="customer-table-card">
-      <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border-subtle); flex-wrap:wrap; gap:12px;">
+    <div class="promotions-management-view" style="animation: fadeIn 0.25s ease;">
+      <!-- Module Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:22px;">
         <div>
-          <h3>Promotional Vouchers & CBD Discounts</h3>
-          <span style="font-size:12px; color:var(--color-cream-muted);">Active voucher codes and worker promotions</span>
+          <h2 style="font-size:22px; font-weight:800; font-family:'Outfit', sans-serif; display:flex; align-items:center; gap:8px;">
+            <i class="ri-percent-line" style="color:var(--color-primary-light);"></i> Discounts & Promotions Management
+          </h2>
+          <p style="color:var(--color-cream-muted); font-size:13px; margin-top:3px;">
+            Create, schedule and manage voucher promo codes, automatic discounts, happy hour specials, and homepage banners.
+          </p>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openCreatePromoModal()"><i class="ri-add-line"></i> Create Promo Code</button>
+        <button type="button" class="btn btn-primary" onclick="openPromoModal()" style="display:inline-flex; align-items:center; gap:8px; padding:10px 18px; font-weight:700; border-radius:10px; font-size:13px;">
+          <i class="ri-add-circle-line" style="font-size:18px;"></i> + Create Promotion
+        </button>
       </div>
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Type</th>
-              <th>Discount Value</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${DB.discounts.map((d, idx) => `
-              <tr>
-                <td><strong class="cart-order-id">${d.code}</strong></td>
-                <td>${d.description}</td>
-                <td>${d.type === 'percent' ? 'Percentage' : 'Fixed Amount'}</td>
-                <td><strong>${d.type === 'percent' ? d.val + '%' : '$' + d.val.toFixed(2)}</strong></td>
-                <td><span class="badge badge-success">Active</span></td>
-                <td>
-                  <button class="btn btn-outline btn-sm text-danger" onclick="deletePromo(${idx})"><i class="ri-delete-bin-line"></i> Delete</button>
-                </td>
+
+      <!-- 4 Analytics KPI Cards -->
+      <div class="report-kpi-grid" style="margin-bottom:22px;">
+        <div class="report-kpi-card" style="border-left: 4px solid #10B981;">
+          <div class="report-kpi-header">
+            <span class="report-kpi-label"><i class="ri-checkbox-circle-line" style="color:#10B981;"></i> Active Promotions</span>
+          </div>
+          <div class="report-kpi-val" style="color:#10B981;">${activeCount}</div>
+          <div class="report-kpi-sub">
+            <i class="ri-flashlight-line"></i> Currently live & redeemable
+          </div>
+        </div>
+
+        <div class="report-kpi-card" style="border-left: 4px solid #60A5FA;">
+          <div class="report-kpi-header">
+            <span class="report-kpi-label"><i class="ri-shopping-bag-3-line" style="color:#60A5FA;"></i> Orders with Promo</span>
+          </div>
+          <div class="report-kpi-val" style="color:#60A5FA;">${analytics.orders_using_promotions || 0}</div>
+          <div class="report-kpi-sub">
+            <i class="ri-check-double-line"></i> Completed promotional sales
+          </div>
+        </div>
+
+        <div class="report-kpi-card" style="border-left: 4px solid #F59E0B;">
+          <div class="report-kpi-header">
+            <span class="report-kpi-label"><i class="ri-money-dollar-circle-line" style="color:#F59E0B;"></i> Discount Given</span>
+          </div>
+          <div class="report-kpi-val" style="color:#F59E0B;">$${Number(analytics.total_discount_given || 0).toFixed(2)}</div>
+          <div class="report-kpi-sub">
+            <i class="ri-hand-coin-line"></i> Total customer savings
+          </div>
+        </div>
+
+        <div class="report-kpi-card" style="border-left: 4px solid var(--color-primary);">
+          <div class="report-kpi-header">
+            <span class="report-kpi-label"><i class="ri-trophy-line" style="color:var(--color-primary-light);"></i> Top Promotion</span>
+          </div>
+          <div class="report-kpi-val" style="font-size:18px; color:var(--color-cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${analytics.best_promotion || 'None yet'}
+          </div>
+          <div class="report-kpi-sub">
+            <i class="ri-fire-line"></i> Highest redemption volume
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Filter Toolbar -->
+      <div style="background:var(--bg-surface); padding:14px 18px; border-radius:12px; border:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:280px;">
+          <i class="ri-search-line" style="color:var(--color-cream-muted); font-size:16px;"></i>
+          <input type="text" id="promo-search-input" placeholder="Search promotions by name, code, or description..." style="background:transparent; border:none; outline:none; color:var(--color-cream); width:100%; font-size:13px;" oninput="filterPromosUI()">
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div style="display:flex; gap:6px; background:var(--bg-card); padding:4px; border-radius:8px; border:1px solid var(--color-border);">
+            <button type="button" class="btn btn-sm btn-primary promo-filter-pill" data-status="all" onclick="setPromoStatusFilter('all', this)">All</button>
+            <button type="button" class="btn btn-sm btn-outline promo-filter-pill" data-status="active" onclick="setPromoStatusFilter('active', this)">🟢 Active</button>
+            <button type="button" class="btn btn-sm btn-outline promo-filter-pill" data-status="scheduled" onclick="setPromoStatusFilter('scheduled', this)">🟡 Scheduled</button>
+            <button type="button" class="btn btn-sm btn-outline promo-filter-pill" data-status="expired" onclick="setPromoStatusFilter('expired', this)">⚪ Expired</button>
+            <button type="button" class="btn btn-sm btn-outline promo-filter-pill" data-status="disabled" onclick="setPromoStatusFilter('disabled', this)">🔴 Disabled</button>
+          </div>
+          <select id="promo-type-filter" onchange="filterPromosUI()" style="background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:6px 12px; border-radius:8px; font-size:12px;">
+            <option value="all">All Discount Types</option>
+            <option value="percentage">Percentage (%)</option>
+            <option value="fixed_amount">Fixed Amount ($)</option>
+            <option value="bogo">BOGO / Buy X Get Y</option>
+            <option value="free_item">Free Item</option>
+            <option value="min_order">Minimum Order</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Promotions Data Table Card -->
+      <div class="customer-table-card" style="background:var(--bg-surface); border:1px solid var(--color-border); border-radius:14px; overflow:hidden;">
+        <div class="table-responsive" style="max-height:560px; overflow-y:auto;">
+          <table class="data-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border); color:var(--color-cream-muted); text-align:left;">
+                <th style="padding:12px 16px;">Promotion & Code</th>
+                <th style="padding:12px 14px;">Discount Benefit</th>
+                <th style="padding:12px 14px;">Applicable Scope</th>
+                <th style="padding:12px 14px;">Schedule Window</th>
+                <th style="padding:12px 14px;">Usage / Limit</th>
+                <th style="padding:12px 14px;">Status</th>
+                <th style="padding:12px 14px; text-align:center;">Active Toggle</th>
+                <th style="padding:12px 16px; text-align:right;">Actions</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody id="promotions-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
+
+  renderPromoTableBody(promotions);
+  updateHomepagePromoBanner();
 }
 
-window.openCreatePromoModal = function() {
-  const code = prompt("Promo Code (e.g. COFFEE10):", "CBDVIP");
-  if (!code) return;
-  const desc = prompt("Description:", "CBD Local Partner 10% Off");
-  const val = prompt("Discount Value (e.g. 10 for 10% or 2.00 for $2.00):", "10");
-
-  const newDisc = {
-    code: code.toUpperCase(),
-    description: desc || 'Promotional Discount',
-    type: 'percent',
-    val: parseFloat(val || 10),
-    minSpend: 0
-  };
-
-  DB.discounts.unshift(newDisc);
-  saveLocalDB();
-  renderCurrentModule();
-  API.createDiscount(newDisc);
+window.setPromoStatusFilter = function(status, btn) {
+  promoFilterState.status = status;
+  document.querySelectorAll('.promo-filter-pill').forEach(el => {
+    el.classList.remove('btn-primary');
+    el.classList.add('btn-outline');
+  });
+  if (btn) {
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-primary');
+  }
+  filterPromosUI();
 };
 
-window.deletePromo = function(idx) {
-  const disc = DB.discounts[idx];
-  if (disc && confirm(`Delete discount code ${disc.code}?`)) {
-    DB.discounts.splice(idx, 1);
-    saveLocalDB();
-    renderCurrentModule();
-    if (disc.code) API.deleteDiscount(disc.code);
+window.filterPromosUI = function() {
+  const searchQuery = (document.getElementById('promo-search-input')?.value || '').toLowerCase().trim();
+  const typeFilter = document.getElementById('promo-type-filter')?.value || 'all';
+  const statusFilter = promoFilterState.status;
+
+  const allPromos = DB.discounts || [];
+  const filtered = allPromos.filter(p => {
+    // Status filter
+    const status = p.status || (p.is_active ? 'active' : 'disabled');
+    if (statusFilter !== 'all' && status !== statusFilter) return false;
+
+    // Type filter
+    if (typeFilter !== 'all' && p.type !== typeFilter) return false;
+
+    // Search query
+    if (searchQuery) {
+      const matchName = (p.name || '').toLowerCase().includes(searchQuery);
+      const matchCode = (p.code || '').toLowerCase().includes(searchQuery);
+      const matchDesc = (p.description || '').toLowerCase().includes(searchQuery);
+      if (!matchName && !matchCode && !matchDesc) return false;
+    }
+
+    return true;
+  });
+
+  renderPromoTableBody(filtered);
+};
+
+function renderPromoTableBody(promos) {
+  const tbody = document.getElementById('promotions-table-body');
+  if (!tbody) return;
+
+  if (!promos || promos.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:48px 20px; color:var(--color-cream-muted);">
+          <i class="ri-coupon-line" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.6;"></i>
+          <p style="font-size:15px; font-weight:600; margin:0 0 6px 0;">No promotions found</p>
+          <span style="font-size:12px;">Create a new promotion or adjust your filters above.</span>
+        </td>
+      </tr>`;
+    return;
   }
+
+  tbody.innerHTML = promos.map(p => {
+    const status = p.status || (p.is_active ? 'active' : 'disabled');
+    let statusBadge = '';
+    if (status === 'active') {
+      statusBadge = `<span class="promo-status-badge promo-status-active">🟢 Active</span>`;
+    } else if (status === 'scheduled') {
+      statusBadge = `<span class="promo-status-badge promo-status-scheduled">🟡 Scheduled</span>`;
+    } else if (status === 'expired') {
+      statusBadge = `<span class="promo-status-badge promo-status-expired">⚪ Expired</span>`;
+    } else {
+      statusBadge = `<span class="promo-status-badge promo-status-disabled">🔴 Disabled</span>`;
+    }
+
+    let benefitText = '';
+    if (p.type === 'percentage' || p.discount_percentage > 0) {
+      benefitText = `<strong style="color:var(--color-cream); font-size:14px;">${p.discount_percentage}% OFF</strong>`;
+    } else if (p.type === 'fixed_amount' || p.fixed_amount > 0) {
+      benefitText = `<strong style="color:var(--color-cream); font-size:14px;">$${Number(p.fixed_amount).toFixed(2)} OFF</strong>`;
+    } else if (p.type === 'bogo' || p.type === 'buy_x_get_y') {
+      benefitText = `<strong style="color:var(--color-cream); font-size:14px;">Buy 1 Get 1 (50% 2nd)</strong>`;
+    } else if (p.type === 'free_item') {
+      benefitText = `<strong style="color:var(--color-cream); font-size:14px;">Free Menu Item</strong>`;
+    } else {
+      benefitText = `<strong style="color:var(--color-cream); font-size:14px;">Min Order Discount</strong>`;
+    }
+
+    const minSpendText = p.min_spend > 0 
+      ? `<div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;"><i class="ri-wallet-3-line"></i> Min $${Number(p.min_spend).toFixed(2)}</div>`
+      : `<div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;">No min spend</div>`;
+
+    // Scope presentation
+    let scopeBadge = '';
+    if (p.applicable_scope === 'categories') {
+      scopeBadge = `<span class="promo-type-pill"><i class="ri-folders-line" style="color:#F59E0B;"></i> Specific Categories</span>`;
+    } else if (p.applicable_scope === 'products') {
+      scopeBadge = `<span class="promo-type-pill"><i class="ri-cup-line" style="color:#60A5FA;"></i> Specific Products</span>`;
+    } else {
+      scopeBadge = `<span class="promo-type-pill"><i class="ri-check-double-line" style="color:#10B981;"></i> All Menu Items</span>`;
+    }
+
+    // Schedule presentation
+    const sDate = p.start_date || 'Ongoing';
+    const eDate = p.end_date || 'Forever';
+    const scheduleHtml = `
+      <div style="font-size:12px; color:var(--color-cream);">
+        <i class="ri-calendar-event-line" style="color:var(--color-primary-light);"></i> ${sDate}
+      </div>
+      <div style="font-size:11px; color:var(--color-cream-muted);">
+        until ${eDate} ${p.end_time && p.end_time !== '23:59:59' ? p.end_time : ''}
+      </div>`;
+
+    // Usage progress
+    const maxLimit = p.usage_limit ? Number(p.usage_limit) : null;
+    const currentUsage = Number(p.usage_count || 0);
+    const pct = maxLimit ? Math.min(100, Math.round((currentUsage / maxLimit) * 100)) : 0;
+    const usageHtml = `
+      <div style="font-size:12px; font-weight:600; color:var(--color-cream);">
+        ${currentUsage} ${maxLimit ? '/ ' + maxLimit : 'used (Unlimited)'}
+      </div>
+      ${maxLimit ? `
+        <div style="background:var(--bg-card); border-radius:4px; height:4px; width:80px; margin-top:4px; overflow:hidden;">
+          <div style="background:${pct >= 90 ? '#EF4444' : 'var(--color-primary)'}; width:${pct}%; height:100%;"></div>
+        </div>` : ''}
+    `;
+
+    return `
+      <tr style="border-bottom:1px solid var(--color-border-subtle); transition:background 0.15s ease;">
+        <td style="padding:14px 16px;">
+          <div style="font-weight:700; color:var(--color-cream); font-size:14px; margin-bottom:4px;">
+            ${p.name || p.description || p.code}
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span class="promo-code-box">${p.code}</span>
+            ${p.is_automatic ? `<span class="badge" style="background:rgba(96,165,250,0.15); color:#60A5FA; border:1px solid rgba(96,165,250,0.3); font-size:10.5px;"><i class="ri-flashlight-line"></i> Auto</span>` : ''}
+            ${p.show_on_banner ? `<span class="badge" style="background:rgba(239,68,68,0.15); color:#EF4444; border:1px solid rgba(239,68,68,0.3); font-size:10.5px;"><i class="ri-fire-line"></i> Banner</span>` : ''}
+          </div>
+          ${p.description && p.description !== p.name ? `<div style="font-size:11px; color:var(--color-cream-muted); margin-top:4px; max-width:280px;">${p.description}</div>` : ''}
+        </td>
+        <td style="padding:14px 14px;">
+          ${benefitText}
+          ${minSpendText}
+        </td>
+        <td style="padding:14px 14px;">
+          ${scopeBadge}
+        </td>
+        <td style="padding:14px 14px;">
+          ${scheduleHtml}
+        </td>
+        <td style="padding:14px 14px;">
+          ${usageHtml}
+        </td>
+        <td style="padding:14px 14px;">
+          ${statusBadge}
+        </td>
+        <td style="padding:14px 14px; text-align:center;">
+          <label class="promo-switch" title="Toggle active/inactive status">
+            <input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="togglePromoActive(${p.discount_id}, this.checked)">
+            <span class="promo-slider"></span>
+          </label>
+        </td>
+        <td style="padding:14px 16px; text-align:right;">
+          <div style="display:inline-flex; gap:6px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openPromoModal(${p.discount_id})" title="Edit promotion details">
+              <i class="ri-edit-line"></i> Edit
+            </button>
+            <button type="button" class="btn btn-outline btn-sm text-danger" onclick="deletePromoModal(${p.discount_id}, '${p.code}')" title="Delete promotion">
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.togglePromoActive = async function(discountId, isChecked) {
+  const promo = (DB.discounts || []).find(d => d.discount_id === discountId);
+  if (promo) {
+    promo.is_active = isChecked;
+    promo.status = isChecked ? 'active' : 'disabled';
+    saveLocalDB();
+  }
+
+  const res = await API.updateDiscount(discountId, { is_active: isChecked });
+  if (res && res.success) {
+    showToast(`Promotion status set to ${isChecked ? '🟢 Active' : '🔴 Disabled'}!`, 'success');
+  } else {
+    showToast('Failed to update promotion status on server.', 'error');
+  }
+  
+  updateHomepagePromoBanner();
+  filterPromosUI();
+};
+
+window.deletePromoModal = async function(discountId, code) {
+  if (!confirm(`Are you sure you want to permanently delete promotion code "${code}"?`)) {
+    return;
+  }
+
+  const res = await API.deleteDiscount(discountId);
+  if (res && res.success) {
+    DB.discounts = (DB.discounts || []).filter(d => d.discount_id !== discountId);
+    saveLocalDB();
+    showToast(`Promotion "${code}" deleted successfully!`, 'info');
+    renderDiscountsView(document.getElementById('workspace-container'));
+    updateHomepagePromoBanner();
+  } else {
+    showToast('Failed to delete promotion.', 'error');
+  }
+};
+
+window.openPromoModal = function(editDiscountId = null) {
+  let promo = null;
+  if (editDiscountId) {
+    promo = (DB.discounts || []).find(d => d.discount_id === editDiscountId);
+  }
+
+  const isEdit = !!promo;
+  const categories = DB.menuCategories || [];
+  const products = DB.menuItems || [];
+
+  // Remove existing modal if any
+  const oldModal = document.getElementById('promo-editor-modal');
+  if (oldModal) oldModal.remove();
+
+  const modalOverlay = document.createElement('div');
+  modalOverlay.id = 'promo-editor-modal';
+  modalOverlay.className = 'modal-overlay';
+  modalOverlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; z-index:99999; padding:16px; backdrop-filter:blur(4px);';
+
+  const defaultStartDate = new Date().toISOString().split('T')[0];
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const defaultEndDate = nextYear.toISOString().split('T')[0];
+
+  const selScope = promo ? (promo.applicable_scope || 'all') : 'all';
+  const selCatIds = promo ? (promo.applicable_category_ids || [promo.applicable_category_id]).map(String) : [];
+  const selProdIds = promo ? (promo.applicable_product_ids || []).map(String) : [];
+
+  modalOverlay.innerHTML = `
+    <div class="modal-card" style="background:var(--bg-surface); border:1px solid var(--color-border); border-radius:16px; max-width:680px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 12px 36px rgba(0,0,0,0.5); overflow:hidden;">
+      <!-- Modal Header -->
+      <div style="padding:18px 24px; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h3 style="margin:0; font-size:18px; font-weight:800; font-family:'Outfit', sans-serif;">
+            <i class="ri-coupon-3-line" style="color:var(--color-primary-light);"></i> ${isEdit ? 'Edit Promotion' : 'Create New Promotion'}
+          </h3>
+          <span style="font-size:12px; color:var(--color-cream-muted);">Configure discount rules, trigger criteria, schedule, and banner integration</span>
+        </div>
+        <button type="button" class="icon-btn" onclick="closePromoModal()" style="border:none; background:transparent; font-size:22px; cursor:pointer; color:var(--color-cream-muted);"><i class="ri-close-line"></i></button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <form id="promo-editor-form" onsubmit="savePromoFromModal(event, ${isEdit ? promo.discount_id : 'null'})" style="padding:22px 24px; overflow-y:auto; display:flex; flex-direction:column; gap:18px;">
+        <!-- Promotion Name & Description -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Promotion Name *</label>
+            <input type="text" id="promo-form-name" required placeholder="e.g. Weekend Coffee Special" value="${promo ? (promo.name || promo.description || '') : ''}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Promo Code</label>
+            <input type="text" id="promo-form-code" placeholder="e.g. COFFEE15 (Leave blank for Auto)" value="${promo ? promo.code : ''}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px; font-family:monospace; text-transform:uppercase;">
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Promotion Description</label>
+          <input type="text" id="promo-form-desc" placeholder="e.g. Enjoy 15% off selected coffee every Saturday and Sunday." value="${promo ? (promo.description || '') : ''}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;">
+        </div>
+
+        <!-- Trigger & Promotion Type -->
+        <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--color-border);">
+          <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:8px;">Promotion Trigger Method</label>
+          <div style="display:flex; gap:20px;">
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="promo_trigger" value="code" ${!promo || !promo.is_automatic ? 'checked' : ''} onchange="togglePromoTriggerUI()">
+              <span><strong>Promo Code Required</strong> (Customer enters code at cart)</span>
+            </label>
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="promo_trigger" value="auto" ${promo && promo.is_automatic ? 'checked' : ''} onchange="togglePromoTriggerUI()">
+              <span><strong>Automatic Promotion</strong> (Applies automatically in cart)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Discount Type & Value -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Discount Type *</label>
+            <select id="promo-form-type" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;" onchange="updatePromoTypeLabel()">
+              <option value="percentage" ${promo && (promo.type === 'percentage' || promo.type === 'percent') ? 'selected' : ''}>Percentage Discount (%)</option>
+              <option value="fixed_amount" ${promo && (promo.type === 'fixed_amount' || promo.type === 'fixed') ? 'selected' : ''}>Fixed Amount Discount ($)</option>
+              <option value="bogo" ${promo && promo.type === 'bogo' ? 'selected' : ''}>Buy One Get One (BOGO 50%)</option>
+              <option value="free_item" ${promo && promo.type === 'free_item' ? 'selected' : ''}>Free Menu Item</option>
+              <option value="min_order" ${promo && promo.type === 'min_order' ? 'selected' : ''}>Minimum Order Discount</option>
+            </select>
+          </div>
+          <div>
+            <label id="promo-val-label" style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Discount Value *</label>
+            <input type="number" step="0.01" id="promo-form-val" required placeholder="15" value="${promo ? (promo.discount_percentage || promo.fixed_amount || 15) : 15}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;">
+          </div>
+        </div>
+
+        <!-- Applicable Scope (Products or Categories) -->
+        <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--color-border);">
+          <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:8px;">Applicable Products / Scope</label>
+          <div style="display:flex; gap:16px; margin-bottom:10px;">
+            <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="promo_scope" value="all" ${selScope === 'all' ? 'checked' : ''} onchange="toggleScopeInputs()">
+              <span>All Products</span>
+            </label>
+            <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="promo_scope" value="categories" ${selScope === 'categories' ? 'checked' : ''} onchange="toggleScopeInputs()">
+              <span>Specific Categories</span>
+            </label>
+            <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="promo_scope" value="products" ${selScope === 'products' ? 'checked' : ''} onchange="toggleScopeInputs()">
+              <span>Specific Products</span>
+            </label>
+          </div>
+
+          <!-- Category Selector -->
+          <div id="scope-categories-box" style="display:${selScope === 'categories' ? 'flex' : 'none'}; flex-wrap:wrap; gap:8px; padding-top:6px; border-top:1px dashed var(--color-border);">
+            ${categories.map(cat => `
+              <label style="font-size:12px; background:var(--bg-surface); padding:5px 10px; border-radius:6px; border:1px solid var(--color-border); display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" name="scope_cat" value="${cat.id}" ${selCatIds.includes(String(cat.id)) ? 'checked' : ''}>
+                <span>${cat.name}</span>
+              </label>
+            `).join('')}
+          </div>
+
+          <!-- Products Multi-Selector -->
+          <div id="scope-products-box" style="display:${selScope === 'products' ? 'block' : 'none'}; padding-top:8px; border-top:1px dashed var(--color-border);">
+            <div style="max-height:120px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+              ${products.map(prod => `
+                <label style="font-size:11.5px; background:var(--bg-surface); padding:5px 8px; border-radius:6px; border:1px solid var(--color-border); display:flex; align-items:center; gap:6px; cursor:pointer;">
+                  <input type="checkbox" name="scope_prod" value="${prod.id}" ${selProdIds.includes(String(prod.id)) ? 'checked' : ''}>
+                  <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${prod.name} ($${prod.price.toFixed(2)})</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Window -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Start Date & Time</label>
+            <div style="display:flex; gap:8px;">
+              <input type="date" id="promo-form-start-date" value="${promo ? (promo.start_date || defaultStartDate) : defaultStartDate}" class="form-control" style="flex:2; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:8px; border-radius:8px; font-size:12.5px;">
+              <input type="time" id="promo-form-start-time" value="${promo ? (promo.start_time || '00:00') : '00:00'}" class="form-control" style="flex:1; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:8px; border-radius:8px; font-size:12.5px;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">End Date & Time</label>
+            <div style="display:flex; gap:8px;">
+              <input type="date" id="promo-form-end-date" value="${promo ? (promo.end_date || defaultEndDate) : defaultEndDate}" class="form-control" style="flex:2; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:8px; border-radius:8px; font-size:12.5px;">
+              <input type="time" id="promo-form-end-time" value="${promo ? (promo.end_time || '23:59') : '23:59'}" class="form-control" style="flex:1; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:8px; border-radius:8px; font-size:12.5px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimum Spend & Usage Limits -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Minimum Order Amount ($)</label>
+            <input type="number" step="0.50" id="promo-form-min-spend" placeholder="0.00" value="${promo ? (promo.min_spend || 0) : 0}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700; color:var(--color-cream); display:block; margin-bottom:5px;">Usage Limit (Redemptions)</label>
+            <input type="number" id="promo-form-usage-limit" placeholder="Unlimited (e.g. 100)" value="${promo && promo.usage_limit ? promo.usage_limit : ''}" class="form-control" style="width:100%; background:var(--bg-card); border:1px solid var(--color-border); color:var(--color-cream); padding:9px 12px; border-radius:8px; font-size:13px;">
+          </div>
+        </div>
+
+        <!-- Options Checkboxes -->
+        <div style="display:flex; flex-direction:column; gap:8px; padding-top:6px; border-top:1px solid var(--color-border);">
+          <label style="font-size:12.5px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="promo-form-banner" ${promo && promo.show_on_banner ? 'checked' : (!promo ? 'checked' : '')}>
+            <span><i class="ri-fire-fill" style="color:#EF4444;"></i> <strong>Feature in Homepage Promotional Banner</strong> (Dynamic countdown banner)</span>
+          </label>
+          <label style="font-size:12.5px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="promo-form-once" ${promo && promo.once_per_customer ? 'checked' : ''}>
+            <span><i class="ri-user-follow-line" style="color:var(--color-primary);"></i> One redemption per loyalty customer</span>
+          </label>
+          <label style="font-size:12.5px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="promo-form-active" ${!promo || promo.is_active ? 'checked' : ''}>
+            <span><i class="ri-checkbox-circle-fill" style="color:#10B981;"></i> <strong>Active</strong> (Uncheck to save as disabled draft)</span>
+          </label>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+          <button type="button" class="btn btn-secondary" onclick="closePromoModal()" style="padding:10px 18px;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding:10px 22px; font-weight:700;">
+            <i class="ri-check-line"></i> ${isEdit ? 'Update Promotion' : 'Save & Publish'}
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modalOverlay);
+};
+
+window.closePromoModal = function() {
+  const modal = document.getElementById('promo-editor-modal');
+  if (modal) modal.remove();
+};
+
+window.toggleScopeInputs = function() {
+  const scope = document.querySelector('input[name="promo_scope"]:checked')?.value || 'all';
+  const catBox = document.getElementById('scope-categories-box');
+  const prodBox = document.getElementById('scope-products-box');
+  if (catBox) catBox.style.display = (scope === 'categories') ? 'flex' : 'none';
+  if (prodBox) prodBox.style.display = (scope === 'products') ? 'block' : 'none';
+};
+
+window.togglePromoTriggerUI = function() {
+  const trigger = document.querySelector('input[name="promo_trigger"]:checked')?.value || 'code';
+  const codeInput = document.getElementById('promo-form-code');
+  if (codeInput && trigger === 'auto' && !codeInput.value) {
+    codeInput.placeholder = 'Automatic (Code optional)';
+  }
+};
+
+window.updatePromoTypeLabel = function() {
+  const type = document.getElementById('promo-form-type')?.value;
+  const label = document.getElementById('promo-val-label');
+  if (!label) return;
+  if (type === 'percentage') label.textContent = 'Discount Percentage (%) *';
+  else if (type === 'fixed_amount') label.textContent = 'Discount Amount ($) *';
+  else if (type === 'bogo') label.textContent = 'BOGO Discount (e.g. 50% for 2nd) *';
+  else if (type === 'free_item') label.textContent = 'Max Item Value ($) *';
+  else label.textContent = 'Discount Value *';
+};
+
+window.savePromoFromModal = async function(e, editDiscountId) {
+  e.preventDefault();
+
+  const name = document.getElementById('promo-form-name')?.value.trim();
+  let code = document.getElementById('promo-form-code')?.value.trim().toUpperCase();
+  const desc = document.getElementById('promo-form-desc')?.value.trim();
+  const trigger = document.querySelector('input[name="promo_trigger"]:checked')?.value || 'code';
+  const isAutomatic = trigger === 'auto';
+
+  if (!name) {
+    showToast('Please enter a promotion name.', 'error');
+    return;
+  }
+
+  if (!code && !isAutomatic) {
+    showToast('Please specify a promotional code or choose Automatic Promotion.', 'error');
+    return;
+  }
+
+  const type = document.getElementById('promo-form-type')?.value || 'percentage';
+  const val = parseFloat(document.getElementById('promo-form-val')?.value || 0);
+  const scope = document.querySelector('input[name="promo_scope"]:checked')?.value || 'all';
+
+  const catBoxes = document.querySelectorAll('input[name="scope_cat"]:checked');
+  const catIds = Array.from(catBoxes).map(cb => parseInt(cb.value));
+
+  const prodBoxes = document.querySelectorAll('input[name="scope_prod"]:checked');
+  const prodIds = Array.from(prodBoxes).map(pb => parseInt(pb.value));
+
+  const startDate = document.getElementById('promo-form-start-date')?.value;
+  const startTime = (document.getElementById('promo-form-start-time')?.value || '00:00') + ':00';
+  const endDate = document.getElementById('promo-form-end-date')?.value;
+  const endTime = (document.getElementById('promo-form-end-time')?.value || '23:59') + ':59';
+
+  const minSpend = parseFloat(document.getElementById('promo-form-min-spend')?.value || 0);
+  const usageLimitVal = document.getElementById('promo-form-usage-limit')?.value.trim();
+  const usageLimit = usageLimitVal ? parseInt(usageLimitVal) : null;
+
+  const showOnBanner = document.getElementById('promo-form-banner')?.checked ? 1 : 0;
+  const onceCustomer = document.getElementById('promo-form-once')?.checked ? 1 : 0;
+  const isActive = document.getElementById('promo-form-active')?.checked ? 1 : 0;
+
+  const payload = {
+    name: name,
+    code: code,
+    description: desc || name,
+    type: type,
+    discount_percentage: (type === 'percentage' || type === 'bogo') ? val : 0,
+    fixed_amount: (type === 'fixed_amount' || type === 'free_item' || type === 'min_order') ? val : 0,
+    applicable_scope: scope,
+    applicable_category_ids: catIds,
+    applicable_category_id: catIds[0] || null,
+    applicable_product_ids: prodIds,
+    start_date: startDate,
+    start_time: startTime,
+    end_date: endDate,
+    end_time: endTime,
+    min_spend: minSpend,
+    usage_limit: usageLimit,
+    is_automatic: isAutomatic ? 1 : 0,
+    show_on_banner: showOnBanner,
+    once_per_customer: onceCustomer,
+    is_active: isActive
+  };
+
+  let res;
+  if (editDiscountId) {
+    res = await API.updateDiscount(editDiscountId, payload);
+  } else {
+    res = await API.createDiscount(payload);
+  }
+
+  if (res && res.success) {
+    showToast(`Promotion "${name}" saved successfully!`, 'success');
+    closePromoModal();
+    renderDiscountsView(document.getElementById('workspace-container'));
+    updateHomepagePromoBanner();
+  } else {
+    showToast((res && res.message) ? res.message : 'Error saving promotion.', 'error');
+  }
+};
+
+window.getItemActiveDiscount = function(item) {
+  if (!item || !DB.discounts || !Array.isArray(DB.discounts)) return null;
+  const itemId = String(item.id || item.product_id);
+  const catId = String(item.catId || item.category_id);
+  const price = parseFloat(item.price || item.unit_price || 0);
+
+  const activeAutos = DB.discounts.filter(d => {
+    if (!d.is_active || !d.is_automatic) return false;
+    if (d.status && d.status !== 'active') return false;
+    return true;
+  });
+
+  let bestDeduction = 0;
+  let bestDiscount = null;
+
+  for (const promo of activeAutos) {
+    const scope = promo.applicable_scope || 'all';
+    let isEligible = false;
+
+    if (scope === 'all') {
+      isEligible = true;
+    } else if (scope === 'categories') {
+      const cats = (promo.applicable_category_ids || [promo.applicable_category_id]).map(String);
+      if (cats.includes(catId)) isEligible = true;
+    } else if (scope === 'products') {
+      const prods = (promo.applicable_product_ids || []).map(String);
+      if (prods.includes(itemId)) isEligible = true;
+    }
+
+    if (isEligible) {
+      let deduction = 0;
+      if (promo.type === 'percentage' || promo.discount_percentage > 0) {
+        deduction = (price * promo.discount_percentage) / 100;
+      } else if (promo.type === 'fixed_amount' || promo.fixed_amount > 0) {
+        deduction = Math.min(price, promo.fixed_amount);
+      } else if (promo.type === 'bogo') {
+        deduction = price * 0.25;
+      }
+
+      if (deduction > bestDeduction) {
+        bestDeduction = deduction;
+        bestDiscount = {
+          discount_id: promo.discount_id,
+          code: promo.code,
+          name: promo.name || promo.description || promo.code,
+          type: promo.type,
+          deduction: Math.round(deduction * 100) / 100,
+          discountedPrice: Math.max(0, Math.round((price - deduction) * 100) / 100),
+          percentText: promo.discount_percentage ? `${promo.discount_percentage}% OFF` : `$${promo.fixed_amount.toFixed(2)} OFF`
+        };
+      }
+    }
+  }
+
+  return bestDiscount;
+};
+
+window.updateHomepagePromoBanner = async function() {
+  const bannerEl = document.getElementById('top-promo-banner');
+  if (!bannerEl) return;
+
+  let bannerPromo = null;
+  if (DB.discounts && DB.discounts.length) {
+    bannerPromo = DB.discounts.find(d => d.is_active && (d.show_on_banner || d.is_automatic) && (d.status === 'active' || !d.status));
+  }
+  if (!bannerPromo) {
+    bannerPromo = await API.fetchBannerPromo();
+  }
+
+  if (promoBannerTimerInterval) {
+    clearInterval(promoBannerTimerInterval);
+    promoBannerTimerInterval = null;
+  }
+
+  if (!bannerPromo) {
+    bannerEl.style.display = 'none';
+    return;
+  }
+
+  bannerEl.style.display = 'flex';
+
+  const promoTag = bannerEl.querySelector('.promo-tag');
+  const promoText = bannerEl.querySelector('.promo-text');
+  const timerEl = document.getElementById('promo-countdown-timer');
+  const claimBtn = bannerEl.querySelector('.promo-claim-btn');
+
+  const promoTitle = bannerPromo.name || bannerPromo.description || bannerPromo.code;
+  const savingText = bannerPromo.discount_percentage ? `${bannerPromo.discount_percentage}% OFF` : (bannerPromo.fixed_amount ? `$${bannerPromo.fixed_amount.toFixed(2)} OFF` : 'SPECIAL DEAL');
+
+  if (promoTag) {
+    promoTag.innerHTML = `<i class="ri-fire-fill"></i> ${bannerPromo.name ? bannerPromo.name.toUpperCase() : "TODAY'S SPECIAL"}`;
+  }
+
+  if (promoText) {
+    promoText.textContent = `${bannerPromo.description || promoTitle} | SAVE ${savingText}`;
+  }
+
+  if (claimBtn) {
+    claimBtn.innerHTML = `<i class="ri-gift-line"></i> Claim Special Promo`;
+    claimBtn.onclick = () => {
+      window.enterAsCustomer('pos');
+      showToast(`🔥 Promotion: ${promoTitle}!`, 'success');
+    };
+  }
+
+  const endDateTimeStr = (bannerPromo.end_date || '2099-12-31') + 'T' + (bannerPromo.end_time || '23:59:59');
+  const targetEnd = new Date(endDateTimeStr).getTime();
+
+  function updateTimerDisplay() {
+    const now = Date.now();
+    const diff = targetEnd - now;
+    if (diff <= 0) {
+      if (timerEl) timerEl.textContent = 'EXPIRED';
+      if (promoBannerTimerInterval) clearInterval(promoBannerTimerInterval);
+      return;
+    }
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    if (timerEl) {
+      timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+  }
+
+  updateTimerDisplay();
+  promoBannerTimerInterval = setInterval(updateTimerDisplay, 1000);
 };
 
 // ==========================================
@@ -5460,27 +6684,213 @@ window.savePermissionsMatrix = function() {
 
   alert('Role Access Permissions saved successfully to SQLite Database!');
 };
+// ==========================================
+// REPORTS & AUDIT TRAIL MODULE (FR66-FR68, NFR33-NFR39)
+// ==========================================
+let currentReportsPeriod = 'this_month';
+let currentReportsTab = 'reports';
 
-// ==========================================
-// AUDIT LOGS & COMPLIANCE MODULE (NFR33-NFR39)
-// ==========================================
-async function renderAuditView(container) {
+async function renderReportsAndAuditsView(container, activeTab = null) {
+  if (activeTab) currentReportsTab = activeTab;
+  const tab = currentReportsTab;
+
   container.innerHTML = `
-    <div class="module-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div class="module-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
       <div>
-        <h2 style="font-size:22px; font-weight:800; font-family:'Outfit', sans-serif;"><i class="ri-file-list-3-line"></i> Audit Trail & Compliance Logs</h2>
-        <p style="color:var(--color-cream-muted); font-size:13px;">Security logging, authentication attempts, order modifications, and inventory adjustment records.</p>
+        <h2 style="font-size:22px; font-weight:800; font-family:'Outfit', sans-serif;">
+          <i class="ri-file-chart-line" style="color:var(--color-primary-light);"></i> Reports & Audits
+        </h2>
+        <p style="color:var(--color-cream-muted); font-size:13px;">Financial revenue statements, product performance metrics, and security compliance audit logs.</p>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary btn-sm" onclick="renderAuditView(document.getElementById('workspace-container'))">
-          <i class="ri-refresh-line"></i> Refresh Audit Logs
+      <div style="display:flex; align-items:center; gap:10px; background:var(--bg-elevated); padding:6px; border-radius:12px; border:1px solid var(--color-border);">
+        <button type="button" class="btn btn-sm ${tab === 'reports' ? 'btn-primary' : 'btn-outline'}" style="border:none;" onclick="renderReportsAndAuditsView(document.getElementById('workspace-container'), 'reports')">
+          <i class="ri-bar-chart-box-line"></i> Business Reports
+        </button>
+        <button type="button" class="btn btn-sm ${tab === 'audit' ? 'btn-primary' : 'btn-outline'}" style="border:none;" onclick="renderReportsAndAuditsView(document.getElementById('workspace-container'), 'audit')">
+          <i class="ri-shield-keyhole-line"></i> Security Audit Trail
         </button>
       </div>
     </div>
 
+    <div id="reports-and-audits-content">
+      <div style="padding:40px; text-align:center;">
+        <i class="ri-loader-4-line ri-spin" style="font-size:36px; color:var(--color-primary);"></i>
+        <p style="margin-top:10px; color:var(--color-cream-muted); font-size:14px;">Loading reports & audit records...</p>
+      </div>
+    </div>
+  `;
+
+  const contentEl = document.getElementById('reports-and-audits-content');
+
+  if (tab === 'reports') {
+    await renderReportsTabContent(contentEl);
+  } else {
+    await renderAuditTabContent(contentEl);
+  }
+}
+
+async function renderReportsTabContent(contentEl) {
+  const salesData = await API.fetchReports('sales', currentReportsPeriod);
+  const productsData = await API.fetchReports('products', currentReportsPeriod);
+
+  const totals = (salesData && salesData.totals) ? salesData.totals : {
+    total_revenue: 0,
+    total_orders: 0,
+    total_discounts: 0,
+    total_gst: 0,
+    avg_order_value: 0
+  };
+
+  const dailySales = (salesData && Array.isArray(salesData.daily_breakdown)) ? salesData.daily_breakdown : [];
+  const products = (productsData && Array.isArray(productsData.products)) ? productsData.products : [];
+
+  contentEl.innerHTML = `
+    <!-- Period Filter Bar -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; background:var(--bg-card); padding:12px 18px; border-radius:12px; border:1px solid var(--color-border);">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:13px; font-weight:600; color:var(--color-cream-muted);">Date Range:</span>
+        <button class="btn btn-xs ${currentReportsPeriod === 'today' ? 'btn-primary' : 'btn-outline'}" onclick="setReportsPeriod('today')">Today</button>
+        <button class="btn btn-xs ${currentReportsPeriod === 'this_week' ? 'btn-primary' : 'btn-outline'}" onclick="setReportsPeriod('this_week')">This Week</button>
+        <button class="btn btn-xs ${currentReportsPeriod === 'this_month' ? 'btn-primary' : 'btn-outline'}" onclick="setReportsPeriod('this_month')">This Month</button>
+        <button class="btn btn-xs ${currentReportsPeriod === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="setReportsPeriod('all')">Last 30 Days</button>
+      </div>
+      <div style="font-size:12px; color:var(--color-cream-muted);">
+        <i class="ri-calendar-line"></i> Period: <strong>${currentReportsPeriod.replace('_', ' ').toUpperCase()}</strong>
+      </div>
+    </div>
+
+    <!-- 5 Financial KPI Cards -->
+    <div class="report-kpi-grid">
+      <div class="report-kpi-card" style="border-left: 4px solid var(--color-primary);">
+        <div class="report-kpi-header">
+          <span class="report-kpi-label"><i class="ri-money-dollar-circle-line" style="color:var(--color-primary);"></i> Gross Revenue</span>
+        </div>
+        <div class="report-kpi-val">$${Number(totals.total_revenue || 0).toFixed(2)}</div>
+        <div class="report-kpi-sub" style="color:#10B981;">
+          <i class="ri-checkbox-circle-fill"></i> Includes GST & Promotions
+        </div>
+      </div>
+
+      <div class="report-kpi-card" style="border-left: 4px solid #10B981;">
+        <div class="report-kpi-header">
+          <span class="report-kpi-label"><i class="ri-shopping-cart-line" style="color:#10B981;"></i> Total Orders</span>
+        </div>
+        <div class="report-kpi-val">${totals.total_orders || 0}</div>
+        <div class="report-kpi-sub">
+          <i class="ri-check-double-line"></i> Completed transactions
+        </div>
+      </div>
+
+      <div class="report-kpi-card" style="border-left: 4px solid var(--color-accent-gold);">
+        <div class="report-kpi-header">
+          <span class="report-kpi-label"><i class="ri-calculator-line" style="color:var(--color-accent-gold);"></i> GST Portion (10%)</span>
+        </div>
+        <div class="report-kpi-val" style="color:var(--color-accent-gold);">$${Number(totals.total_gst || 0).toFixed(2)}</div>
+        <div class="report-kpi-sub">
+          <i class="ri-government-line"></i> Australian ATO tax ledger
+        </div>
+      </div>
+
+      <div class="report-kpi-card" style="border-left: 4px solid #60A5FA;">
+        <div class="report-kpi-header">
+          <span class="report-kpi-label"><i class="ri-line-chart-line" style="color:#60A5FA;"></i> Average Order Value</span>
+        </div>
+        <div class="report-kpi-val" style="color:#60A5FA;">$${Number(totals.avg_order_value || 0).toFixed(2)}</div>
+        <div class="report-kpi-sub">
+          <i class="ri-user-smile-line"></i> Per customer ticket
+        </div>
+      </div>
+
+      <div class="report-kpi-card" style="border-left: 4px solid #F59E0B;">
+        <div class="report-kpi-header">
+          <span class="report-kpi-label"><i class="ri-percent-line" style="color:#F59E0B;"></i> Total Discounts</span>
+        </div>
+        <div class="report-kpi-val" style="color:#F59E0B;">$${Number(totals.total_discounts || 0).toFixed(2)}</div>
+        <div class="report-kpi-sub">
+          <i class="ri-coupon-3-line"></i> Loyalty & promo vouchers
+        </div>
+      </div>
+    </div>
+
+    <!-- Tables Grid: Daily Breakdown & Product Performance -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:20px;">
+      <!-- Daily Sales Table -->
+      <div class="card" style="padding:20px; background:var(--bg-card); border-radius:14px; border:1px solid var(--color-border);">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          <i class="ri-calendar-check-line" style="color:var(--color-primary-light);"></i> Daily Sales Breakdown
+        </h3>
+        <div class="table-responsive" style="max-height:420px; overflow-y:auto;">
+          <table class="data-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border); color:var(--color-cream-muted); text-align:left;">
+                <th style="padding:10px;">Date</th>
+                <th style="padding:10px;">Orders</th>
+                <th style="padding:10px;">Gross Sales</th>
+                <th style="padding:10px;">GST</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dailySales.length ? dailySales.map(d => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td style="padding:10px; font-weight:600;">${d.sale_date}</td>
+                  <td style="padding:10px;">${d.total_orders} (${d.dine_in_orders} dine-in, ${d.takeaway_orders} takeaway)</td>
+                  <td style="padding:10px; font-weight:700; color:#10B981;">$${Number(d.gross_sales || 0).toFixed(2)}</td>
+                  <td style="padding:10px; color:var(--color-cream-muted);">$${Number(d.gst_portion || 0).toFixed(2)}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="4" style="padding:20px; text-align:center; color:var(--color-cream-muted);">No sales records for this period.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Products Performance Table -->
+      <div class="card" style="padding:20px; background:var(--bg-card); border-radius:14px; border:1px solid var(--color-border);">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          <i class="ri-cup-line" style="color:var(--color-accent-gold);"></i> Best Sellers & Product Performance
+        </h3>
+        <div class="table-responsive" style="max-height:420px; overflow-y:auto;">
+          <table class="data-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border); color:var(--color-cream-muted); text-align:left;">
+                <th style="padding:10px;">Item</th>
+                <th style="padding:10px;">Category</th>
+                <th style="padding:10px;">Sold</th>
+                <th style="padding:10px;">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${products.slice(0, 15).map(p => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td style="padding:10px; font-weight:600;">${p.product_name}</td>
+                  <td style="padding:10px; color:var(--color-cream-muted); font-size:12px;">${p.category_name || '-'}</td>
+                  <td style="padding:10px; font-weight:700; color:#60A5FA;">${p.total_units_sold}</td>
+                  <td style="padding:10px; font-weight:700; color:var(--color-accent-gold);">$${Number(p.total_revenue || 0).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+window.setReportsPeriod = function(period) {
+  currentReportsPeriod = period;
+  const contentEl = document.getElementById('reports-and-audits-content');
+  if (contentEl) renderReportsTabContent(contentEl);
+};
+
+async function renderAuditTabContent(contentEl) {
+  contentEl.innerHTML = `
     <div class="card" style="padding:20px; background:var(--bg-card); border-radius:14px; border:1px solid var(--color-border);">
-      <div style="display:flex; gap:16px; margin-bottom:16px;">
-        <input type="text" id="audit-search-input" placeholder="Search audit logs by action, user, or details..." class="form-input" style="flex:1;" oninput="filterAuditLogsUI()">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:16px;">
+        <div style="display:flex; gap:12px; flex:1; min-width:260px;">
+          <input type="text" id="audit-search-input" placeholder="Search logs by action, user, details..." class="form-input" style="flex:1;" oninput="filterAuditLogsUI()">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="renderReportsAndAuditsView(document.getElementById('workspace-container'), 'audit')">
+          <i class="ri-refresh-line"></i> Refresh Audit Trail
+        </button>
       </div>
 
       <div class="table-responsive">
@@ -5491,11 +6901,12 @@ async function renderAuditView(container) {
               <th style="padding:12px;">Log ID</th>
               <th style="padding:12px;">User / Source</th>
               <th style="padding:12px;">Action Type</th>
+              <th style="padding:12px;">IP Address</th>
               <th style="padding:12px;">Details</th>
             </tr>
           </thead>
           <tbody id="audit-table-body">
-            <tr><td colspan="5" style="padding:20px; text-align:center;">Loading audit logs from SQLite...</td></tr>
+            <tr><td colspan="6" style="padding:24px; text-align:center;">Loading audit logs...</td></tr>
           </tbody>
         </table>
       </div>
@@ -5503,7 +6914,7 @@ async function renderAuditView(container) {
   `;
 
   const logs = await API.fetchAuditLogs();
-  window._currentAuditLogs = logs || [];
+  window._currentAuditLogs = Array.isArray(logs) ? logs : [];
   renderAuditTableRows(window._currentAuditLogs);
 }
 
@@ -5512,19 +6923,35 @@ function renderAuditTableRows(logs) {
   if (!tbody) return;
 
   if (!logs || !logs.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:30px; text-align:center; color:var(--color-cream-muted);">No audit logs recorded yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:var(--color-cream-muted);">No audit logs recorded yet.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = logs.map(l => `
-    <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;">
-      <td style="padding:12px; white-space:nowrap; color:var(--color-cream-muted);">${new Date(l.timestamp).toLocaleString()}</td>
-      <td style="padding:12px; font-family:monospace; color:var(--color-primary-light);">${l.id}</td>
-      <td style="padding:12px; font-weight:600;">${l.userName || l.userId}</td>
-      <td style="padding:12px;"><span class="badge badge-info">${l.action}</span></td>
-      <td style="padding:12px; color:var(--color-cream); font-family:monospace; font-size:12px;">${l.details || '-'}</td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = logs.map(l => {
+    const rawDate = l.timestamp || l.created_at || new Date().toISOString();
+    const formattedDate = new Date(rawDate).toLocaleString();
+    const logId = l.log_id || l.id || 'N/A';
+    const userName = l.user_name || l.userName || (l.user_id ? `User #${l.user_id}` : 'System');
+    const action = l.action || 'ACTIVITY';
+    const ip = l.ip_address || '127.0.0.1';
+    const details = l.details || '-';
+
+    let badgeClass = 'badge-info';
+    if (action.includes('SUCCESS') || action.includes('CREATE')) badgeClass = 'badge-success';
+    else if (action.includes('FAIL') || action.includes('LOCK') || action.includes('DELETE')) badgeClass = 'badge-danger';
+    else if (action.includes('UPDATE') || action.includes('ADJUST')) badgeClass = 'badge-warning';
+
+    return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;">
+        <td style="padding:12px; white-space:nowrap; color:var(--color-cream-muted);">${formattedDate}</td>
+        <td style="padding:12px; font-family:monospace; color:var(--color-primary-light); font-weight:700;">#${logId}</td>
+        <td style="padding:12px; font-weight:600;">${userName}</td>
+        <td style="padding:12px;"><span class="badge ${badgeClass}">${action}</span></td>
+        <td style="padding:12px; font-family:monospace; font-size:12px; color:var(--color-cream-muted);">${ip}</td>
+        <td style="padding:12px; color:var(--color-cream); font-family:monospace; font-size:12px; max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${details}">${details}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 window.filterAuditLogsUI = function() {
@@ -5532,11 +6959,15 @@ window.filterAuditLogsUI = function() {
   if (!window._currentAuditLogs) return;
   const filtered = window._currentAuditLogs.filter(l => 
     (l.action && l.action.toLowerCase().includes(query)) ||
-    (l.userName && l.userName.toLowerCase().includes(query)) ||
-    (l.details && l.details.toLowerCase().includes(query))
+    (l.user_name && l.user_name.toLowerCase().includes(query)) ||
+    (l.details && l.details.toLowerCase().includes(query)) ||
+    (l.ip_address && l.ip_address.toLowerCase().includes(query))
   );
   renderAuditTableRows(filtered);
 };
+
+window.renderAuditView = renderReportsAndAuditsView;
+window.renderReportsAndAuditsView = renderReportsAndAuditsView;
 
 // ==========================================
 // THERMAL PRINTABLE RECEIPT MODAL (FR36)
@@ -6110,65 +7541,126 @@ window.renderKDSView = async function(container) {
           </div>
         `;
       } else {
-        grid.innerHTML = res.tickets.map(ticket => {
-          const isUrgent = ticket.urgency === 'high';
-          const mins = ticket.elapsed_minutes || 0;
-          const status = ticket.ticket_status;
-          const station = ticket.station;
-
-          return `
-            <div class="kds-ticket-card status-${status} ${isUrgent ? 'urgency-high' : ''}">
-              <div class="kds-ticket-header">
-                <div>
-                  <span class="kds-ticket-id">#ORD-${ticket.order_id}</span>
-                  <span class="badge ${ticket.order_type === 'dine_in' ? 'badge-primary' : 'badge-gold'}" style="margin-left:4px;">
-                    ${ticket.order_type === 'dine_in' ? 'Table ' + (ticket.table_number || '?') : 'Takeaway'}
-                  </span>
-                </div>
-                <span class="kds-timer ${isUrgent ? 'text-danger' : ''}"><i class="ri-time-line"></i> ${mins}m ago</span>
-              </div>
-
-              <div class="kds-ticket-body">
-                <div style="font-size:12px; color:var(--color-cream-muted);"><i class="ri-user-line"></i> ${ticket.customer_name || 'Guest'}</div>
-                
-                <div style="margin-top:6px; display:flex; flex-direction:column; gap:10px;">
-                  ${ticket.items.map(item => `
-                    <div class="kds-item-row">
-                      <span class="kds-item-qty">${item.quantity}x</span>
-                      <div class="kds-item-details">
-                        <div class="kds-item-name" style="font-size:15px; font-weight:700;">${item.product_name}</div>
-                        ${item.kds_highlight !== 'Standard' ? `<div class="kds-highlight-tag">${item.kds_highlight}</div>` : ''}
-                        ${item.item_notes ? `<div class="special-notes-callout"><i class="ri-alert-line"></i> Note: ${item.item_notes}</div>` : ''}
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-
-              <div class="kds-ticket-footer">
-                <div class="kds-stage-btn-group">
-                  <button class="kds-stage-btn ${status === 'pending' ? 'active stage-pending' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'pending')">
-                    New
-                  </button>
-                  <button class="kds-stage-btn ${status === 'preparing' ? 'active stage-preparing' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'preparing')">
-                    <i class="ri-fire-line"></i> Preparing
-                  </button>
-                  <button class="kds-stage-btn ${status === 'ready' ? 'active stage-ready' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'ready')">
-                    <i class="ri-check-line"></i> Ready
-                  </button>
-                  <button class="btn btn-ghost btn-sm" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'collected')" title="Served & Close">
-                    <i class="ri-checkbox-circle-line"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
+        grid.innerHTML = res.tickets.map(ticket => window.renderKDSTicketHTML(ticket)).join('');
       }
     }
   } catch (err) {
     console.error('[KDS Render Error]', err);
   }
+};
+
+window.renderKDSTicketHTML = function(ticket) {
+  const isUrgent = ticket.urgency === 'high';
+  const mins = ticket.elapsed_minutes || 0;
+  const status = ticket.ticket_status;
+
+  return `
+    <div class="kds-ticket-card status-${status} ${isUrgent ? 'urgency-high' : ''}">
+      <div class="kds-ticket-header">
+        <div>
+          <span class="kds-ticket-id">#ORD-${ticket.order_id}</span>
+          <span class="badge ${ticket.order_type === 'dine_in' ? 'badge-primary' : 'badge-gold'}" style="margin-left:4px;">
+            ${ticket.order_type === 'dine_in' ? 'Table ' + (ticket.table_number || '?') : 'Takeaway'}
+          </span>
+        </div>
+        <span class="kds-timer ${isUrgent ? 'text-danger' : ''}"><i class="ri-time-line"></i> ${mins}m ago</span>
+      </div>
+
+      <div class="kds-ticket-body">
+        <div style="font-size:12px; color:var(--color-cream-muted);"><i class="ri-user-line"></i> ${ticket.customer_name || 'Guest'}</div>
+        
+        <div style="margin-top:6px; display:flex; flex-direction:column; gap:10px;">
+          ${(ticket.items || []).map(item => `
+            <div class="kds-item-row">
+              <span class="kds-item-qty">${item.quantity}x</span>
+              <div class="kds-item-details">
+                <div class="kds-item-name" style="font-size:15px; font-weight:700;">${item.product_name}</div>
+                ${item.kds_highlight !== 'Standard' ? `<div class="kds-highlight-tag">${item.kds_highlight}</div>` : ''}
+                ${item.item_notes ? `<div class="special-notes-callout"><i class="ri-alert-line"></i> Note: ${item.item_notes}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="kds-ticket-footer">
+        <div class="kds-stage-btn-group">
+          <button class="kds-stage-btn ${status === 'pending' ? 'active stage-pending' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'pending')">
+            New
+          </button>
+          <button class="kds-stage-btn ${status === 'preparing' ? 'active stage-preparing' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'preparing')">
+            <i class="ri-fire-line"></i> Preparing
+          </button>
+          <button class="kds-stage-btn ${status === 'ready' ? 'active stage-ready' : ''}" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'ready')">
+            <i class="ri-check-line"></i> Ready
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="setTicketDirectStatus(${ticket.ticket_id}, 'collected')" title="Served & Close">
+            <i class="ri-checkbox-circle-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.refreshKDSInPlace = async function() {
+  const grid = document.getElementById('kds-tickets-grid');
+  if (!grid) return;
+  const activeStation = AppState.kdsStationFilter || 'kitchen';
+
+  try {
+    const res = await API.fetchStationTickets(activeStation);
+    if (!res || !res.tickets) return;
+
+    const dataHash = JSON.stringify(res.tickets);
+    if (window._lastKDSHash === dataHash) return; // Zero-flicker: no change, do not touch DOM
+    window._lastKDSHash = dataHash;
+
+    const pendingCount = res.tickets.filter(t => t.ticket_status === 'pending').length;
+    const prepCount = res.tickets.filter(t => t.ticket_status === 'preparing').length;
+    const readyCount = res.tickets.filter(t => t.ticket_status === 'ready').length;
+
+    const pendEl = document.getElementById('kds-pending-stat');
+    const prepEl = document.getElementById('kds-prep-stat');
+    const readyEl = document.getElementById('kds-ready-stat');
+    if (pendEl) pendEl.textContent = pendingCount;
+    if (prepEl) prepEl.textContent = prepCount;
+    if (readyEl) readyEl.textContent = readyCount;
+
+    const batchContainer = document.getElementById('kds-batch-summary-container');
+    if (batchContainer && res.batch_summary && (activeStation === 'barista' || activeStation === 'all')) {
+      const bs = res.batch_summary;
+      const totalMilks = (bs.oat_milk || 0) + (bs.almond_milk || 0) + (bs.soy_milk || 0) + (bs.full_cream || 0);
+      if (totalMilks > 0 || (bs.extra_shots || 0) > 0 || (bs.decaf || 0) > 0 || (bs.extra_hot || 0) > 0) {
+        batchContainer.innerHTML = `
+          <div class="kds-batch-summary-bar">
+            <span style="font-size:13px; font-weight:800; color:var(--color-cream);"><i class="ri-cup-fill" style="color:var(--color-primary-light);"></i> Active Drink Batching:</span>
+            ${(bs.oat_milk || 0) > 0 ? `<span class="batch-item-badge">🥛 Oat Milk: <strong>${bs.oat_milk}x</strong></span>` : ''}
+            ${(bs.almond_milk || 0) > 0 ? `<span class="batch-item-badge">🌰 Almond: <strong>${bs.almond_milk}x</strong></span>` : ''}
+            ${(bs.soy_milk || 0) > 0 ? `<span class="batch-item-badge">🌱 Soy: <strong>${bs.soy_milk}x</strong></span>` : ''}
+            ${(bs.full_cream || 0) > 0 ? `<span class="batch-item-badge">🥛 Full Cream: <strong>${bs.full_cream}x</strong></span>` : ''}
+            ${(bs.decaf || 0) > 0 ? `<span class="batch-item-badge">☕ Decaf: <strong>${bs.decaf}x</strong></span>` : ''}
+            ${(bs.extra_shots || 0) > 0 ? `<span class="batch-item-badge">⚡ Extra Shots: <strong>${bs.extra_shots}x</strong></span>` : ''}
+            ${(bs.extra_hot || 0) > 0 ? `<span class="batch-item-badge">🔥 Extra Hot: <strong>${bs.extra_hot}x</strong></span>` : ''}
+          </div>
+        `;
+      } else {
+        batchContainer.innerHTML = '';
+      }
+    }
+
+    if (res.tickets.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
+          <i class="ri-checkbox-circle-line" style="font-size:48px; color:var(--color-success);"></i>
+          <h3 style="margin:12px 0 4px 0;">All ${activeStation === 'kitchen' ? 'Kitchen' : 'Barista'} Tickets Cleared!</h3>
+          <p style="color:var(--color-cream-muted);">Queue is empty. Incoming orders will chime automatically.</p>
+        </div>
+      `;
+    } else {
+      grid.innerHTML = res.tickets.map(ticket => window.renderKDSTicketHTML(ticket)).join('');
+    }
+  } catch(e) {}
 };
 
 window.setTicketDirectStatus = async function(ticketId, targetStatus) {
@@ -6178,7 +7670,7 @@ window.setTicketDirectStatus = async function(ticketId, targetStatus) {
       if (targetStatus === 'ready') playAudioChime('ready');
       else if (targetStatus === 'collected') playAudioChime('served');
       else playAudioChime('new_order');
-      renderCurrentModule();
+      await window.refreshKDSInPlace();
     }
   } catch (e) {
     console.error('[Set Ticket Status Error]', e);
@@ -6208,7 +7700,7 @@ window.renderWaitStaffDashboard = async function(container) {
       </div>
 
       <div>
-        <button class="btn btn-primary btn-sm" onclick="renderCurrentModule()"><i class="ri-refresh-line"></i> Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="window.refreshWaitStaffInPlace()"><i class="ri-refresh-line"></i> Refresh</button>
       </div>
     </div>
 
@@ -6216,109 +7708,119 @@ window.renderWaitStaffDashboard = async function(container) {
   `;
 
   container.appendChild(wsLayout);
+  await window.refreshWaitStaffInPlace();
+};
 
+window.renderWaitStaffCardHTML = function(ord) {
+  const isReady = ord.is_ready_to_serve;
+  const kStatus = ord.kitchen_status;
+  const bStatus = ord.barista_status;
+
+  return `
+    <div class="waitstaff-card ${isReady ? 'ready-to-serve' : ''}">
+      <div class="waitstaff-card-header">
+        <div>
+          <div class="waitstaff-table-badge">
+            <i class="ri-restaurant-line" style="color:var(--color-primary-light);"></i>
+            ${ord.order_type === 'dine_in' ? 'Table ' + (ord.table_number || '?') : 'Takeaway'}
+            <span style="font-size:12px; color:var(--color-cream-muted); font-weight:600; margin-left:6px;">(#ORD-${ord.order_id})</span>
+          </div>
+          <div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;">
+            Guest: ${ord.customer_name || 'Walk-in'} • Wait: ${ord.elapsed_minutes}m
+          </div>
+        </div>
+        ${isReady ? `
+          <span class="badge badge-success" style="font-size:12px; padding:6px 12px; font-weight:800; animation:pulse 1s infinite;">
+            <i class="ri-notification-3-fill"></i> READY TO SERVE
+          </span>
+        ` : `
+          <span class="badge badge-warning" style="font-size:11px;">${(ord.master_status || 'PENDING').toUpperCase()}</span>
+        `}
+      </div>
+
+      <div class="waitstaff-card-body">
+        <!-- Kitchen Food Breakdown -->
+        ${ord.food_items && ord.food_items.length ? `
+          <div class="waitstaff-station-section">
+            <div class="waitstaff-station-header kitchen">
+              <span>🍳 Kitchen (Food)</span>
+              <span class="badge ${kStatus === 'ready' ? 'badge-success' : (kStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
+                ${kStatus === 'ready' ? 'Ready at Pass' : (kStatus === 'preparing' ? 'Cooking' : 'In Queue')}
+              </span>
+            </div>
+            ${ord.food_items.map(f => `
+              <div class="waitstaff-item-row">
+                <span><strong>${f.quantity}x</strong> ${f.product_name}</span>
+                ${f.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#fb923c;">${f.notes_highlight}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Barista Drink Breakdown -->
+        ${ord.drink_items && ord.drink_items.length ? `
+          <div class="waitstaff-station-section">
+            <div class="waitstaff-station-header barista">
+              <span>☕ Barista (Drinks)</span>
+              <span class="badge ${bStatus === 'ready' ? 'badge-success' : (bStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
+                ${bStatus === 'ready' ? 'Ready at Bar' : (bStatus === 'preparing' ? 'Brewing' : 'In Queue')}
+              </span>
+            </div>
+            ${ord.drink_items.map(d => `
+              <div class="waitstaff-item-row">
+                <span><strong>${d.quantity}x</strong> ${d.product_name}</span>
+                ${d.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#60a5fa;">${d.notes_highlight}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="waitstaff-card-footer">
+        <button class="btn btn-success w-100" onclick="serveOrderAction(${ord.order_id})" style="font-size:14px; font-weight:800; padding:12px;">
+          <i class="ri-check-double-line"></i> Mark Order as Served & Complete
+        </button>
+      </div>
+    </div>
+  `;
+};
+
+window.refreshWaitStaffInPlace = async function() {
   const grid = document.getElementById('waitstaff-orders-grid');
+  if (!grid) return;
 
   try {
     const res = await (await fetch(`${API_BASE}/orders/kds.php?station=waitstaff`)).json();
-    if (res && res.success && res.data) {
-      const orders = res.data.orders || [];
-      document.getElementById('ws-active-count').textContent = orders.length;
-      document.getElementById('ws-ready-count').textContent = res.data.ready_to_serve_count || 0;
+    if (!res || !res.success || !res.data) return;
 
-      const readyBadge = document.getElementById('waitstaff-ready-count');
-      if (readyBadge) {
-        readyBadge.textContent = res.data.ready_to_serve_count || 0;
-        readyBadge.classList.toggle('hidden', (res.data.ready_to_serve_count || 0) === 0);
-      }
+    const orders = res.data.orders || [];
+    const dataHash = JSON.stringify(orders);
+    if (window._lastWaitStaffHash === dataHash) return; // Zero-flicker: no change
+    window._lastWaitStaffHash = dataHash;
 
-      if (orders.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
-            <i class="ri-check-double-line" style="font-size:48px; color:var(--color-success);"></i>
-            <h3 style="margin:12px 0 4px 0;">All Tables Served!</h3>
-            <p style="color:var(--color-cream-muted);">No orders currently waiting for collection.</p>
-          </div>
-        `;
-      } else {
-        grid.innerHTML = orders.map(ord => {
-          const isReady = ord.is_ready_to_serve;
-          const kStatus = ord.kitchen_status;
-          const bStatus = ord.barista_status;
+    const activeEl = document.getElementById('ws-active-count');
+    const readyEl = document.getElementById('ws-ready-count');
+    if (activeEl) activeEl.textContent = orders.length;
+    if (readyEl) readyEl.textContent = res.data.ready_to_serve_count || 0;
 
-          return `
-            <div class="waitstaff-card ${isReady ? 'ready-to-serve' : ''}">
-              <div class="waitstaff-card-header">
-                <div>
-                  <div class="waitstaff-table-badge">
-                    <i class="ri-restaurant-line" style="color:var(--color-primary-light);"></i>
-                    ${ord.order_type === 'dine_in' ? 'Table ' + (ord.table_number || '?') : 'Takeaway'}
-                    <span style="font-size:12px; color:var(--color-cream-muted); font-weight:600; margin-left:6px;">(#ORD-${ord.order_id})</span>
-                  </div>
-                  <div style="font-size:11px; color:var(--color-cream-muted); margin-top:2px;">
-                    Guest: ${ord.customer_name || 'Walk-in'} • Wait: ${ord.elapsed_minutes}m
-                  </div>
-                </div>
-                ${isReady ? `
-                  <span class="badge badge-success" style="font-size:12px; padding:6px 12px; font-weight:800; animation:pulse 1s infinite;">
-                    <i class="ri-notification-3-fill"></i> READY TO SERVE
-                  </span>
-                ` : `
-                  <span class="badge badge-warning" style="font-size:11px;">${ord.master_status.toUpperCase()}</span>
-                `}
-              </div>
-
-              <div class="waitstaff-card-body">
-                <!-- Kitchen Food Breakdown -->
-                ${ord.food_items && ord.food_items.length ? `
-                  <div class="waitstaff-station-section">
-                    <div class="waitstaff-station-header kitchen">
-                      <span>🍳 Kitchen (Food)</span>
-                      <span class="badge ${kStatus === 'ready' ? 'badge-success' : (kStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
-                        ${kStatus === 'ready' ? 'Ready at Pass' : (kStatus === 'preparing' ? 'Cooking' : 'In Queue')}
-                      </span>
-                    </div>
-                    ${ord.food_items.map(f => `
-                      <div class="waitstaff-item-row">
-                        <span><strong>${f.quantity}x</strong> ${f.product_name}</span>
-                        ${f.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#fb923c;">${f.notes_highlight}</span>` : ''}
-                      </div>
-                    `).join('')}
-                  </div>
-                ` : ''}
-
-                <!-- Barista Drink Breakdown -->
-                ${ord.drink_items && ord.drink_items.length ? `
-                  <div class="waitstaff-station-section">
-                    <div class="waitstaff-station-header barista">
-                      <span>☕ Barista (Drinks)</span>
-                      <span class="badge ${bStatus === 'ready' ? 'badge-success' : (bStatus === 'preparing' ? 'badge-info' : 'badge-warning')}">
-                        ${bStatus === 'ready' ? 'Ready at Bar' : (bStatus === 'preparing' ? 'Brewing' : 'In Queue')}
-                      </span>
-                    </div>
-                    ${ord.drink_items.map(d => `
-                      <div class="waitstaff-item-row">
-                        <span><strong>${d.quantity}x</strong> ${d.product_name}</span>
-                        ${d.notes_highlight !== 'Standard' ? `<span style="font-size:11px; color:#60a5fa;">${d.notes_highlight}</span>` : ''}
-                      </div>
-                    `).join('')}
-                  </div>
-                ` : ''}
-              </div>
-
-              <div class="waitstaff-card-footer">
-                <button class="btn btn-success w-100" onclick="serveOrderAction(${ord.order_id})" style="font-size:14px; font-weight:800; padding:12px;">
-                  <i class="ri-check-double-line"></i> Mark Order as Served & Complete
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
+    const readyBadge = document.getElementById('waitstaff-ready-count');
+    if (readyBadge) {
+      readyBadge.textContent = res.data.ready_to_serve_count || 0;
+      readyBadge.classList.toggle('hidden', (res.data.ready_to_serve_count || 0) === 0);
     }
-  } catch (err) {
-    console.error('[Wait Staff Dashboard Error]', err);
-  }
+
+    if (orders.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-cart-state" style="grid-column:1/-1; padding:60px 20px; text-align:center;">
+          <i class="ri-check-double-line" style="font-size:48px; color:var(--color-success);"></i>
+          <h3 style="margin:12px 0 4px 0;">All Tables Served!</h3>
+          <p style="color:var(--color-cream-muted);">No orders currently waiting for collection.</p>
+        </div>
+      `;
+    } else {
+      grid.innerHTML = orders.map(ord => window.renderWaitStaffCardHTML(ord)).join('');
+    }
+  } catch(e) {}
 };
 
 window.serveOrderAction = async function(orderId) {
@@ -6326,10 +7828,10 @@ window.serveOrderAction = async function(orderId) {
     const res = await API.serveOrder(orderId);
     if (res && res.success) {
       playAudioChime('served');
-      renderCurrentModule();
+      await window.refreshWaitStaffInPlace();
     }
-  } catch (e) {
-    console.error('[Serve Order Error]', e);
+  } catch (err) {
+    console.error('[Serve Order Action Error]', err);
   }
 };
 
@@ -6346,26 +7848,35 @@ window.renderCustomerTrackerView = async function(container) {
     </div>
   `;
   container.appendChild(shell);
+  await window.refreshCustomerTrackerInPlace(true);
+};
+
+window.refreshCustomerTrackerInPlace = async function(initialLoad = false) {
+  const trackerEl = document.getElementById('customer-tracker-content');
+  if (!trackerEl) return;
 
   try {
     const res = await API.fetchCustomerOrder();
-    const trackerEl = document.getElementById('customer-tracker-content');
-    if (!trackerEl) return;
-
     if (!res || !res.success || !res.data) {
-      trackerEl.innerHTML = `
-        <div class="customer-tracker-hero" style="text-align:center; padding:50px 20px;">
-          <i class="ri-cup-line" style="font-size:48px; color:var(--color-primary-light);"></i>
-          <h3 style="margin:12px 0 6px 0; color:#fff;">Welcome to Ravenhill Coffee Roasters!</h3>
-          <p style="color:var(--color-cream-muted); margin-bottom:20px;">No active orders found for this session.</p>
-          <button class="btn btn-primary" onclick="switchModule('menu')"><i class="ri-restaurant-menu-line"></i> Browse Cafe Menu</button>
-        </div>
-      `;
+      if (initialLoad) {
+        trackerEl.innerHTML = `
+          <div class="customer-tracker-hero" style="text-align:center; padding:50px 20px;">
+            <i class="ri-cup-line" style="font-size:48px; color:var(--color-primary-light);"></i>
+            <h3 style="margin:12px 0 6px 0; color:#fff;">Welcome to Ravenhill Coffee Roasters!</h3>
+            <p style="color:var(--color-cream-muted); margin-bottom:20px;">No active orders found for this session.</p>
+            <button class="btn btn-primary" onclick="switchModule('menu')"><i class="ri-restaurant-menu-line"></i> Browse Cafe Menu</button>
+          </div>
+        `;
+      }
       return;
     }
 
     const o = res.data;
-    const step = o.step_index; // 1: Placed, 2: Preparing, 3: Ready, 4: Completed
+    const dataHash = JSON.stringify({ id: o.order_id, step: o.step_index, msg: o.status_message, items: o.food_items?.length + o.drink_items?.length });
+    if (!initialLoad && window._lastTrackerHash === dataHash) return; // Zero-flicker: no change
+    window._lastTrackerHash = dataHash;
+
+    const step = o.step_index;
 
     trackerEl.innerHTML = `
       <!-- Hero Pickup Token Card -->
@@ -6447,7 +7958,7 @@ window.renderCustomerTrackerView = async function(container) {
         </div>
       ` : ''}
     `;
-  } catch (err) {
+  } catch(err) {
     console.error('[Customer Tracker Error]', err);
   }
 };
@@ -6643,9 +8154,70 @@ window.exportZReport = function() {
 // LANDING PAGE & CINEMATIC STOREFRONT EXPERIENCE
 // ==========================================
 
-let landingCountdownInterval = null;
-let landingSteamAnimFrame = null;
-let landingProgressionInterval = null;
+window.updateLandingNavbarAuth = function() {
+  const container = document.getElementById('landing-nav-actions');
+  if (!container) return;
+
+  const isAuth = AppState.isAuthenticated;
+  const role = AppState.activeRole || 'customer';
+  const u = AppState.currentUser;
+  const userName = u ? (u.first_name || u.username || 'User') : (role.toUpperCase());
+
+  let targetMod = 'pos';
+  let targetLabel = 'POS Register';
+  if (role === 'admin' || role === 'manager') {
+    targetMod = 'dashboard';
+    targetLabel = 'Admin Dashboard';
+  } else if (role === 'barista' || role === 'kitchen') {
+    targetMod = 'kds';
+    targetLabel = role === 'kitchen' ? 'Kitchen KDS' : 'Barista KDS';
+  } else if (role === 'waitstaff') {
+    targetMod = 'waitstaff';
+    targetLabel = 'Wait Staff Queue';
+  } else if (role === 'customer') {
+    targetMod = 'pos';
+    targetLabel = 'Storefront';
+  }
+
+  if (isAuth && role !== 'customer') {
+    container.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span class="landing-user-badge" style="font-size:13px; font-weight:700; color:var(--color-cream); background:rgba(217,107,67,0.18); border:1px solid rgba(217,107,67,0.35); padding:6px 14px; border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+          <i class="ri-shield-user-fill" style="color:var(--color-primary-light);"></i> ${userName} (${role.toUpperCase()})
+        </span>
+        <button type="button" class="btn-nav-role" onclick="window.showAppView('${targetMod}')" style="background:var(--color-primary); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">
+          <i class="ri-arrow-right-up-line"></i> <span>Back to ${targetLabel}</span>
+        </button>
+        <button type="button" class="btn-nav-login" onclick="window.logout()" style="background:transparent; border:1px solid rgba(255,255,255,0.25); color:var(--color-cream); padding:8px 12px; border-radius:8px; font-weight:600; cursor:pointer;" title="Sign Out">
+          <i class="ri-logout-box-r-line"></i> <span>Sign Out</span>
+        </button>
+      </div>
+    `;
+  } else if (isAuth && role === 'customer') {
+    container.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="landing-user-badge" style="font-size:13px; font-weight:700; color:var(--color-cream); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); padding:6px 14px; border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+          <i class="ri-user-heart-line" style="color:var(--color-gold);"></i> ${userName}
+        </span>
+        <button type="button" class="btn-nav-role" onclick="window.showAppView('pos')">
+          <i class="ri-shopping-bag-3-fill"></i> <span>Order Online</span>
+        </button>
+        <button type="button" class="btn-nav-login" onclick="window.logout()" title="Sign Out">
+          <i class="ri-logout-box-r-line"></i> <span>Sign Out</span>
+        </button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <button type="button" class="btn-nav-role" onclick="window.enterAsCustomer('pos')">
+        <i class="ri-shopping-bag-3-fill"></i> <span>Order Online</span>
+      </button>
+      <button type="button" class="btn-nav-login" onclick="window.openLoginModal('cashier')">
+        <i class="ri-user-3-line"></i> <span>Sign In</span>
+      </button>
+    `;
+  }
+};
 
 window.showLandingView = function() {
   const landing = document.getElementById('landing-page-view');
@@ -6658,6 +8230,7 @@ window.showLandingView = function() {
     app.classList.add('hidden');
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (window.updateLandingNavbarAuth) window.updateLandingNavbarAuth();
   window.initPromoCountdown();
   window.initSteamParticles();
   window.initHeroBadgeProgression();
@@ -6683,13 +8256,16 @@ window.showAppView = function(moduleKey) {
 };
 
 window.enterAsCustomer = function(targetModule) {
-  AppState.activeRole = 'customer';
-  AppState.isAuthenticated = true;
-  localStorage.setItem('RAVENHILL_USER_ROLE', 'customer');
-  if (window.applyRoleToUI) window.applyRoleToUI('customer');
-  if (window.applyRolePermissionsUI) window.applyRolePermissionsUI();
+  if (!AppState.isAuthenticated) {
+    AppState.activeRole = 'customer';
+    AppState.isAuthenticated = true;
+    localStorage.setItem('RAVENHILL_USER_ROLE', 'customer');
+    localStorage.setItem('RAVENHILL_AUTH_SAVED', 'true');
+    if (window.applyRoleToUI) window.applyRoleToUI('customer');
+    if (window.applyRolePermissionsUI) window.applyRolePermissionsUI();
+    showToast('☕ Welcome to Ravenhill! Explore our Melbourne menu & place your order.', 'success');
+  }
   window.showAppView(targetModule || 'pos');
-  showToast('☕ Welcome to Ravenhill! Explore our Melbourne menu & place your order.', 'success');
 };
 
 window.openRoleLoginModal = function(targetRole) {
@@ -6854,17 +8430,25 @@ window.filterLandingMenu = function(categoryKey) {
   }
 
   grid.innerHTML = filtered.map(item => {
-    const badgeText = item.price > 7 ? 'Chef Special' : (item.catId === '1' ? 'House Blend' : 'Popular');
+    const promoInfo = window.getItemActiveDiscount ? window.getItemActiveDiscount(item) : null;
+    let badgeText = item.price > 7 ? 'Chef Special' : (item.catId === '1' ? 'House Blend' : 'Popular');
+    let pricePillHtml = `$${parseFloat(item.price).toFixed(2)}`;
+
+    if (promoInfo) {
+      badgeText = `🔥 SPECIAL ${promoInfo.percentText}`;
+      pricePillHtml = `<span style="text-decoration:line-through; font-size:11px; opacity:0.75; margin-right:4px;">$${parseFloat(item.price).toFixed(2)}</span><span style="color:#10B981; font-weight:800;">$${promoInfo.discountedPrice.toFixed(2)}</span>`;
+    }
+
     return `
       <div class="digital-product-card" data-item-id="${item.id}">
         <div class="product-img-box">
           <img src="${item.image || './brand_recources/flat_white_coffee.png'}" alt="${item.name}" loading="lazy" onerror="this.src='./brand_recources/flat_white_coffee.png'">
-          <span class="product-card-badge">${badgeText}</span>
+          <span class="product-card-badge" style="${promoInfo ? 'background:linear-gradient(135deg, #EF4444, #F59E0B); color:#fff;' : ''}">${badgeText}</span>
         </div>
         <div class="product-content-box">
           <div class="product-name-row">
             <h4>${item.name}</h4>
-            <span class="product-price-pill">$${parseFloat(item.price).toFixed(2)}</span>
+            <span class="product-price-pill">${pricePillHtml}</span>
           </div>
           <p class="product-desc-text">${item.desc || 'Artisan specialty coffee crafted with precision in Melbourne CBD.'}</p>
           <div class="product-action-row">
@@ -7562,21 +9146,25 @@ window.createBatchPurchaseOrder = function() {
   window.switchModule('suppliers');
 };
 
-// ── Non-Blocking Smart Polling Engine (Every 3s with mutex lock) ────
+// ── Non-Blocking Smart In-Place Polling Engine (Zero-Flicker) ────
 let isPollInProgress = false;
 setInterval(async () => {
   if (isPollInProgress) return;
-  if (['kds', 'waitstaff', 'customer_tracker'].includes(AppState.activeModule)) {
-    const openModal = document.querySelector('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
-    if (!openModal) {
-      isPollInProgress = true;
-      try {
-        await renderCurrentModule();
-      } catch (err) {
-        console.warn('[Poll Error]', err);
-      } finally {
-        isPollInProgress = false;
-      }
+  const openModal = document.querySelector('.modal-backdrop:not(.hidden), .modal-overlay:not(.hidden)');
+  if (openModal) return;
+
+  isPollInProgress = true;
+  try {
+    if (AppState.activeModule === 'kds') {
+      await window.refreshKDSInPlace();
+    } else if (AppState.activeModule === 'waitstaff') {
+      await window.refreshWaitStaffInPlace();
+    } else if (AppState.activeModule === 'customer_tracker') {
+      await window.refreshCustomerTrackerInPlace();
     }
+  } catch (err) {
+    console.warn('[Smart Poll Error]', err);
+  } finally {
+    isPollInProgress = false;
   }
-}, 3000);
+}, 4000);

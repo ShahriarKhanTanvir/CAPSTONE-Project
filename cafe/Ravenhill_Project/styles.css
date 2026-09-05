@@ -1841,83 +1841,158 @@ select option, .form-select option, .form-select-sm option {
 
 .checkbox-options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px;
 }
 
 .checkbox-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 12px 14px;
   background: var(--bg-card);
-  border: 1px solid var(--color-border-subtle);
+  border: 1.5px solid var(--color-border-subtle);
   border-radius: var(--border-radius-md);
   font-size: 13px;
   color: var(--color-cream);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .checkbox-card:hover {
   background: var(--bg-surface);
-  border-color: var(--color-primary-light);
-  transform: translateY(-1px);
+  border-color: rgba(217, 107, 67, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .checkbox-card input[type="radio"],
 .checkbox-card input[type="checkbox"] {
   accent-color: var(--color-primary);
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.checkbox-card:active input[type="radio"],
+.checkbox-card:active input[type="checkbox"] {
+  transform: scale(0.92);
 }
 
 .checkbox-card:has(input:checked) {
-  background: rgba(217, 119, 6, 0.12);
+  background: linear-gradient(135deg, rgba(217, 107, 67, 0.16) 0%, rgba(245, 158, 11, 0.08) 100%);
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary-light), 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 1.5px var(--color-primary), 0 4px 16px rgba(217, 107, 67, 0.2);
 }
 
 .checkbox-card.removal-card:has(input:checked) {
   background: rgba(239, 68, 68, 0.12);
   border-color: var(--color-danger);
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 0 1.5px rgba(239, 68, 68, 0.4);
 }
 
 .custom-opt-name {
   flex: 1;
-  font-weight: 500;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-cream);
+  letter-spacing: -0.01em;
+}
+
+.checkbox-card:has(input:checked) .custom-opt-name {
+  color: #fff;
+  font-weight: 700;
 }
 
 .custom-opt-badge {
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .custom-opt-badge.price-extra {
-  background: rgba(217, 119, 6, 0.2);
+  background: rgba(217, 119, 6, 0.22);
   color: var(--color-accent-gold);
-  border: 1px solid rgba(217, 119, 6, 0.4);
+  border: 1px solid rgba(217, 119, 6, 0.45);
 }
 
 .custom-opt-badge.free-badge {
-  background: rgba(82, 183, 136, 0.15);
+  background: rgba(82, 183, 136, 0.16);
   color: #52b788;
-  border: 1px solid rgba(82, 183, 136, 0.3);
+  border: 1px solid rgba(82, 183, 136, 0.35);
 }
 
 .custom-opt-badge.removal-badge {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.16);
   color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* Modifier Group Header Badges */
+.group-required-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(217, 107, 67, 0.2);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(217, 107, 67, 0.4);
+  margin-left: auto;
+}
+
+.group-optional-badge {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-cream-muted);
+  margin-left: auto;
+}
+
+.customiser-section.section-unfulfilled {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 10px;
+  border-radius: 4px;
+}
+
+/* Customiser Validation Banner */
+.customiser-validation-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(217, 107, 67, 0.12);
+  border: 1px solid rgba(217, 107, 67, 0.35);
+  border-radius: var(--border-radius-md);
+  color: var(--color-primary-light);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 12px;
+  animation: fadeIn 0.25s ease;
+}
+
+.customiser-validation-banner i {
+  font-size: 16px;
+  color: var(--color-accent-gold);
+  flex-shrink: 0;
+}
+
+#add-to-cart-confirm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+  box-shadow: none;
+  background: #3a322c !important;
+  color: rgba(245, 239, 230, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .quantity-picker {
@@ -4616,22 +4691,18 @@ select option, .form-select option, .form-select-sm option {
   transform: translateY(-1px);
 }
 
-/* Return to Landing Page Floating / Topbar button */
-.btn-return-landing {
-  background: rgba(255, 255, 255, 0.08);
+.landing-user-badge {
+  font-size: 13px;
+  font-weight: 700;
   color: var(--color-cream);
-  border: 1px solid var(--color-border);
+  background: rgba(217, 107, 67, 0.18);
+  border: 1px solid rgba(217, 107, 67, 0.35);
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
 }
 
 .btn-return-landing:hover {
@@ -5492,4 +5563,210 @@ select option, .form-select option, .form-select-sm option {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
 }
+
+/* Reports & Audits KPI Cards */
+.report-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.report-kpi-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between;
+  min-height: 120px;
+  gap: 8px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.report-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-cream-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.report-kpi-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-cream);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.report-kpi-sub {
+  font-size: 11.5px;
+  color: var(--color-cream-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.3;
+}
+
+/* ==========================================
+   DISCOUNTS & PROMOTIONS MANAGEMENT SYSTEM
+   ========================================== */
+.promo-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.promo-status-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.promo-status-scheduled {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.promo-status-expired {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9CA3AF;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.promo-status-disabled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.promo-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-surface-elevated, #2a2a2a);
+  color: var(--color-primary-light);
+  border: 1px solid var(--color-border);
+}
+
+.promo-code-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(200, 138, 88, 0.12);
+  border: 1px dashed var(--color-primary);
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+/* Strikethrough & Special badge on menu items */
+.promo-strikethrough-price {
+  text-decoration: line-through;
+  font-size: 12px;
+  color: var(--color-cream-muted);
+  margin-right: 5px;
+}
+
+.promo-discounted-price {
+  color: #10B981;
+  font-weight: 800;
+}
+
+.product-promo-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(135deg, #EF4444, #F59E0B);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+/* Quick Toggle Switch */
+.promo-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+}
+
+.promo-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.promo-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: .25s;
+  border-radius: 22px;
+}
+
+.promo-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .25s;
+  border-radius: 50%;
+}
+
+input:checked + .promo-slider {
+  background-color: #10B981;
+}
+
+input:checked + .promo-slider:before {
+  transform: translateX(16px);
+}
+
 

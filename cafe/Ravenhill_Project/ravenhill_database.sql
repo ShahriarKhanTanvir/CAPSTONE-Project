@@ -1,755 +1,1995 @@
--- ======================================================================
--- Ravenhill Coffee POS & Management System - Complete Database Schema & Seed
--- Character Set: utf8mb4 | Engine: InnoDB | Currency: AUD
--- ======================================================================
+-- =========================================================================
+-- RAVENHILL COFFEE ROASTERS — LIVE PRODUCTION DATABASE DUMP
+-- Generated at: 2026-09-05 01:03:55
+-- Character Set: utf8mb4
+-- =========================================================================
 
+SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
 
--- ----------------------------------------------------------------------
--- 1. DROP EXISTING TABLES (Clean Slate)
--- ----------------------------------------------------------------------
-DROP TABLE IF EXISTS LoyaltyTransactions;
-DROP TABLE IF EXISTS Feedback;
-DROP TABLE IF EXISTS Payments;
-DROP TABLE IF EXISTS OrderItems;
-DROP TABLE IF EXISTS Reservations;
-DROP TABLE IF EXISTS Orders;
-DROP TABLE IF EXISTS Timesheets;
-DROP TABLE IF EXISTS Schedules;
-DROP TABLE IF EXISTS AuditLogs;
-DROP TABLE IF EXISTS SalesPredictions;
-DROP TABLE IF EXISTS PurchaseOrderItems;
-DROP TABLE IF EXISTS PurchaseOrders;
-DROP TABLE IF EXISTS Recipes;
-DROP TABLE IF EXISTS InventoryTransactions;
-DROP TABLE IF EXISTS Inventory;
-DROP TABLE IF EXISTS Customisations;
-DROP TABLE IF EXISTS Products;
-DROP TABLE IF EXISTS Categories;
-DROP TABLE IF EXISTS Suppliers;
-DROP TABLE IF EXISTS DiningTables;
-DROP TABLE IF EXISTS Discounts;
-DROP TABLE IF EXISTS Customers;
-DROP TABLE IF EXISTS Employees;
-DROP TABLE IF EXISTS Users;
-DROP TABLE IF EXISTS Roles;
-DROP TABLE IF EXISTS LoginAttempts;
-DROP TABLE IF EXISTS PhoneVerifications;
+-- --------------------------------------------------------
+-- Table structure for table `AuditLogs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `AuditLogs`;
+CREATE TABLE `AuditLogs` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `user_name` varchar(100) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `table_name` varchar(255) DEFAULT NULL,
+  `details` text DEFAULT NULL,
+  `timestamp` datetime DEFAULT current_timestamp(),
+  `ip_address` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`log_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `AuditLogs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- ----------------------------------------------------------------------
--- 2. TABLE DEFINITIONS
--- ----------------------------------------------------------------------
+-- Dumping data for table `AuditLogs`
+INSERT INTO `AuditLogs` (`log_id`, `user_id`, `user_name`, `action`, `table_name`, `details`, `timestamp`, `ip_address`) VALUES
+(1, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:01:26', '59.100.254.142'),
+(2, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:03:20', '59.100.254.142'),
+(3, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:05:08', '59.100.254.142'),
+(4, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:05:54', '59.100.254.142'),
+(5, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:07:06', '59.100.254.142'),
+(6, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: admin (59.100.254.142)', '2026-08-29 14:07:44', '59.100.254.142'),
+(7, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: admin (59.100.254.142)', '2026-08-29 14:07:50', '59.100.254.142'),
+(8, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:08:55', '59.100.254.142'),
+(9, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:09:05', '59.100.254.142'),
+(10, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:10:02', '59.100.254.142'),
+(11, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:10:23', '59.100.254.142'),
+(12, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:10:27', '59.100.254.142'),
+(13, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:10:43', '59.100.254.142'),
+(14, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:10:54', '59.100.254.142'),
+(15, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:18:37', '59.100.254.142'),
+(16, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:19:29', '59.100.254.142'),
+(17, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:20:41', '59.100.254.142'),
+(18, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:22:06', '59.100.254.142'),
+(19, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:22:54', '59.100.254.142'),
+(20, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:23:07', '59.100.254.142'),
+(21, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:23:27', '59.100.254.142'),
+(22, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:28:03', '59.100.254.142'),
+(23, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:31:46', '59.100.254.142'),
+(24, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:33:19', '59.100.254.142'),
+(25, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:33:34', '59.100.254.142'),
+(26, NULL, 'jane.doe@example.com', 'LOGIN_SUCCESS', 'Users', 'User \'jane.doe@example.com\' logged in as Customer', '2026-08-29 14:34:52', '59.100.254.142'),
+(27, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: waitstaff from IP: 59.100.254.142', '2026-08-29 14:37:54', '59.100.254.142'),
+(28, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: wait staff from IP: 59.100.254.142', '2026-08-29 14:38:00', '59.100.254.142'),
+(29, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: wait staff from IP: 59.100.254.142', '2026-08-29 14:38:02', '59.100.254.142'),
+(30, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:38:11', '59.100.254.142'),
+(31, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: slin from IP: 59.100.254.142', '2026-08-29 14:40:59', '59.100.254.142'),
+(32, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: slin (59.100.254.142)', '2026-08-29 14:41:08', '59.100.254.142'),
+(33, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: slin (59.100.254.142)', '2026-08-29 14:41:28', '59.100.254.142'),
+(34, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: slin (59.100.254.142)', '2026-08-29 14:41:37', '59.100.254.142'),
+(35, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: cashier (59.100.254.142)', '2026-08-29 14:41:47', '59.100.254.142'),
+(36, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: cashier (59.100.254.142)', '2026-08-29 14:41:49', '59.100.254.142'),
+(37, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: cashier (59.100.254.142)', '2026-08-29 14:42:59', '59.100.254.142'),
+(38, NULL, 'System', 'LOGIN_LOCKED', 'Users', 'IP/User locked out after 5 failed attempts: cashier (59.100.254.142)', '2026-08-29 14:43:02', '59.100.254.142'),
+(39, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-08-29 14:43:15', '59.100.254.142'),
+(40, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:43:15', '59.100.254.142'),
+(41, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:43:24', '59.100.254.142'),
+(42, 6, 'manager', 'LOGIN_SUCCESS', 'Users', 'User \'manager\' logged in as Manager', '2026-08-29 14:43:24', '59.100.254.142'),
+(43, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-08-29 14:43:24', '59.100.254.142'),
+(44, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-08-29 14:43:24', '59.100.254.142'),
+(45, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-08-29 14:43:24', '59.100.254.142'),
+(46, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 14:43:25', '59.100.254.142'),
+(47, 11, 'customer', 'LOGIN_SUCCESS', 'Users', 'User \'customer\' logged in as Customer', '2026-08-29 14:43:25', '59.100.254.142'),
+(48, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-08-29 14:44:15', '59.100.254.142'),
+(49, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:51:01', '59.100.254.142'),
+(50, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-08-29 14:52:41', '59.100.254.142');
+INSERT INTO `AuditLogs` (`log_id`, `user_id`, `user_name`, `action`, `table_name`, `details`, `timestamp`, `ip_address`) VALUES
+(51, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: waitstaff from IP: 59.100.254.142', '2026-08-29 14:53:15', '59.100.254.142'),
+(52, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: waitstaff from IP: 59.100.254.142', '2026-08-29 14:53:26', '59.100.254.142'),
+(53, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: waitstaff from IP: 59.100.254.142', '2026-08-29 14:53:27', '59.100.254.142'),
+(54, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:53:41', '59.100.254.142'),
+(55, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:53:45', '59.100.254.142'),
+(56, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: wait staff from IP: 59.100.254.142', '2026-08-29 14:54:06', '59.100.254.142'),
+(57, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 14:54:25', '59.100.254.142'),
+(58, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:55:17', '59.100.254.142'),
+(59, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 14:56:17', '59.100.254.142'),
+(60, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-08-29 14:57:27', '59.100.254.142'),
+(61, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:58:37', '59.100.254.142'),
+(62, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 14:58:47', '59.100.254.142'),
+(63, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 14:59:24', '59.100.254.142'),
+(64, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: barista from IP: 59.100.254.142', '2026-08-29 15:00:31', '59.100.254.142'),
+(65, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-08-29 15:00:45', '59.100.254.142'),
+(66, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 15:01:30', '59.100.254.142'),
+(67, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 15:26:18', '59.100.254.142'),
+(68, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 15:29:35', '59.100.254.142'),
+(69, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-08-29 15:35:01', '59.100.254.142'),
+(70, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 15:39:22', '59.100.254.142'),
+(71, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 59.100.254.142', '2026-08-29 15:39:26', '59.100.254.142'),
+(72, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 15:39:33', '59.100.254.142'),
+(73, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 15:43:46', '59.100.254.142'),
+(74, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-08-29 15:43:54', '59.100.254.142'),
+(75, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 15:53:45', '59.100.254.142'),
+(76, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-08-29 15:55:18', '59.100.254.142'),
+(77, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 16:16:48', '59.100.254.142'),
+(78, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-08-29 16:17:08', '59.100.254.142'),
+(79, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-08-29 16:17:34', '59.100.254.142'),
+(80, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-08-29 16:18:00', '59.100.254.142'),
+(81, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-08-29 16:18:24', '59.100.254.142'),
+(82, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 16:19:08', '59.100.254.142'),
+(83, 11, 'customer', 'LOGIN_SUCCESS', 'Users', 'User \'customer\' logged in as Customer', '2026-08-29 16:20:02', '59.100.254.142'),
+(84, 11, 'customer', 'LOGIN_SUCCESS', 'Users', 'User \'customer\' logged in as Customer', '2026-08-29 16:22:42', '59.100.254.142'),
+(85, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 16:24:49', '59.100.254.142'),
+(86, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-08-29 16:25:04', '59.100.254.142'),
+(87, NULL, 'hello@gmail.com', 'LOGIN_SUCCESS', 'Users', 'User \'hello@gmail.com\' logged in as Customer', '2026-08-29 20:42:08', '115.70.50.170'),
+(88, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:26:16', '115.70.50.170'),
+(89, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin@ravenhill.au from IP: 115.70.50.170', '2026-09-05 09:26:31', '115.70.50.170'),
+(90, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:28:18', '115.70.50.170'),
+(91, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for username: admin from IP: 115.70.50.170', '2026-09-05 09:28:23', '115.70.50.170'),
+(92, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:33:17', '115.70.50.170'),
+(93, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:33:27', '115.70.50.170'),
+(94, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for identifier: admin from IP: 115.70.50.170', '2026-09-05 09:33:37', '115.70.50.170'),
+(95, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:34:00', '115.70.50.170'),
+(96, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:34:10', '115.70.50.170'),
+(97, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for identifier: admin from IP: 115.70.50.170', '2026-09-05 09:34:20', '115.70.50.170'),
+(98, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:36:22', '115.70.50.170'),
+(99, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:36:57', '110.150.56.226'),
+(100, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:37:07', '115.70.50.170');
+INSERT INTO `AuditLogs` (`log_id`, `user_id`, `user_name`, `action`, `table_name`, `details`, `timestamp`, `ip_address`) VALUES
+(101, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-09-05 09:37:10', '110.150.56.226'),
+(102, 10, 'waiter', 'LOGIN_SUCCESS', 'Users', 'User \'waiter\' logged in as Waitstaff', '2026-09-05 09:39:08', '115.70.50.170'),
+(103, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:39:08', '110.150.56.226'),
+(104, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:39:48', '49.180.156.155'),
+(105, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:41:18', '110.150.56.226'),
+(106, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:42:49', '110.150.56.226'),
+(107, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-09-05 09:43:00', '49.180.156.155'),
+(108, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:44:59', '115.70.50.170'),
+(109, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-09-05 09:45:49', '110.150.56.226'),
+(110, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:46:36', '110.150.56.226'),
+(111, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:47:41', '110.150.56.226'),
+(112, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-09-05 09:48:30', '115.70.50.170'),
+(113, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-09-05 09:51:09', '49.180.156.155'),
+(114, 7, 'cashier', 'LOGIN_SUCCESS', 'Users', 'User \'cashier\' logged in as Cashier', '2026-09-05 09:51:27', '49.180.156.155'),
+(115, 9, 'kitchen', 'LOGIN_SUCCESS', 'Users', 'User \'kitchen\' logged in as Kitchen', '2026-09-05 09:51:42', '115.70.50.170'),
+(116, 8, 'barista', 'LOGIN_SUCCESS', 'Users', 'User \'barista\' logged in as Barista', '2026-09-05 09:55:54', '110.150.56.226'),
+(117, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 09:56:05', '110.150.56.226'),
+(118, 6, 'manager', 'LOGIN_SUCCESS', 'Users', 'User \'manager\' logged in as Manager', '2026-09-05 09:56:07', '115.70.50.170'),
+(119, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for identifier: admin from IP: 60.227.203.1', '2026-09-05 10:15:24', '60.227.203.1'),
+(120, NULL, 'System', 'LOGIN_FAILED', 'Users', 'Failed login attempt for identifier: adminn from IP: 60.227.203.1', '2026-09-05 10:19:48', '60.227.203.1'),
+(121, 1, 'admin', 'LOGIN_SUCCESS', 'Users', 'User \'admin\' logged in as Admin', '2026-09-05 10:31:37', '115.70.50.170');
 
--- 2.1 Roles
-CREATE TABLE Roles (
-    role_id INT AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Categories`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Categories`;
+CREATE TABLE `Categories` (
+  `category_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(100) NOT NULL,
+  `target_station` enum('kitchen','barista') DEFAULT 'kitchen',
+  `description` text DEFAULT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `category_name` (`category_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.2 Users
-CREATE TABLE Users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role_id INT NULL,
-    status VARCHAR(50) DEFAULT 'active',
-    last_login DATETIME NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (role_id) REFERENCES Roles(role_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Categories`
+INSERT INTO `Categories` (`category_id`, `category_name`, `target_station`, `description`) VALUES
+(1, 'Coffee', 'barista', 'Artisan espresso-based coffees brewed with precision roasted beans'),
+(2, 'Hot Drinks', 'barista', 'Comforting spiced chais, rich chocolates, and soothing specialty lattes'),
+(3, 'Tea', 'barista', 'Premium loose-leaf and organic herbal whole-leaf infusions'),
+(4, 'Cold Coffee', 'barista', 'Chilled iced espresso favorites, single origin iced lattes, and nitro cold brews'),
+(5, 'Cold Drinks', 'barista', 'Refreshing iced teas, rich cold milkshakes, artisan sodas, and sparkling waters'),
+(6, 'Smoothies', 'barista', 'Thick blended natural fruit smoothies made with real yogurt and superfoods'),
+(7, 'Juices', 'barista', 'Freshly pressed fruit and vegetable cold juices packed with vibrant vitamins'),
+(8, 'Breakfast', 'kitchen', 'Hearty morning classics, farm fresh eggs, sourdough toasts, and breakfast wraps'),
+(9, 'Toasties', 'kitchen', 'Golden grilled sourdough toasties melted with premium artisan cheeses and fillings'),
+(10, 'Sandwiches', 'kitchen', 'Fresh daily deli sandwiches, crispy BLTs, and gourmet sourdough baguettes'),
+(11, 'Pastries', 'kitchen', 'Flaky handmade French butter croissants and sweet seasonal fruit danishes'),
+(12, 'Bakery', 'kitchen', 'Freshly baked muffins, gourmet banana breads, and traditional scones'),
+(13, 'Lunch', 'kitchen', 'Fresh seasonal lunchtime salads and gourmet protein bowls'),
+(14, 'Sides', 'kitchen', 'Crunchy golden potato chips, sweet potato fries, and appetizing snack sides');
 
--- 2.3 Employees
-CREATE TABLE Employees (
-    employee_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNIQUE NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NULL,
-    phone VARCHAR(50) NULL,
-    email VARCHAR(255) NULL,
-    position VARCHAR(100) NULL,
-    hire_date DATE NULL,
-    hourly_rate FLOAT DEFAULT 28.50,
-    pin VARCHAR(10) DEFAULT '1234',
-    status VARCHAR(50) DEFAULT 'active',
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Customers`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Customers`;
+CREATE TABLE `Customers` (
+  `customer_id` int(11) NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `loyalty_points` int(11) DEFAULT 0,
+  `loyalty_tier` varchar(50) DEFAULT 'Bronze',
+  `joined_loyalty_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`customer_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `Customers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.4 Categories
-CREATE TABLE Categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Customers`
+INSERT INTO `Customers` (`customer_id`, `first_name`, `last_name`, `phone`, `email`, `user_id`, `loyalty_points`, `loyalty_tier`, `joined_loyalty_at`) VALUES
+(1, 'David', 'Kim', '0412 889 201', 'david.kim@gmail.com', NULL, 240, 'Gold', '2025-10-12 08:30:00'),
+(2, 'Alex', 'Mercer', '0400 998 123', 'alex.mercer@outlook.com', NULL, 110, 'Silver', '2025-11-04 14:15:00'),
+(3, 'Chloe', 'Lin', '0488 442 109', 'chloe.lin@techcorp.au', NULL, 75, 'Bronze', '2026-01-09 09:40:00'),
+(4, 'Marcus', 'Vance', '0411 223 344', 'marcus.vance@melbourne.edu.au', NULL, 315, 'Platinum', '2025-08-19 11:20:00'),
+(5, 'Elena', 'Rostova', '0422 334 455', 'elena.r@designhub.com', NULL, 90, 'Silver', '2026-02-01 16:05:00'),
+(6, 'Jane', 'Doe', '0412345678', 'jane.doe@example.com', NULL, 0, 'Bronze', '2026-08-29 14:34:42'),
+(7, 'Sophia', 'Reed', '0411 223 344', 'customer@ravenhill.au', 11, 250, 'Gold', '2026-08-29 14:43:06'),
+(8, 'Hello', '', '0414742356', 'hello@gmail.com', NULL, 0, 'Bronze', '2026-08-29 20:42:08');
 
--- 2.5 Products
-CREATE TABLE Products (
-    product_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_id INT NULL,
-    product_name VARCHAR(255) NOT NULL,
-    description TEXT NULL,
-    price FLOAT NOT NULL DEFAULT 0.0,
-    availability BOOLEAN DEFAULT TRUE,
-    image VARCHAR(255) NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Customisations`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Customisations`;
+CREATE TABLE `Customisations` (
+  `customisation_id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_name` varchar(100) NOT NULL,
+  `option_name` varchar(100) NOT NULL,
+  `extra_price` float DEFAULT 0,
+  `category_id` int(11) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `is_default` tinyint(1) DEFAULT 0,
+  `availability` tinyint(1) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`customisation_id`),
+  KEY `category_id` (`category_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `Customisations_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `Categories` (`category_id`) ON DELETE SET NULL,
+  CONSTRAINT `Customisations_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `Products` (`product_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.6 Customisations (Modifiers)
-CREATE TABLE Customisations (
-    customisation_id INT AUTO_INCREMENT PRIMARY KEY,
-    group_name VARCHAR(100) NOT NULL,
-    option_name VARCHAR(100) NOT NULL,
-    extra_price FLOAT DEFAULT 0.0,
-    category_id INT NULL,
-    product_id INT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    availability BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX (category_id),
-    INDEX (product_id),
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE SET NULL,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Customisations`
+INSERT INTO `Customisations` (`customisation_id`, `group_name`, `option_name`, `extra_price`, `category_id`, `product_id`, `is_default`, `availability`, `created_at`) VALUES
+(1, 'Milk', 'Full Cream Milk', 0, 1, NULL, 1, 1, '2026-08-29 03:56:28'),
+(2, 'Milk', 'Skim Milk', 0, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(3, 'Milk', 'Oat Milk', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(4, 'Milk', 'Soy Milk', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(5, 'Milk', 'Almond Milk', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(6, 'Milk', 'Lactose Free Milk', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(7, 'Milk', 'Full Cream Milk', 0, 2, NULL, 1, 1, '2026-08-29 03:56:28'),
+(8, 'Milk', 'Skim Milk', 0, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(9, 'Milk', 'Oat Milk', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(10, 'Milk', 'Soy Milk', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(11, 'Milk', 'Almond Milk', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(12, 'Milk', 'Lactose Free Milk', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(13, 'Milk', 'Full Cream Milk', 0, 4, NULL, 1, 1, '2026-08-29 03:56:28'),
+(14, 'Milk', 'Skim Milk', 0, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(15, 'Milk', 'Oat Milk', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(16, 'Milk', 'Soy Milk', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(17, 'Milk', 'Almond Milk', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(18, 'Milk', 'Lactose Free Milk', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(19, 'Milk', 'Full Cream Milk', 0, 5, NULL, 1, 1, '2026-08-29 03:56:28'),
+(20, 'Milk', 'Skim Milk', 0, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(21, 'Milk', 'Oat Milk', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(22, 'Milk', 'Soy Milk', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(23, 'Milk', 'Almond Milk', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(24, 'Milk', 'Lactose Free Milk', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(25, 'Milk', 'Oat Milk', 0.8, 6, NULL, 0, 1, '2026-08-29 03:56:28'),
+(26, 'Milk', 'Soy Milk', 0.8, 6, NULL, 0, 1, '2026-08-29 03:56:28'),
+(27, 'Milk', 'Almond Milk', 0.8, 6, NULL, 0, 1, '2026-08-29 03:56:28'),
+(28, 'Milk', 'Lactose Free Milk', 0.8, 6, NULL, 0, 1, '2026-08-29 03:56:28'),
+(29, 'Coffee Modifiers', 'Extra Shot', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(30, 'Coffee Modifiers', 'Decaf', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(31, 'Coffee Modifiers', 'Extra Shot', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(32, 'Coffee Modifiers', 'Decaf', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(33, 'Size', 'Standard / Regular', 0, 1, NULL, 1, 1, '2026-08-29 03:56:28'),
+(34, 'Size', 'Large', 0.8, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(35, 'Size', 'Standard / Regular', 0, 2, NULL, 1, 1, '2026-08-29 03:56:28'),
+(36, 'Size', 'Large', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(37, 'Size', 'Standard / Regular', 0, 3, NULL, 1, 1, '2026-08-29 03:56:28'),
+(38, 'Size', 'Large', 0.8, 3, NULL, 0, 1, '2026-08-29 03:56:28'),
+(39, 'Size', 'Standard / Regular', 0, 4, NULL, 1, 1, '2026-08-29 03:56:28'),
+(40, 'Size', 'Large', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(41, 'Size', 'Standard / Regular', 0, 5, NULL, 1, 1, '2026-08-29 03:56:28'),
+(42, 'Size', 'Large', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(43, 'Size', 'Standard / Regular', 0, 6, NULL, 1, 1, '2026-08-29 03:56:28'),
+(44, 'Size', 'Large', 0.8, 6, NULL, 0, 1, '2026-08-29 03:56:28'),
+(45, 'Size', 'Standard / Regular', 0, 7, NULL, 1, 1, '2026-08-29 03:56:28'),
+(46, 'Size', 'Large', 0.8, 7, NULL, 0, 1, '2026-08-29 03:56:28'),
+(47, 'Flavours', 'Vanilla Syrup', 0.7, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(48, 'Flavours', 'Caramel Syrup', 0.7, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(49, 'Flavours', 'Hazelnut Syrup', 0.7, 1, NULL, 0, 1, '2026-08-29 03:56:28'),
+(50, 'Flavours', 'Vanilla Syrup', 0.7, 2, NULL, 0, 1, '2026-08-29 03:56:28');
+INSERT INTO `Customisations` (`customisation_id`, `group_name`, `option_name`, `extra_price`, `category_id`, `product_id`, `is_default`, `availability`, `created_at`) VALUES
+(51, 'Flavours', 'Caramel Syrup', 0.7, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(52, 'Flavours', 'Hazelnut Syrup', 0.7, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(53, 'Flavours', 'Vanilla Syrup', 0.7, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(54, 'Flavours', 'Caramel Syrup', 0.7, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(55, 'Flavours', 'Hazelnut Syrup', 0.7, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(56, 'Flavours', 'Vanilla Syrup', 0.7, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(57, 'Flavours', 'Caramel Syrup', 0.7, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(58, 'Flavours', 'Hazelnut Syrup', 0.7, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(59, 'Add-ons', 'Whipped Cream', 0.8, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(60, 'Add-ons', 'Marshmallows', 0.7, 2, NULL, 0, 1, '2026-08-29 03:56:28'),
+(61, 'Add-ons', 'Whipped Cream', 0.8, 4, NULL, 0, 1, '2026-08-29 03:56:28'),
+(62, 'Add-ons', 'Whipped Cream', 0.8, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(63, 'Add-ons', 'Marshmallows', 0.7, 5, NULL, 0, 1, '2026-08-29 03:56:28'),
+(64, 'Food Add-ons', 'Gluten Free Bread', 2, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(65, 'Food Add-ons', 'Extra Cheese', 2, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(66, 'Food Add-ons', 'Avocado', 3, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(67, 'Food Add-ons', 'Bacon', 4.5, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(68, 'Food Add-ons', 'Extra Egg', 2.5, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(69, 'Food Add-ons', 'Hash Brown', 2.5, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(70, 'Food Add-ons', 'Smoked Salmon', 7, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(71, 'Food Add-ons', 'Halloumi', 4, 8, NULL, 0, 1, '2026-08-29 03:56:28'),
+(72, 'Food Add-ons', 'Gluten Free Bread', 2, 9, NULL, 0, 1, '2026-08-29 03:56:28'),
+(73, 'Food Add-ons', 'Extra Cheese', 2, 9, NULL, 0, 1, '2026-08-29 03:56:28'),
+(74, 'Food Add-ons', 'Avocado', 3, 9, NULL, 0, 1, '2026-08-29 03:56:28'),
+(75, 'Food Add-ons', 'Bacon', 4.5, 9, NULL, 0, 1, '2026-08-29 03:56:28'),
+(76, 'Food Add-ons', 'Extra Egg', 2.5, 9, NULL, 0, 1, '2026-08-29 03:56:28'),
+(77, 'Food Add-ons', 'Gluten Free Bread', 2, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(78, 'Food Add-ons', 'Extra Cheese', 2, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(79, 'Food Add-ons', 'Avocado', 3, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(80, 'Food Add-ons', 'Bacon', 4.5, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(81, 'Food Add-ons', 'Chicken', 5, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(82, 'Food Add-ons', 'Halloumi', 4, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(83, 'Food Add-ons', 'Smoked Salmon', 7, 10, NULL, 0, 1, '2026-08-29 03:56:28'),
+(84, 'Food Add-ons', 'Extra Cheese', 2, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(85, 'Food Add-ons', 'Avocado', 3, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(86, 'Food Add-ons', 'Bacon', 4.5, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(87, 'Food Add-ons', 'Extra Egg', 2.5, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(88, 'Food Add-ons', 'Chicken', 5, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(89, 'Food Add-ons', 'Halloumi', 4, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(90, 'Food Add-ons', 'Smoked Salmon', 7, 13, NULL, 0, 1, '2026-08-29 03:56:28'),
+(91, 'Food Add-ons', 'Hash Brown', 2.5, 14, NULL, 0, 1, '2026-08-29 03:56:28');
 
--- 2.7 Suppliers
-CREATE TABLE Suppliers (
-    supplier_id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_name VARCHAR(255) NOT NULL,
-    contact_person VARCHAR(255) NULL,
-    phone VARCHAR(50) NULL,
-    email VARCHAR(255) NULL,
-    address TEXT NULL,
-    payment_terms VARCHAR(100) DEFAULT 'Net 30',
-    notes TEXT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `DiningTables`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `DiningTables`;
+CREATE TABLE `DiningTables` (
+  `table_id` int(11) NOT NULL AUTO_INCREMENT,
+  `table_number` int(11) NOT NULL,
+  `capacity` int(11) NOT NULL DEFAULT 4,
+  `status` varchar(50) DEFAULT 'available',
+  `location` varchar(100) DEFAULT 'Main Dining Hall',
+  `assigned_order_id` int(11) DEFAULT NULL,
+  `assigned_server_name` varchar(100) DEFAULT NULL,
+  `guest_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`table_id`),
+  UNIQUE KEY `table_number` (`table_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.8 DiningTables
-CREATE TABLE DiningTables (
-    table_id INT AUTO_INCREMENT PRIMARY KEY,
-    table_number INT NOT NULL UNIQUE,
-    capacity INT NOT NULL DEFAULT 4,
-    status VARCHAR(50) DEFAULT 'available',
-    location VARCHAR(100) DEFAULT 'Main Dining Hall'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `DiningTables`
+INSERT INTO `DiningTables` (`table_id`, `table_number`, `capacity`, `status`, `location`, `assigned_order_id`, `assigned_server_name`, `guest_name`) VALUES
+(1, 1, 2, 'available', 'Window Side', NULL, NULL, NULL),
+(2, 2, 2, 'occupied', 'Window Side', 8, NULL, NULL),
+(3, 3, 4, 'occupied', 'Main Dining Hall', NULL, NULL, NULL),
+(4, 4, 4, 'available', 'Main Dining Hall', NULL, NULL, NULL),
+(5, 5, 6, 'reserved', 'Main Dining Hall', NULL, NULL, NULL),
+(6, 6, 2, 'available', 'Courtyard Patio', NULL, NULL, NULL),
+(7, 7, 4, 'available', 'Courtyard Patio', NULL, NULL, NULL),
+(8, 8, 4, 'reserved', 'Courtyard Patio', NULL, NULL, NULL),
+(9, 9, 2, 'available', 'Bar Counter', NULL, NULL, NULL),
+(10, 10, 6, 'reserved', 'Private Mezzanine', NULL, NULL, NULL),
+(11, 11, 8, 'available', 'Private Mezzanine', NULL, NULL, NULL),
+(12, 12, 4, 'available', 'Main Dining Hall', NULL, NULL, NULL);
 
--- 2.9 Discounts
-CREATE TABLE Discounts (
-    discount_id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT NULL,
-    type VARCHAR(50) DEFAULT 'percentage',
-    discount_percentage FLOAT DEFAULT 0.0,
-    fixed_amount FLOAT DEFAULT 0.0,
-    min_spend FLOAT DEFAULT 0.0,
-    start_date DATE NULL,
-    end_date DATE NULL,
-    applicable_category_id INT NULL,
-    usage_limit INT DEFAULT 1000,
-    usage_count INT DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (applicable_category_id) REFERENCES Categories(category_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Discounts`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Discounts`;
+CREATE TABLE `Discounts` (
+  `discount_id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `type` varchar(50) DEFAULT 'percentage',
+  `discount_percentage` float DEFAULT 0,
+  `fixed_amount` float DEFAULT 0,
+  `min_spend` float DEFAULT 0,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `applicable_category_id` int(11) DEFAULT NULL,
+  `usage_limit` int(11) DEFAULT 1000,
+  `usage_count` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `name` varchar(150) DEFAULT NULL,
+  `start_time` varchar(10) DEFAULT '00:00:00',
+  `end_time` varchar(10) DEFAULT '23:59:59',
+  `applicable_scope` varchar(50) DEFAULT 'all',
+  `applicable_product_ids` text DEFAULT NULL,
+  `applicable_category_ids` text DEFAULT NULL,
+  `is_automatic` tinyint(1) DEFAULT 0,
+  `show_on_banner` tinyint(1) DEFAULT 0,
+  `once_per_customer` tinyint(1) DEFAULT 0,
+  `bogo_buy_qty` int(11) DEFAULT 1,
+  `bogo_get_qty` int(11) DEFAULT 1,
+  PRIMARY KEY (`discount_id`),
+  UNIQUE KEY `code` (`code`),
+  KEY `applicable_category_id` (`applicable_category_id`),
+  CONSTRAINT `Discounts_ibfk_1` FOREIGN KEY (`applicable_category_id`) REFERENCES `Categories` (`category_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.10 Customers
-CREATE TABLE Customers (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NULL,
-    phone VARCHAR(50) NULL,
-    email VARCHAR(255) NULL,
-    user_id INT NULL,
-    loyalty_points INT DEFAULT 0,
-    loyalty_tier VARCHAR(50) DEFAULT 'Bronze',
-    joined_loyalty_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Discounts`
+INSERT INTO `Discounts` (`discount_id`, `code`, `description`, `type`, `discount_percentage`, `fixed_amount`, `min_spend`, `start_date`, `end_date`, `applicable_category_id`, `usage_limit`, `usage_count`, `is_active`, `name`, `start_time`, `end_time`, `applicable_scope`, `applicable_product_ids`, `applicable_category_ids`, `is_automatic`, `show_on_banner`, `once_per_customer`, `bogo_buy_qty`, `bogo_get_qty`) VALUES
+(1, 'WELCOME10', '10% off first order for new customer loyalty signups', 'percentage', 10, 0, 10, '2026-01-01', '2026-12-31', NULL, 5000, 142, 1, NULL, '00:00:00', '23:59:59', 'all', NULL, NULL, 0, 0, 0, 1, 1),
+(2, 'RAVENHILL15', '15% discount promotional code for regulars', 'percentage', 15, 0, 20, '2026-01-01', '2026-12-31', NULL, 1000, 68, 1, NULL, '00:00:00', '23:59:59', 'all', NULL, NULL, 0, 0, 0, 1, 1),
+(3, 'FLINDERS5', '$5.00 off orders over $25.00', 'fixed', 0, 5, 25, '2026-01-01', '2026-12-31', NULL, 1000, 39, 1, NULL, '00:00:00', '23:59:59', 'all', NULL, NULL, 0, 0, 0, 1, 1),
+(4, 'STAFF50', '50% staff dining discount', 'percentage', 50, 0, 0, '2026-01-01', '2026-12-31', NULL, 9999, 512, 1, NULL, '00:00:00', '23:59:59', 'all', NULL, NULL, 0, 0, 0, 1, 1);
 
--- 2.11 Inventory
-CREATE TABLE Inventory (
-    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
-    item_name VARCHAR(255) NOT NULL,
-    product_id INT NULL,
-    supplier_id INT NULL,
-    quantity INT DEFAULT 0,
-    reorder_level INT DEFAULT 10,
-    unit VARCHAR(50) DEFAULT 'units',
-    unit_cost FLOAT DEFAULT 0.0,
-    status VARCHAR(50) DEFAULT 'in_stock',
-    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE SET NULL,
-    FOREIGN KEY (supplier_id) REFERENCES Suppliers(supplier_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Employees`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Employees`;
+CREATE TABLE `Employees` (
+  `employee_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL,
+  `hire_date` date DEFAULT NULL,
+  `hourly_rate` float DEFAULT 28.5,
+  `pin` varchar(10) DEFAULT '1234',
+  `status` varchar(50) DEFAULT 'active',
+  PRIMARY KEY (`employee_id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  CONSTRAINT `Employees_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.12 InventoryTransactions
-CREATE TABLE InventoryTransactions (
-    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
-    inventory_id INT NOT NULL,
-    transaction_type VARCHAR(50) NOT NULL,
-    quantity_change INT NOT NULL,
-    quantity_after INT NOT NULL,
-    reason TEXT NULL,
-    performed_by INT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (inventory_id) REFERENCES Inventory(inventory_id) ON DELETE CASCADE,
-    FOREIGN KEY (performed_by) REFERENCES Users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Employees`
+INSERT INTO `Employees` (`employee_id`, `user_id`, `first_name`, `last_name`, `phone`, `email`, `position`, `hire_date`, `hourly_rate`, `pin`, `status`) VALUES
+(1, 1, 'Ravenhill', 'Admin', '0400 000 000', 'admin@ravenhill.au', 'System Admin', '2023-01-15', 45, '0000', 'active'),
+(2, NULL, 'Sarah', 'Lin', '0412 345 678', 'sarah.lin@ravenhill.au', 'Lead Cashier', '2023-03-01', 29.5, '1234', 'active'),
+(3, NULL, 'Liam', 'O\'Connor', '0423 456 789', 'liam.oc@ravenhill.au', 'Head Barista', '2023-02-10', 32, '5678', 'active'),
+(4, NULL, 'Hannah', 'Wright', '0434 567 890', 'hannah.w@ravenhill.au', 'Barista / Floor', '2023-06-20', 28.5, '9900', 'active'),
+(5, 6, 'Alex', 'Vance', '0400 123 456', 'manager@ravenhill.au', 'Store Manager', '2023-01-01', 32, '1234', 'active'),
+(6, 7, 'Sarah', 'Lin', '0400 123 456', 'cashier@ravenhill.au', 'Lead Cashier', '2023-01-01', 32, '1234', 'active'),
+(7, 8, 'Liam', 'O\'Connor', '0400 123 456', 'barista@ravenhill.au', 'Head Barista', '2023-01-01', 32, '1234', 'active'),
+(8, 9, 'Marco', 'Rossi', '0400 123 456', 'kitchen@ravenhill.au', 'Head Chef', '2023-01-01', 32, '1234', 'active'),
+(9, 10, 'Chloe', 'Bennett', '0400 123 456', 'waiter@ravenhill.au', 'Wait Staff', '2023-01-01', 32, '1234', 'active');
 
--- 2.13 Recipes
-CREATE TABLE Recipes (
-    recipe_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
-    inventory_id INT NOT NULL,
-    quantity_required FLOAT NOT NULL,
-    unit VARCHAR(50) DEFAULT 'g',
-    prep_instructions TEXT NULL,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE,
-    FOREIGN KEY (inventory_id) REFERENCES Inventory(inventory_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Feedback`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Feedback`;
+CREATE TABLE `Feedback` (
+  `feedback_id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) DEFAULT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `rating` int(11) NOT NULL DEFAULT 5,
+  `comments` text DEFAULT NULL,
+  `category` varchar(100) DEFAULT 'General',
+  `guest_name` varchar(100) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'published',
+  `submitted_at` datetime DEFAULT current_timestamp(),
+  `response_text` text DEFAULT NULL,
+  `responded_by` varchar(100) DEFAULT NULL,
+  `responded_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`feedback_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `Feedback_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `Customers` (`customer_id`) ON DELETE SET NULL,
+  CONSTRAINT `Feedback_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.14 PurchaseOrders
-CREATE TABLE PurchaseOrders (
-    po_id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    po_number VARCHAR(100) NOT NULL UNIQUE,
-    total_cost FLOAT DEFAULT 0.0,
-    status VARCHAR(50) DEFAULT 'draft',
-    order_date DATE NULL,
-    expected_delivery DATE NULL,
-    created_by INT NULL,
-    notes TEXT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (supplier_id) REFERENCES Suppliers(supplier_id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES Users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Feedback`
+INSERT INTO `Feedback` (`feedback_id`, `customer_id`, `order_id`, `rating`, `comments`, `category`, `guest_name`, `status`, `submitted_at`, `response_text`, `responded_by`, `responded_at`) VALUES
+(1, 4, 1, 5, 'Best Flat White in Flinders Lane! Microfoam is super silky and beans taste sensational.', 'Coffee Quality', 'Marcus Vance', 'published', '2026-08-28 03:56:28', NULL, NULL, NULL),
+(2, 5, 2, 5, 'Great morning atmosphere, love the oat milk latte and friendly cashier staff.', 'Customer Service', 'Elena R.', 'published', '2026-08-27 03:56:28', NULL, NULL, NULL),
+(3, NULL, 3, 4, 'Quick turnaround during morning rush hour peak. Will definitely return.', 'Speed of Service', 'Walk-in Guest', 'published', '2026-08-26 03:56:28', NULL, NULL, NULL);
 
--- 2.15 PurchaseOrderItems
-CREATE TABLE PurchaseOrderItems (
-    item_id INT AUTO_INCREMENT PRIMARY KEY,
-    po_id INT NOT NULL,
-    inventory_id INT NOT NULL,
-    quantity_ordered INT NOT NULL,
-    quantity_received INT DEFAULT 0,
-    unit_cost FLOAT NOT NULL,
-    subtotal FLOAT NOT NULL,
-    FOREIGN KEY (po_id) REFERENCES PurchaseOrders(po_id) ON DELETE CASCADE,
-    FOREIGN KEY (inventory_id) REFERENCES Inventory(inventory_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Inventory`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Inventory`;
+CREATE TABLE `Inventory` (
+  `inventory_id` int(11) NOT NULL AUTO_INCREMENT,
+  `item_name` varchar(255) NOT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `supplier_id` int(11) DEFAULT NULL,
+  `quantity` int(11) DEFAULT 0,
+  `reorder_level` int(11) DEFAULT 10,
+  `unit` varchar(50) DEFAULT 'units',
+  `unit_cost` float DEFAULT 0,
+  `status` varchar(50) DEFAULT 'in_stock',
+  `last_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`inventory_id`),
+  KEY `product_id` (`product_id`),
+  KEY `supplier_id` (`supplier_id`),
+  CONSTRAINT `Inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `Products` (`product_id`) ON DELETE SET NULL,
+  CONSTRAINT `Inventory_ibfk_2` FOREIGN KEY (`supplier_id`) REFERENCES `Suppliers` (`supplier_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.16 Orders
-CREATE TABLE Orders (
-    order_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NULL,
-    employee_id INT NULL,
-    payment_id INT NULL,
-    total_amount FLOAT DEFAULT 0.0,
-    order_status VARCHAR(50) DEFAULT 'pending',
-    order_type VARCHAR(50) DEFAULT 'dine-in',
-    table_number INT NULL,
-    discount_code VARCHAR(100) NULL,
-    discount_amount FLOAT DEFAULT 0.0,
-    notes TEXT NULL,
-    cancellation_reason TEXT NULL,
-    completed_at DATETIME NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE SET NULL,
-    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Inventory`
+INSERT INTO `Inventory` (`inventory_id`, `item_name`, `product_id`, `supplier_id`, `quantity`, `reorder_level`, `unit`, `unit_cost`, `status`, `last_updated`) VALUES
+(1, 'Ravenhill Reserve Espresso Beans (kg)', 1, 1, 33, 15, 'kg', 24, 'good', '2026-09-02 11:25:00'),
+(2, 'Single Origin Ethiopia Yirgacheffe (kg)', 2, 1, 3, 8, 'kg', 32, 'low', '2026-09-02 11:25:00'),
+(3, 'Decaf Swiss Water Process Beans (kg)', 1, 1, 10, 5, 'kg', 28, 'good', '2026-08-29 15:16:31'),
+(4, 'St David Dairy Full Cream Milk (L)', 3, 2, 42, 20, 'litres', 1.6, 'good', '2026-09-02 10:19:42'),
+(5, 'St David Dairy Skim Milk (L)', 3, 2, 18, 10, 'litres', 1.6, 'good', '2026-08-29 15:16:31'),
+(6, 'MilkLab Oat Milk (L)', 3, 3, 3, 16, 'litres', 2.8, 'low', '2026-09-02 11:25:00'),
+(7, 'MilkLab Almond Milk (L)', 3, 3, 14, 12, 'litres', 2.9, 'moderate', '2026-08-29 15:16:31'),
+(8, 'MilkLab Soy Milk (L)', 3, 3, 18, 10, 'litres', 2.7, 'good', '2026-08-29 15:16:31'),
+(9, 'MilkLab Lactose Free Milk (L)', 3, 3, 12, 8, 'litres', 2.9, 'good', '2026-08-29 15:16:31'),
+(10, 'Belgian Dark Chocolate Drops 54% (kg)', 9, 1, 9, 5, 'kg', 16.5, 'good', '2026-08-29 15:16:31'),
+(11, 'Prana Sticky Chai Blend (kg)', 13, 1, 3, 5, 'kg', 26, 'low', '2026-08-29 15:16:31'),
+(12, 'Ceremonial Grade Matcha Powder (g)', 15, 1, 450, 200, 'grams', 0.09, 'good', '2026-08-29 15:16:31'),
+(13, 'Organic English Breakfast Tea (kg)', 17, 1, 7, 3, 'kg', 22, 'good', '2026-08-29 15:16:31'),
+(14, 'BioPak 8oz Single-Wall Coffee Cups (units)', NULL, 4, 303, 100, 'units', 0.13, 'good', '2026-09-02 11:25:00'),
+(15, 'BioPak 12oz Double-Wall Coffee Cups (units)', NULL, 4, 180, 80, 'units', 0.16, 'good', '2026-08-29 15:16:31'),
+(16, 'BioPak Compostable Sip Lids (units)', 38, 5, 450, 150, 'units', 0.05, 'good', '2026-08-29 15:16:31'),
+(17, 'Artisan Sourdough Loaf (units)', 39, 2, 14, 6, 'units', 4.5, 'good', '2026-08-29 15:16:31'),
+(18, 'All-Butter Croissant Dough (units)', 40, 2, 28, 12, 'units', 2.1, 'good', '2026-08-29 15:16:31'),
+(19, 'Glass Water Jar 1L with Bamboo Lid', 42, 2, 8, 5, 'units', 6.5, 'good', '2026-08-29 15:16:31'),
+(20, 'Ravenhill Insulated Steel Growler 1.5L', 53, 5, 2, 5, 'units', 14, 'low', '2026-08-29 15:16:31');
 
--- 2.17 OrderItems
-CREATE TABLE OrderItems (
-    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
-    product_id INT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    unit_price FLOAT NOT NULL DEFAULT 0.0,
-    subtotal FLOAT NOT NULL DEFAULT 0.0,
-    customisations_json TEXT NULL,
-    item_notes TEXT NULL,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `InventoryTransactions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `InventoryTransactions`;
+CREATE TABLE `InventoryTransactions` (
+  `transaction_id` int(11) NOT NULL AUTO_INCREMENT,
+  `inventory_id` int(11) NOT NULL,
+  `transaction_type` varchar(50) NOT NULL,
+  `quantity_change` int(11) NOT NULL,
+  `quantity_after` int(11) NOT NULL,
+  `reason` text DEFAULT NULL,
+  `performed_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`transaction_id`),
+  KEY `inventory_id` (`inventory_id`),
+  KEY `performed_by` (`performed_by`),
+  CONSTRAINT `InventoryTransactions_ibfk_1` FOREIGN KEY (`inventory_id`) REFERENCES `Inventory` (`inventory_id`) ON DELETE CASCADE,
+  CONSTRAINT `InventoryTransactions_ibfk_2` FOREIGN KEY (`performed_by`) REFERENCES `Users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.18 Payments
-CREATE TABLE Payments (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
-    amount FLOAT NOT NULL,
-    payment_method VARCHAR(100) DEFAULT 'card',
-    payment_status VARCHAR(50) DEFAULT 'completed',
-    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    tip_amount FLOAT DEFAULT 0.0,
-    cash_tendered FLOAT NULL,
-    change_due FLOAT NULL,
-    split_index INT DEFAULT 1,
-    transaction_reference VARCHAR(255) NULL,
-    notes TEXT NULL,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `InventoryTransactions`
+INSERT INTO `InventoryTransactions` (`transaction_id`, `inventory_id`, `transaction_type`, `quantity_change`, `quantity_after`, `reason`, `performed_by`, `created_at`) VALUES
+(1, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-8', 1, '2026-08-29 15:18:04'),
+(2, 6, 'order_deduction', 0, 6, 'Auto-deduction for Order #ORD-8', 1, '2026-08-29 15:18:04'),
+(3, 14, 'order_deduction', -2, 318, 'Auto-deduction for Order #ORD-8', 1, '2026-08-29 15:18:04'),
+(4, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-9', NULL, '2026-08-29 15:34:33'),
+(5, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-10', NULL, '2026-08-29 15:54:51'),
+(6, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-13', NULL, '2026-08-29 20:38:03'),
+(7, 4, 'order_deduction', 0, 42, 'Auto-deduction for Order #ORD-13', NULL, '2026-08-29 20:38:03'),
+(8, 14, 'order_deduction', -1, 317, 'Auto-deduction for Order #ORD-13', NULL, '2026-08-29 20:38:03'),
+(9, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-14', NULL, '2026-08-29 20:43:47'),
+(10, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-15', NULL, '2026-09-02 10:19:42'),
+(11, 4, 'order_deduction', 0, 42, 'Auto-deduction for Order #ORD-15', NULL, '2026-09-02 10:19:42'),
+(12, 14, 'order_deduction', -1, 316, 'Auto-deduction for Order #ORD-15', NULL, '2026-09-02 10:19:42'),
+(13, 2, 'order_deduction', -1, 3, 'Auto-deduction for Order #ORD-16', NULL, '2026-09-02 11:25:00'),
+(14, 1, 'order_deduction', 0, 33, 'Auto-deduction for Order #ORD-16', NULL, '2026-09-02 11:25:00'),
+(15, 6, 'order_deduction', -3, 3, 'Auto-deduction for Order #ORD-16', NULL, '2026-09-02 11:25:00'),
+(16, 14, 'order_deduction', -13, 303, 'Auto-deduction for Order #ORD-16', NULL, '2026-09-02 11:25:00');
 
--- 2.19 Reservations
-CREATE TABLE Reservations (
-    reservation_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NULL,
-    table_id INT NULL,
-    reservation_date DATE NOT NULL,
-    reservation_time TIME NOT NULL,
-    number_of_guests INT NOT NULL DEFAULT 2,
-    status VARCHAR(50) DEFAULT 'confirmed',
-    special_requests TEXT NULL,
-    guest_name VARCHAR(100) NULL,
-    guest_phone VARCHAR(50) NULL,
-    guest_email VARCHAR(255) NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE SET NULL,
-    FOREIGN KEY (table_id) REFERENCES DiningTables(table_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `LoginAttempts`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `LoginAttempts`;
+CREATE TABLE `LoginAttempts` (
+  `attempt_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_address` varchar(100) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `attempted_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`attempt_id`),
+  KEY `ip_address` (`ip_address`),
+  KEY `attempted_at` (`attempted_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.20 Feedback
-CREATE TABLE Feedback (
-    feedback_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NULL,
-    order_id INT NULL,
-    rating INT NOT NULL DEFAULT 5,
-    comments TEXT NULL,
-    category VARCHAR(100) DEFAULT 'General',
-    guest_name VARCHAR(100) NULL,
-    status VARCHAR(50) DEFAULT 'published',
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE SET NULL,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `LoginAttempts`
+INSERT INTO `LoginAttempts` (`attempt_id`, `ip_address`, `username`, `attempted_at`) VALUES
+(28, '60.227.203.1', 'adminn', '2026-09-05 10:19:48');
 
--- 2.21 LoyaltyTransactions
-CREATE TABLE LoyaltyTransactions (
-    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    order_id INT NULL,
-    points_earned INT DEFAULT 0,
-    points_redeemed INT DEFAULT 0,
-    description VARCHAR(255) NULL,
-    balance_after INT DEFAULT 0,
-    transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `LoyaltyTransactions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `LoyaltyTransactions`;
+CREATE TABLE `LoyaltyTransactions` (
+  `transaction_id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `points_earned` int(11) DEFAULT 0,
+  `points_redeemed` int(11) DEFAULT 0,
+  `description` varchar(255) DEFAULT NULL,
+  `balance_after` int(11) DEFAULT 0,
+  `transaction_date` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`transaction_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `LoyaltyTransactions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `Customers` (`customer_id`) ON DELETE CASCADE,
+  CONSTRAINT `LoyaltyTransactions_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.22 Schedules
-CREATE TABLE Schedules (
-    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT NOT NULL,
-    shift_date DATE NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    role_station VARCHAR(100) DEFAULT 'Barista',
-    notes TEXT NULL,
-    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `OrderItems`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `OrderItems`;
+CREATE TABLE `OrderItems` (
+  `order_item_id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` float NOT NULL DEFAULT 0,
+  `subtotal` float NOT NULL DEFAULT 0,
+  `customisations_json` text DEFAULT NULL,
+  `item_notes` text DEFAULT NULL,
+  `ticket_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`order_item_id`),
+  KEY `order_id` (`order_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `OrderItems_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`) ON DELETE CASCADE,
+  CONSTRAINT `OrderItems_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `Products` (`product_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.23 Timesheets
-CREATE TABLE Timesheets (
-    timesheet_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT NOT NULL,
-    clock_in DATETIME NOT NULL,
-    clock_out DATETIME NULL,
-    status VARCHAR(50) DEFAULT 'clocked_in',
-    hourly_rate FLOAT DEFAULT 28.50,
-    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `OrderItems`
+INSERT INTO `OrderItems` (`order_item_id`, `order_id`, `product_id`, `quantity`, `unit_price`, `subtotal`, `customisations_json`, `item_notes`, `ticket_id`) VALUES
+(1, 1, 3, 2, 6, 12, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'One regular, one oat', NULL),
+(2, 1, 53, 1, 6.5, 6.5, NULL, 'Warmed lightly', NULL),
+(3, 2, 3, 2, 6, 12, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'Extra hot 68C', 1),
+(4, 3, 40, 1, 12, 12, NULL, 'Tomato sauce on side', 2),
+(5, 3, 23, 1, 7.6, 7.6, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'Iced oat latte', 3),
+(10, 8, 3, 2, 6, 12, '[{"option_name":"Oat Milk","extra_price":0.8}]', NULL, 28),
+(11, 9, 1, 1, 4, 4, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 29),
+(12, 10, 16, 1, 5.9, 5.9, '[{"customisation_id":"7","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"35","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 10),
+(13, 10, 10, 1, 3.3, 3.3, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"34","group_name":"Size","option_name":"Large","extra_price":0.8}]', '', 10),
+(14, 10, 1, 1, 4.8, 4.8, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"2","group_name":"Milk","option_name":"Skim Milk","extra_price":0},{"customisation_id":"4","group_name":"Milk","option_name":"Soy Milk","extra_price":0.8},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 10),
+(15, 10, 47, 1, 26.5, 26.5, '[{"customisation_id":"73","group_name":"Food Add-ons","option_name":"Extra Cheese","extra_price":2},{"customisation_id":"72","group_name":"Food Add-ons","option_name":"Gluten Free Bread","extra_price":2},{"customisation_id":"76","group_name":"Food Add-ons","option_name":"Extra Egg","extra_price":2.5},{"customisation_id":"74","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3},{"customisation_id":"75","group_name":"Food Add-ons","option_name":"Bacon","extra_price":4.5}]', '', 31),
+(16, 10, 50, 1, 23, 23, '[{"customisation_id":"73","group_name":"Food Add-ons","option_name":"Extra Cheese","extra_price":2},{"customisation_id":"76","group_name":"Food Add-ons","option_name":"Extra Egg","extra_price":2.5},{"customisation_id":"74","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3}]', 'no bacon\nmust be halal', 31),
+(17, 11, 48, 1, 19, 19, '[{"customisation_id":"72","group_name":"Food Add-ons","option_name":"Gluten Free Bread","extra_price":2},{"customisation_id":"76","group_name":"Food Add-ons","option_name":"Extra Egg","extra_price":2.5},{"customisation_id":"74","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3}]', 'must Halal', 32),
+(18, 12, 5, 1, 6.8, 6.8, '[{"customisation_id":"3","group_name":"Milk","option_name":"Oat Milk","extra_price":0.8},{"customisation_id":"34","group_name":"Size","option_name":"Large","extra_price":0.8}]', '', 33),
+(19, 12, 65, 1, 10.5, 10.5, NULL, '', 34),
+(20, 13, 3, 1, 5.2, 5.2, '[{"customisation_id":"cs-1","option_name":"Regular (8oz)","extra_price":0}]', 'Combo Special (15% OFF)', 35),
+(21, 13, 54, 1, 8, 8, '[{"customisation_id":"warm-1","option_name":"Warm & Crispy","extra_price":0}]', 'Combo Special (15% OFF)', 36),
+(22, 14, 1, 1, 4, 4, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 37),
+(23, 15, 3, 1, 5.2, 5.2, '[{"customisation_id":"cs-1","option_name":"Regular (8oz)","extra_price":0}]', 'Combo Special (15% OFF)', 38),
+(24, 15, 54, 1, 8, 8, '[{"customisation_id":"warm-1","option_name":"Warm & Crispy","extra_price":0}]', 'Combo Special (15% OFF)', 39),
+(25, 16, 2, 38, 4.8, 182.4, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 40),
+(26, 16, 3, 13, 6.8, 88.4, '[{"customisation_id":"3","group_name":"Milk","option_name":"Oat Milk","extra_price":0.8},{"customisation_id":"34","group_name":"Size","option_name":"Large","extra_price":0.8}]', '', 40),
+(27, 16, 60, 22, 10, 220, '[{"customisation_id":"pb-s1","group_name":"Serving Style","option_name":"Served Fresh (Room Temp)","extra_price":0},{"customisation_id":"pb-a1","group_name":"Accompaniments & Spreads","option_name":"Cultured French Butter","extra_price":0},{"customisation_id":"pb-a2","group_name":"Accompaniments & Spreads","option_name":"Strawberry Preserves","extra_price":0.5},{"customisation_id":"pb-a3","group_name":"Accompaniments & Spreads","option_name":"Australian Pure Honey","extra_price":0.5},{"customisation_id":"pb-a4","group_name":"Accompaniments & Spreads","option_name":"Nutella Hazelnut Spread","extra_price":1},{"customisation_id":"pb-a5","group_name":"Accompaniments & Spreads","option_name":"Fresh Whipped Cream","extra_price":1}]', '', 41),
+(28, 17, 5, 1, 8.4, 8.4, '[{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"2","group_name":"Milk","option_name":"Skim Milk","extra_price":0},{"customisation_id":"5","group_name":"Milk","option_name":"Almond Milk","extra_price":0.8},{"customisation_id":"6","group_name":"Milk","option_name":"Lactose Free Milk","extra_price":0.8},{"customisation_id":"3","group_name":"Milk","option_name":"Oat Milk","extra_price":0.8},{"customisation_id":"4","group_name":"Milk","option_name":"Soy Milk","extra_price":0.8},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 42),
+(29, 17, 10, 1, 3.2, 3.2, '[{"customisation_id":"47","group_name":"Flavours","option_name":"Vanilla Syrup","extra_price":0.7},{"customisation_id":"1","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"2","group_name":"Milk","option_name":"Skim Milk","extra_price":0},{"customisation_id":"33","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 42),
+(30, 17, 51, 1, 18.5, 18.5, '[{"customisation_id":"78","group_name":"Food Add-ons","option_name":"Extra Cheese","extra_price":2},{"customisation_id":"79","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3}]', '', 43),
+(31, 18, 63, 1, 28, 28, '[{"customisation_id":"85","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3},{"customisation_id":"89","group_name":"Food Add-ons","option_name":"Halloumi","extra_price":4}]', '', 44),
+(32, 19, 62, 1, 26, 26, '[{"customisation_id":"85","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3},{"customisation_id":"88","group_name":"Food Add-ons","option_name":"Chicken","extra_price":5}]', '', 46),
+(33, 19, 23, 1, 8.3, 8.3, '[{"customisation_id":"61","group_name":"Add-ons","option_name":"Whipped Cream","extra_price":0.8},{"customisation_id":"53","group_name":"Flavours","option_name":"Vanilla Syrup","extra_price":0.7},{"customisation_id":"13","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"39","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 45),
+(34, 20, 24, 1, 6.9, 6.9, '[{"customisation_id":"53","group_name":"Flavours","option_name":"Vanilla Syrup","extra_price":0.7},{"customisation_id":"13","group_name":"Milk","option_name":"Full Cream Milk","extra_price":0},{"customisation_id":"39","group_name":"Size","option_name":"Standard \\/ Regular","extra_price":0}]', '', 47),
+(35, 20, 63, 1, 29, 29, '[{"customisation_id":"85","group_name":"Food Add-ons","option_name":"Avocado","extra_price":3},{"customisation_id":"88","group_name":"Food Add-ons","option_name":"Chicken","extra_price":5}]', '', 48),
+(36, 20, 51, 1, 19.5, 19.5, '[{"customisation_id":"78","group_name":"Food Add-ons","option_name":"Extra Cheese","extra_price":2},{"customisation_id":"82","group_name":"Food Add-ons","option_name":"Halloumi","extra_price":4}]', '', 48);
 
--- 2.24 AuditLogs
-CREATE TABLE AuditLogs (
-    log_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,
-    user_name VARCHAR(100) NULL,
-    action VARCHAR(255) NOT NULL,
-    table_name VARCHAR(255) NULL,
-    details TEXT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ip_address VARCHAR(100) NULL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Orders`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Orders`;
+CREATE TABLE `Orders` (
+  `order_id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `payment_id` int(11) DEFAULT NULL,
+  `total_amount` float DEFAULT 0,
+  `order_status` varchar(50) DEFAULT 'pending',
+  `order_type` varchar(50) DEFAULT 'dine-in',
+  `table_number` int(11) DEFAULT NULL,
+  `discount_code` varchar(100) DEFAULT NULL,
+  `discount_amount` float DEFAULT 0,
+  `notes` text DEFAULT NULL,
+  `cancellation_reason` text DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`order_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `employee_id` (`employee_id`),
+  CONSTRAINT `Orders_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `Customers` (`customer_id`) ON DELETE SET NULL,
+  CONSTRAINT `Orders_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `Employees` (`employee_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.25 LoginAttempts
-CREATE TABLE LoginAttempts (
-    attempt_id INT AUTO_INCREMENT PRIMARY KEY,
-    ip_address VARCHAR(100) NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX (ip_address),
-    INDEX (attempted_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Dumping data for table `Orders`
+INSERT INTO `Orders` (`order_id`, `customer_id`, `employee_id`, `payment_id`, `total_amount`, `order_status`, `order_type`, `table_number`, `discount_code`, `discount_amount`, `notes`, `cancellation_reason`, `completed_at`, `created_at`) VALUES
+(1, 1, 2, NULL, 18.2, 'completed', 'dine-in', 3, NULL, 0, 'Table 3 dine-in guest', NULL, NULL, '2026-08-29 03:11:28'),
+(2, 4, 2, NULL, 12, 'preparing', 'dine-in', 5, 'WELCOME10', 1.2, 'Extra hot flat white', NULL, NULL, '2026-08-29 03:44:28'),
+(3, NULL, 3, NULL, 23.5, 'pending', 'takeaway', NULL, NULL, 0, 'Takeaway for Alex', NULL, NULL, '2026-08-29 03:52:28'),
+(8, 1, 1, NULL, 12, 'completed', 'dine_in', 2, NULL, 0, NULL, NULL, '2026-09-05 09:48:38', '2026-08-29 15:18:04'),
+(9, NULL, NULL, NULL, 4, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:38', '2026-08-29 15:34:33'),
+(10, NULL, NULL, NULL, 63.5, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:38', '2026-08-29 15:54:51'),
+(11, NULL, NULL, NULL, 19, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:47:16', '2026-08-29 16:05:32'),
+(12, NULL, NULL, NULL, 17.3, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:39', '2026-08-29 16:20:59'),
+(13, NULL, NULL, NULL, 13.2, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:41', '2026-08-29 20:38:03'),
+(14, NULL, NULL, NULL, 4, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:42', '2026-08-29 20:43:47'),
+(15, NULL, NULL, NULL, 13.2, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:42', '2026-09-02 10:19:42'),
+(16, NULL, NULL, NULL, 490.8, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:34', '2026-09-02 11:25:00'),
+(17, NULL, NULL, NULL, 30.1, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:48:34', '2026-09-05 09:44:10'),
+(18, NULL, NULL, NULL, 28, 'completed', 'dine-in', NULL, NULL, 0, NULL, NULL, '2026-09-05 09:47:19', '2026-09-05 09:45:12'),
+(19, NULL, NULL, NULL, 34.3, 'preparing', 'dine-in', NULL, NULL, 0, NULL, NULL, NULL, '2026-09-05 09:48:39'),
+(20, NULL, NULL, NULL, 55.4, 'preparing', 'dine-in', NULL, NULL, 0, NULL, NULL, NULL, '2026-09-05 09:50:02');
 
--- 2.26 PhoneVerifications
-CREATE TABLE PhoneVerifications (
-    verification_id INT AUTO_INCREMENT PRIMARY KEY,
-    phone_number VARCHAR(50) NOT NULL,
-    otp_code VARCHAR(10) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    is_verified BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX (phone_number)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `Payments`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Payments`;
+CREATE TABLE `Payments` (
+  `payment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `amount` float NOT NULL,
+  `payment_method` varchar(100) DEFAULT 'card',
+  `payment_status` varchar(50) DEFAULT 'completed',
+  `payment_date` datetime DEFAULT current_timestamp(),
+  `tip_amount` float DEFAULT 0,
+  `cash_tendered` float DEFAULT NULL,
+  `change_due` float DEFAULT NULL,
+  `split_index` int(11) DEFAULT 1,
+  `transaction_reference` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `refund_reason` text DEFAULT NULL,
+  `refunded_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`payment_id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `Payments_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 2.27 SalesPredictions
-CREATE TABLE SalesPredictions (
-    prediction_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
-    prediction_date DATE NOT NULL,
-    predicted_sales FLOAT NOT NULL,
-    confidence_score FLOAT NOT NULL,
-    model_version VARCHAR(50) DEFAULT 'v1.0',
-    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
+-- Table structure for table `PhoneVerifications`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `PhoneVerifications`;
+CREATE TABLE `PhoneVerifications` (
+  `verification_id` int(11) NOT NULL AUTO_INCREMENT,
+  `phone_number` varchar(50) NOT NULL,
+  `otp_code` varchar(10) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `is_verified` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`verification_id`),
+  KEY `phone_number` (`phone_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- ----------------------------------------------------------------------
--- 3. INITIAL SEED DATA
--- ----------------------------------------------------------------------
+-- --------------------------------------------------------
+-- Table structure for table `Products`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Products`;
+CREATE TABLE `Products` (
+  `product_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_id` int(11) DEFAULT NULL,
+  `product_name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `price` float NOT NULL DEFAULT 0,
+  `availability` tinyint(1) DEFAULT 1,
+  `image` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`product_id`),
+  KEY `category_id` (`category_id`),
+  CONSTRAINT `Products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `Categories` (`category_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.1 Roles
-INSERT INTO Roles (role_id, role_name, description) VALUES
+-- Dumping data for table `Products`
+INSERT INTO `Products` (`product_id`, `category_id`, `product_name`, `description`, `price`, `availability`, `image`, `created_at`) VALUES
+(1, 1, 'Espresso / Short Black', 'Intense, aromatic double-shot extraction of our seasonal Ravenhill Reserve espresso blend', 4, 1, 'double_espresso_short_black.png', '2026-08-29 03:56:28'),
+(2, 1, 'Long Black', 'Double shot of extraction gently poured over hot filtered water preserving delicate crema', 4.8, 1, 'long_black_coffee.png', '2026-08-29 03:56:28'),
+(3, 1, 'Flat White', 'Silky textured microfoam folded over a rich double shot of Ravenhill espresso blend', 5.2, 1, 'flat_white_coffee.png', '2026-08-29 03:56:28'),
+(4, 1, 'Latte', 'Smooth espresso balanced with velvety steamed milk and a delicate layer of froth', 5.2, 1, 'flat_white_coffee.png', '2026-08-29 03:56:28'),
+(5, 1, 'Cappuccino', 'Rich espresso topped with deep velvety foam and dusted with organic dark cocoa', 5.2, 1, 'cappuccino_coffee.png', '2026-08-29 03:56:28'),
+(6, 1, 'Piccolo Latte', 'A concentrated ristretto shot topped with warm silky milk served in a 4oz glass', 4.8, 1, 'piccolo_latte.png', '2026-08-29 03:56:28'),
+(7, 1, 'Short Macchiato', 'Pure espresso marked with a single dash of velvety steamed milk foam', 4.5, 1, 'double_espresso_short_black.png', '2026-08-29 03:56:28'),
+(8, 1, 'Long Macchiato', 'Double shot espresso over hot water stained with steamed milk foam', 5.2, 1, 'long_black_coffee.png', '2026-08-29 03:56:28'),
+(9, 1, 'Mocha', 'Decadent Belgian melted dark chocolate blended with espresso and silky steamed milk', 5.8, 1, 'cappuccino_coffee.png', '2026-08-29 03:56:28'),
+(10, 1, 'Babycino', 'Warm frothed milk dusted with sweet cocoa powder served with two marshmallows', 2.5, 1, 'cappuccino_coffee.png', '2026-08-29 03:56:28'),
+(11, 2, 'Hot Chocolate', 'Rich Belgian 54% dark chocolate melted into creamy steamed milk with marshmallows', 5.5, 1, 'cappuccino_coffee.png', '2026-08-29 03:56:28'),
+(12, 2, 'White Hot Chocolate', 'Sweet and velvety Swiss white chocolate melted into creamy steamed milk', 5.7, 1, 'cappuccino_coffee.png', '2026-08-29 03:56:28'),
+(13, 2, 'Chai Latte', 'Authentic spiced black tea steeped with whole cinnamon, cardamom, and steamed milk', 5.7, 1, 'prana_sticky_chai_latte.png', '2026-08-29 03:56:28'),
+(14, 2, 'Dirty Chai', 'Traditional spiced chai latte infused with a bold shot of Ravenhill espresso', 6.2, 1, 'prana_sticky_chai_latte.png', '2026-08-29 03:56:28'),
+(15, 2, 'Matcha Latte', 'Ceremonial grade Japanese Uji green tea matcha whisked with silky steamed milk', 6.2, 1, 'flat_white_coffee.png', '2026-08-29 03:56:28'),
+(16, 2, 'Turmeric Latte', 'Golden spiced blend of organic ground turmeric, ginger, black pepper, and warm milk', 5.9, 1, 'flat_white_coffee.png', '2026-08-29 03:56:28'),
+(17, 3, 'English Breakfast Tea', 'Full-bodied organic Ceylon and Assam black tea with a brisk, robust malt character', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(18, 3, 'Earl Grey Tea', 'Fragrant black tea leaves infused with cold-pressed natural Italian bergamot oil', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(19, 3, 'Green Tea', 'Delicate Japanese Sencha green tea with vibrant grassy notes and a clean finish', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(20, 3, 'Peppermint Tea', 'Refreshing whole dried organic peppermint leaves offering a naturally caffeine-free lift', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(21, 3, 'Chamomile Tea', 'Calming whole organic chamomile flower blossoms with subtle floral apple sweetness', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(22, 3, 'Lemongrass & Ginger Tea', 'Zesty blend of uplifting cut lemongrass stalks and spicy warming organic ginger root', 4.8, 1, 'batch_brew_filter.png', '2026-08-29 03:56:28'),
+(23, 4, 'Iced Latte', 'Double shot of freshly extracted espresso poured over cold milk and crystalline ice', 6.8, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(24, 4, 'Iced Long Black', 'Double shot of rich espresso poured over chilled mineral water and ice', 6.2, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(25, 4, 'Iced Coffee', 'Chilled espresso and cold milk served with artisan vanilla bean ice cream and whipped cream', 7.8, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(26, 4, 'Iced Mocha', 'Belgian melted chocolate, espresso shot, and chilled milk with chocolate drizzle and cream', 8.2, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(27, 5, 'Iced Chocolate', 'Decadent cold Belgian chocolate milk topped with vanilla ice cream and whipped cream', 7.8, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(28, 5, 'Iced Chai Latte', 'Chilled aromatic spiced chai infused with cold milk and served over ice', 7.2, 1, 'prana_sticky_chai_latte.png', '2026-08-29 03:56:28'),
+(29, 5, 'Iced Matcha Latte', 'Vibrant ceremonial Japanese matcha whisked with ice-cold milk over ice', 7.8, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(30, 5, 'Milkshake', 'Classic thick milkshake churned with gourmet syrup (Chocolate, Vanilla, Strawberry, Caramel)', 8.5, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(31, 5, 'Bottled Still Water', 'Pure premium Australian spring water in an eco-friendly recyclable bottle 600ml', 3.5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(32, 5, 'Sparkling Water', 'Crisp mineral sparkling water served with a fresh wedge of lemon 500ml', 5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(33, 5, 'Soft Drink', 'Assorted classic canned soft drinks (Coca-Cola, Coke Zero, Sprite, Fanta, Ginger Beer)', 4.5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(34, 6, 'Smoothie with options such as Banana, Mixed Berry, Mango and Tropical', 'Rich creamy blended fruit smoothie made with Greek yogurt, honey, and chia seeds', 9.5, 1, 'iced_oat_milk_latte.png', '2026-08-29 03:56:28'),
+(35, 7, 'Fresh Orange Juice', '100% freshly cold-pressed sweet Valencia oranges with no added sugar or preservatives', 8.5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(36, 7, 'Fresh Apple Juice', 'Crisp cold-pressed Australian Granny Smith and Pink Lady apples', 8.5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(37, 7, 'Green Juice', 'Revitalising cold-pressed green juice with celery, cucumber, kale, green apple, and mint', 9.5, 1, 'cold_brew_coffee.png', '2026-08-29 03:56:28'),
+(38, 8, 'Sourdough Toast', 'Two thick toasted slices of artisan Noisette sourdough with butter and gourmet spreads', 6.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(39, 8, 'Eggs on Toast', 'Two free-range Victorian eggs cooked your way (Poached, Scrambled, Fried) on sourdough', 15, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(40, 8, 'Bacon & Egg Roll', 'Smoked streaky bacon, sunny-side fried free-range egg, and tomato relish on a brioche bun', 12, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(41, 8, 'Breakfast Wrap', 'Scrambled eggs, crispy bacon, baby spinach, avocado, and spicy chipotle mayo in a tortilla', 13.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(42, 8, 'Avocado Toast', 'Fresh smashed Hass avocado on sourdough with Persian feta, dukkah, radish, and lemon', 18.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(43, 8, 'Granola & Yoghurt', 'House-baked honey toasted almond granola with seasonal berries and Greek vanilla yogurt', 15.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(44, 8, 'Porridge', 'Creamy rolled organic oats simmered with almond milk, caramelized banana, and maple syrup', 15, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(45, 8, 'Eggs Benedict', 'Two poached eggs, smoked shaved ham or bacon, and rich citrus hollandaise on sourdough', 21, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(46, 8, 'Breakfast Burger', 'Angus beef patty, crispy bacon, fried egg, hash brown, cheddar cheese, and BBQ relish', 16, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(47, 9, 'Ham & Cheese Toastie', 'Free-range smoked leg ham and melted Gruyère & aged cheddar on toasted sourdough', 12.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(48, 9, 'Cheese & Tomato Toastie', 'Heirloom ripe tomatoes, aged vintage cheddar cheese, and fresh basil on sourdough', 11.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(49, 9, 'Three Cheese Toastie', 'Mouthwatering blend of mozzarella, aged cheddar, and Swiss Gruyère cheese on sourdough', 14, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(50, 9, 'Tuna Melt', 'Gourmet albacore tuna salad with dill, capers, melted provolone cheese, and jalapeño', 15.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28');
+INSERT INTO `Products` (`product_id`, `category_id`, `product_name`, `description`, `price`, `availability`, `image`, `created_at`) VALUES
+(51, 10, 'BLT Toasted Sandwich', 'Crispy smoked bacon, crunchy cos lettuce, vine ripened tomato, and aioli on sourdough', 13.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(52, 10, 'Chicken & Avocado Sandwich', 'Poached free-range chicken breast, fresh avocado, rocket greens, and herb mayo on baguette', 16.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(53, 11, 'Plain Croissant', 'Traditional flaky artisan French butter croissant baked fresh daily by Noisette', 6.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(54, 11, 'Almond Croissant', 'Double-baked croissant filled with rich almond frangipane and topped with toasted flakes', 8, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(55, 11, 'Chocolate Croissant', 'Flaky French pastry rolled around two batons of 54% dark Belgian chocolate', 7.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(56, 11, 'Ham & Cheese Croissant', 'Warm butter croissant toasted with free-range leg ham, Swiss cheese, and bechamel', 9.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(57, 11, 'Fruit Danish', 'Crispy puff pastry rosette filled with vanilla custard and glazed seasonal fruits', 7, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(58, 12, 'Blueberry Muffin', 'Moist vanilla batter folded with wild Australian blueberries and a crumble top', 6.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(59, 12, 'Chocolate Muffin', 'Double chocolate chunk muffin with melted dark and milk chocolate chips', 6.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(60, 12, 'Banana Bread', 'Toasted spiced banana loaf served warm with whipped honey cinnamon butter', 7, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(61, 12, 'Blueberry Scone', 'Freshly baked traditional scone served warm with strawberry conserve and double cream', 6.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(62, 13, 'Seasonal Salad', 'Baby spinach, quinoa, roast pumpkin, pomegranate, walnuts, and balsamic citrus dressing', 18, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(63, 13, 'Chicken Caesar Salad', 'Grilled chicken tenderloins, crispy bacon, cos lettuce, sourdough croutons, parmesan & egg', 21, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(64, 14, 'Chips', 'Bowl of crispy golden shoestring potato fries served with garlic aioli', 8.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28'),
+(65, 14, 'Sweet Potato Chips', 'Crunchy rosemary salted sweet potato fries served with chipotle dipping mayo', 10.5, 1, 'butter_croissant.png', '2026-08-29 03:56:28');
+
+-- --------------------------------------------------------
+-- Table structure for table `PurchaseOrderItems`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `PurchaseOrderItems`;
+CREATE TABLE `PurchaseOrderItems` (
+  `item_id` int(11) NOT NULL AUTO_INCREMENT,
+  `po_id` int(11) NOT NULL,
+  `inventory_id` int(11) NOT NULL,
+  `quantity_ordered` int(11) NOT NULL,
+  `quantity_received` int(11) DEFAULT 0,
+  `unit_cost` float NOT NULL,
+  `subtotal` float NOT NULL,
+  PRIMARY KEY (`item_id`),
+  KEY `po_id` (`po_id`),
+  KEY `inventory_id` (`inventory_id`),
+  CONSTRAINT `PurchaseOrderItems_ibfk_1` FOREIGN KEY (`po_id`) REFERENCES `PurchaseOrders` (`po_id`) ON DELETE CASCADE,
+  CONSTRAINT `PurchaseOrderItems_ibfk_2` FOREIGN KEY (`inventory_id`) REFERENCES `Inventory` (`inventory_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `PurchaseOrders`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `PurchaseOrders`;
+CREATE TABLE `PurchaseOrders` (
+  `po_id` int(11) NOT NULL AUTO_INCREMENT,
+  `supplier_id` int(11) NOT NULL,
+  `po_number` varchar(100) NOT NULL,
+  `total_cost` float DEFAULT 0,
+  `status` varchar(50) DEFAULT 'draft',
+  `order_date` date DEFAULT NULL,
+  `expected_delivery` date DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`po_id`),
+  UNIQUE KEY `po_number` (`po_number`),
+  KEY `supplier_id` (`supplier_id`),
+  KEY `created_by` (`created_by`),
+  CONSTRAINT `PurchaseOrders_ibfk_1` FOREIGN KEY (`supplier_id`) REFERENCES `Suppliers` (`supplier_id`) ON DELETE CASCADE,
+  CONSTRAINT `PurchaseOrders_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `Users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `RAG_Incidents`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `RAG_Incidents`;
+CREATE TABLE `RAG_Incidents` (
+  `incident_id` int(11) NOT NULL AUTO_INCREMENT,
+  `incident_date` date NOT NULL,
+  `item_id` int(11) DEFAULT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `incident_type` enum('unnoticed_stockout','supplier_delay','seasonal_spike','high_waste','quality_issue') NOT NULL,
+  `severity` enum('low','medium','high','critical') DEFAULT 'medium',
+  `description` text NOT NULL,
+  `lost_sales_units` int(11) DEFAULT 0,
+  `lost_revenue_aud` float DEFAULT 0,
+  `resolution` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`incident_id`),
+  KEY `incident_date` (`incident_date`),
+  KEY `item_name` (`item_name`),
+  KEY `incident_type` (`incident_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `RAG_Incidents`
+INSERT INTO `RAG_Incidents` (`incident_id`, `incident_date`, `item_id`, `item_name`, `incident_type`, `severity`, `description`, `lost_sales_units`, `lost_revenue_aud`, `resolution`, `created_at`) VALUES
+(1, '2024-09-14', 6, 'MilkLab Oat Milk 1L', 'unnoticed_stockout', 'critical', 'Oat milk depleted by 11:15 AM on Saturday rush. Baristas had to turn away 38 specialty oat flat white orders before emergency retail run.', 38, 228, 'Implemented automatic minimum 16L weekend safety buffer and proactive supplier alert.', '2026-08-29 15:16:31'),
+(2, '2024-10-26', 1, 'Ravenhill Reserve Espresso Beans (kg)', 'supplier_delay', 'high', 'Melbourne Coffee Exporters missed Friday afternoon dispatch due to port logistics. Espresso hopper dropped to 2kg before emergency Saturday morning courier arrived.', 25, 162.5, 'Shifted recurring PO dispatch cutoff from Friday 2PM to Thursday 11AM.', '2026-08-29 15:16:31'),
+(3, '2024-12-18', 14, 'BioPak 8oz Single-Wall Coffee Cups (500pk)', 'seasonal_spike', 'critical', 'Pre-Christmas takeaway spike exceeded monthly projection by 280%. Ran out of 8oz cups at 1:30 PM.', 75, 412.5, 'Mandated 3-week Christmas pre-order policy starting November 20.', '2026-08-29 15:16:31'),
+(4, '2024-12-23', 4, 'St David Dairy Full Cream Milk 2L', 'seasonal_spike', 'high', 'Pre-holiday iced latte surge depleted 90L in 36 hours. 18 orders modified to skim or alternative milks.', 18, 99, 'Doubled holiday dairy recurring allocation with St David.', '2026-08-29 15:16:31'),
+(5, '2025-01-24', 6, 'MilkLab Oat Milk 1L', 'unnoticed_stockout', 'high', 'Aus Open heatwave drove massive iced oat latte spike. Staff did not notice storage fridge was empty until peak midday rush.', 42, 273, 'Configured AI real-time threshold notification widget in topbar.', '2026-08-29 15:16:31'),
+(6, '2025-02-14', 10, 'Belgian Dark Chocolate Drops 54% (kg)', 'seasonal_spike', 'medium', 'Valentine Day mocha specials consumed entire cocoa reserve. Ran out at 4:00 PM.', 20, 130, 'Added seasonal holiday multiplier to Mocha modifier forecasting.', '2026-08-29 15:16:31'),
+(7, '2025-03-22', 2, 'Single Origin Ethiopia Yirgacheffe (kg)', 'unnoticed_stockout', 'critical', 'Head roaster did not log batch roast consumption. Pour-over bar was offline on Sunday morning during Melbourne Food Fest.', 55, 385, 'Integrated POS order deduction with automated single origin batch tracking.', '2026-08-29 15:16:31'),
+(8, '2025-04-19', 15, 'Artisan Sourdough Loaf (Daily)', 'supplier_delay', 'high', 'Easter Saturday bakery delivery breakdown delayed morning breakfast service by 2 hours.', 30, 480, 'Established secondary backup bakery vendor agreement with Noisette.', '2026-08-29 15:16:31'),
+(9, '2025-06-14', 11, 'Prana Sticky Chai Blend (kg)', 'seasonal_spike', 'medium', 'Winter cold snap (+6°C drop) spiked Chai Lattes by 310%. Blend container was scraped clean by Sunday 2PM.', 28, 182, 'Adjusted winter baseline reorder threshold from 4kg to 10kg.', '2026-08-29 15:16:31'),
+(10, '2025-07-26', 7, 'MilkLab Almond Milk 1L', 'unnoticed_stockout', 'medium', 'Stock counter recorded 12 cartons on paper, but only 2 physical cartons were in cool room due to unlogged breakages.', 15, 97.5, 'Enforced digital barcode scanning on incoming deliveries.', '2026-08-29 15:16:31'),
+(11, '2025-08-30', 1, 'Ravenhill Reserve Espresso Beans (kg)', 'high_waste', 'low', 'New junior barista dial-in calibration wasted 2.8kg of espresso beans before grinder settings locked in.', 0, 67.2, 'Implemented head barista dial-in signoff protocol in morning shift checklist.', '2026-08-29 15:16:31'),
+(12, '2025-10-18', 6, 'MilkLab Oat Milk 1L', 'seasonal_spike', 'high', 'Spring Saturday rush depleted 24 cartons by 1:00 PM. No emergency backup available.', 32, 208, 'Flagged Oat Milk as Tier-1 High Velocity item with automated OpenRouter AI reorder triggers.', '2026-08-29 15:16:31'),
+(13, '2025-11-28', 14, 'BioPak 8oz Single-Wall Coffee Cups (500pk)', 'supplier_delay', 'high', 'BioPak warehouse Black Friday logistics backlog delayed cup replenishment by 4 days.', 0, 0, 'Borrowing arrangement utilized from neighbor café; stock buffer elevated to 10 boxes.', '2026-08-29 15:16:31'),
+(14, '2025-12-21', 1, 'Ravenhill Reserve Espresso Beans (kg)', 'seasonal_spike', 'critical', 'Christmas retail bean gift pack sales depleted 40kg of roasted stock in 24 hours. POS bean shelves were empty.', 45, 1125, 'Separated retail bean reserve from bar hopper stock in inventory database.', '2026-08-29 15:16:31'),
+(15, '2026-01-17', 4, 'St David Dairy Full Cream Milk 2L', 'unnoticed_stockout', 'medium', 'Cool room temperature sensor malfunctioned unnoticed on Sunday night; 14 milk bottles spoiled and had to be discarded.', 0, 89.6, 'Installed IoT smart temp monitoring with SMS alerts.', '2026-08-29 15:16:31'),
+(16, '2026-03-08', 2, 'Single Origin Ethiopia Yirgacheffe (kg)', 'unnoticed_stockout', 'high', 'Ethiopian pourover stock dropped below 1kg during Saturday brunch with no reorder triggered.', 24, 168, 'Enforced AI RAG safety stock prediction model.', '2026-08-29 15:16:31'),
+(17, '2026-05-16', 11, 'Prana Sticky Chai Blend (kg)', 'seasonal_spike', 'medium', 'First autumn cold frost increased hot beverage volume by 45% above forecast.', 19, 123.5, 'Weather-aware RAG prompt integrated into weekly ordering recommendations.', '2026-08-29 15:16:31'),
+(18, '2026-07-11', 10, 'Belgian Dark Chocolate Drops 54% (kg)', 'unnoticed_stockout', 'medium', 'Hot chocolate rush emptied container at 3:30 PM on school holidays Friday.', 22, 143, 'Increased minimum safety buffer from 5kg to 12kg.', '2026-08-29 15:16:31'),
+(19, '2026-08-15', 6, 'MilkLab Oat Milk 1L', 'unnoticed_stockout', 'high', 'Recent Saturday rush drained oat milk stock to 2 cartons by 2PM.', 16, 104, 'RAG AI flagged immediate warning: High weekend stockout pattern detected.', '2026-08-29 15:16:31');
+
+-- --------------------------------------------------------
+-- Table structure for table `RAG_SalesHistory`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `RAG_SalesHistory`;
+CREATE TABLE `RAG_SalesHistory` (
+  `history_id` int(11) NOT NULL AUTO_INCREMENT,
+  `sales_date` date NOT NULL,
+  `day_of_week` varchar(20) NOT NULL,
+  `season` varchar(20) NOT NULL,
+  `total_orders` int(11) NOT NULL,
+  `total_revenue_aud` float NOT NULL,
+  `avg_ticket_aud` float NOT NULL,
+  `top_category` varchar(100) NOT NULL,
+  `event_flag` varchar(100) DEFAULT NULL,
+  `weather_summary` varchar(100) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`history_id`),
+  UNIQUE KEY `sales_date` (`sales_date`),
+  KEY `sales_date_2` (`sales_date`),
+  KEY `season` (`season`),
+  KEY `event_flag` (`event_flag`)
+) ENGINE=InnoDB AUTO_INCREMENT=759 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `RAG_SalesHistory`
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(1, '2024-08-01', 'Thursday', 'Winter', 249, 3254.43, 13.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(2, '2024-08-02', 'Friday', 'Winter', 300, 3747, 12.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(3, '2024-08-03', 'Saturday', 'Winter', 415, 5282.95, 12.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(4, '2024-08-04', 'Sunday', 'Winter', 453, 5368.05, 11.85, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(5, '2024-08-05', 'Monday', 'Winter', 259, 3245.27, 12.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(6, '2024-08-06', 'Tuesday', 'Winter', 233, 2865.9, 12.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(7, '2024-08-07', 'Wednesday', 'Winter', 247, 3655.6, 14.8, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(8, '2024-08-08', 'Thursday', 'Winter', 294, 3957.24, 13.46, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(9, '2024-08-09', 'Friday', 'Winter', 273, 3333.33, 12.21, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(10, '2024-08-10', 'Saturday', 'Winter', 517, 6984.67, 13.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(11, '2024-08-11', 'Sunday', 'Winter', 403, 4694.95, 11.65, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(12, '2024-08-12', 'Monday', 'Winter', 293, 4090.28, 13.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(13, '2024-08-13', 'Tuesday', 'Winter', 256, 4042.24, 15.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(14, '2024-08-14', 'Wednesday', 'Winter', 245, 3706.85, 15.13, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(15, '2024-08-15', 'Thursday', 'Winter', 293, 3600.97, 12.29, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(16, '2024-08-16', 'Friday', 'Winter', 267, 3711.3, 13.9, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(17, '2024-08-17', 'Saturday', 'Winter', 452, 6278.28, 13.89, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(18, '2024-08-18', 'Sunday', 'Winter', 461, 6661.45, 14.45, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(19, '2024-08-19', 'Monday', 'Winter', 295, 4059.2, 13.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(20, '2024-08-20', 'Tuesday', 'Winter', 292, 4415.04, 15.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(21, '2024-08-21', 'Wednesday', 'Winter', 274, 4200.42, 15.33, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(22, '2024-08-22', 'Thursday', 'Winter', 266, 3516.52, 13.22, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(23, '2024-08-23', 'Friday', 'Winter', 263, 3369.03, 12.81, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(24, '2024-08-24', 'Saturday', 'Winter', 395, 5320.65, 13.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(25, '2024-08-25', 'Sunday', 'Winter', 470, 5729.3, 12.19, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(26, '2024-08-26', 'Monday', 'Winter', 263, 3037.65, 11.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(27, '2024-08-27', 'Tuesday', 'Winter', 250, 3227.5, 12.91, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(28, '2024-08-28', 'Wednesday', 'Winter', 241, 2872.72, 11.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(29, '2024-08-29', 'Thursday', 'Winter', 231, 2663.43, 11.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(30, '2024-08-30', 'Friday', 'Winter', 225, 2893.5, 12.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(31, '2024-08-31', 'Saturday', 'Winter', 460, 5598.2, 12.17, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(32, '2024-09-01', 'Sunday', 'Spring', 516, 7600.68, 14.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(33, '2024-09-02', 'Monday', 'Spring', 260, 3101.8, 11.93, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(34, '2024-09-03', 'Tuesday', 'Spring', 225, 2661.75, 11.83, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(35, '2024-09-04', 'Wednesday', 'Spring', 230, 3217.7, 13.99, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(36, '2024-09-05', 'Thursday', 'Spring', 226, 3044.22, 13.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(37, '2024-09-06', 'Friday', 'Spring', 260, 3190.2, 12.27, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(38, '2024-09-07', 'Saturday', 'Spring', 449, 6223.14, 13.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(39, '2024-09-08', 'Sunday', 'Spring', 439, 5421.65, 12.35, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(40, '2024-09-09', 'Monday', 'Spring', 253, 3283.94, 12.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(41, '2024-09-10', 'Tuesday', 'Spring', 302, 4551.14, 15.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(42, '2024-09-11', 'Wednesday', 'Spring', 308, 4127.2, 13.4, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(43, '2024-09-12', 'Thursday', 'Spring', 253, 3830.42, 15.14, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(44, '2024-09-13', 'Friday', 'Spring', 261, 3053.7, 11.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(45, '2024-09-14', 'Saturday', 'Spring', 496, 6130.56, 12.36, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(46, '2024-09-15', 'Sunday', 'Spring', 479, 6854.49, 14.31, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(47, '2024-09-16', 'Monday', 'Spring', 231, 3243.24, 14.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(48, '2024-09-17', 'Tuesday', 'Spring', 298, 4386.56, 14.72, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(49, '2024-09-18', 'Wednesday', 'Spring', 225, 2659.5, 11.82, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(50, '2024-09-19', 'Thursday', 'Spring', 273, 3955.77, 14.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(51, '2024-09-20', 'Friday', 'Spring', 295, 3525.25, 11.95, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(52, '2024-09-21', 'Saturday', 'Spring', 402, 5700.36, 14.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(53, '2024-09-22', 'Sunday', 'Spring', 432, 5335.2, 12.35, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(54, '2024-09-23', 'Monday', 'Spring', 308, 4213.44, 13.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(55, '2024-09-24', 'Tuesday', 'Spring', 284, 3953.28, 13.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(56, '2024-09-25', 'Wednesday', 'Spring', 258, 3870, 15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(57, '2024-09-26', 'Thursday', 'Spring', 273, 3254.16, 11.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(58, '2024-09-27', 'Friday', 'Spring', 247, 2978.82, 12.06, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(59, '2024-09-28', 'Saturday', 'Spring', 381, 5955.03, 15.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(60, '2024-09-29', 'Sunday', 'Spring', 510, 7446, 14.6, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(61, '2024-09-30', 'Monday', 'Spring', 249, 3202.14, 12.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(62, '2024-10-01', 'Tuesday', 'Spring', 309, 3584.4, 11.6, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(63, '2024-10-02', 'Wednesday', 'Spring', 225, 2907, 12.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(64, '2024-10-03', 'Thursday', 'Spring', 255, 3429.75, 13.45, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(65, '2024-10-04', 'Friday', 'Spring', 272, 3527.84, 12.97, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(66, '2024-10-05', 'Saturday', 'Spring', 385, 4654.65, 12.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(67, '2024-10-06', 'Sunday', 'Spring', 431, 6615.85, 15.35, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(68, '2024-10-07', 'Monday', 'Spring', 270, 3204.9, 11.87, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(69, '2024-10-08', 'Tuesday', 'Spring', 268, 3851.16, 14.37, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(70, '2024-10-09', 'Wednesday', 'Spring', 291, 4504.68, 15.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(71, '2024-10-10', 'Thursday', 'Spring', 299, 4559.75, 15.25, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(72, '2024-10-11', 'Friday', 'Spring', 253, 2922.15, 11.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(73, '2024-10-12', 'Saturday', 'Spring', 488, 5621.76, 11.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(74, '2024-10-13', 'Sunday', 'Spring', 492, 6573.12, 13.36, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(75, '2024-10-14', 'Monday', 'Spring', 268, 3987.84, 14.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(76, '2024-10-15', 'Tuesday', 'Spring', 300, 4734, 15.78, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(77, '2024-10-16', 'Wednesday', 'Spring', 278, 4133.86, 14.87, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(78, '2024-10-17', 'Thursday', 'Spring', 231, 2702.7, 11.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(79, '2024-10-18', 'Friday', 'Spring', 267, 4093.11, 15.33, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(80, '2024-10-19', 'Saturday', 'Spring', 469, 6279.91, 13.39, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(81, '2024-10-20', 'Sunday', 'Spring', 469, 7297.64, 15.56, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(82, '2024-10-21', 'Monday', 'Spring', 273, 3327.87, 12.19, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(83, '2024-10-22', 'Tuesday', 'Spring', 251, 3531.57, 14.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(84, '2024-10-23', 'Wednesday', 'Spring', 260, 4024.8, 15.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(85, '2024-10-24', 'Thursday', 'Spring', 288, 3954.24, 13.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(86, '2024-10-25', 'Friday', 'Spring', 280, 4247.6, 15.17, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(87, '2024-10-26', 'Saturday', 'Spring', 489, 6826.44, 13.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(88, '2024-10-27', 'Sunday', 'Spring', 412, 6212.96, 15.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(89, '2024-10-28', 'Monday', 'Spring', 309, 4335.27, 14.03, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(90, '2024-10-29', 'Tuesday', 'Spring', 248, 3548.88, 14.31, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(91, '2024-10-30', 'Wednesday', 'Spring', 298, 3483.62, 11.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(92, '2024-10-31', 'Thursday', 'Spring', 286, 3432, 12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(93, '2024-11-01', 'Friday', 'Spring', 243, 3518.64, 14.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(94, '2024-11-02', 'Saturday', 'Spring', 385, 5339.95, 13.87, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(95, '2024-11-03', 'Sunday', 'Spring', 453, 7012.44, 15.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(96, '2024-11-04', 'Monday', 'Spring', 233, 3462.38, 14.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(97, '2024-11-05', 'Tuesday', 'Spring', 228, 3360.72, 14.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(98, '2024-11-06', 'Wednesday', 'Spring', 226, 3270.22, 14.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(99, '2024-11-07', 'Thursday', 'Spring', 241, 3692.12, 15.32, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(100, '2024-11-08', 'Friday', 'Spring', 245, 2925.3, 11.94, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(101, '2024-11-09', 'Saturday', 'Spring', 397, 4632.99, 11.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(102, '2024-11-10', 'Sunday', 'Spring', 460, 6269.8, 13.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(103, '2024-11-11', 'Monday', 'Spring', 233, 3303.94, 14.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(104, '2024-11-12', 'Tuesday', 'Spring', 271, 3775.03, 13.93, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(105, '2024-11-13', 'Wednesday', 'Spring', 264, 3355.44, 12.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(106, '2024-11-14', 'Thursday', 'Spring', 287, 3303.37, 11.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(107, '2024-11-15', 'Friday', 'Spring', 272, 4137.12, 15.21, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(108, '2024-11-16', 'Saturday', 'Spring', 489, 5848.44, 11.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(109, '2024-11-17', 'Sunday', 'Spring', 429, 5452.59, 12.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(110, '2024-11-18', 'Monday', 'Spring', 280, 3805.2, 13.59, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(111, '2024-11-19', 'Tuesday', 'Spring', 273, 4212.39, 15.43, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(112, '2024-11-20', 'Wednesday', 'Spring', 302, 4351.82, 14.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(113, '2024-11-21', 'Thursday', 'Spring', 232, 2848.96, 12.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(114, '2024-11-22', 'Friday', 'Spring', 270, 3812.4, 14.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(115, '2024-11-23', 'Saturday', 'Spring', 517, 6829.57, 13.21, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(116, '2024-11-24', 'Sunday', 'Spring', 481, 7113.99, 14.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(117, '2024-11-25', 'Monday', 'Spring', 258, 3289.5, 12.75, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(118, '2024-11-26', 'Tuesday', 'Spring', 222, 2557.44, 11.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(119, '2024-11-27', 'Wednesday', 'Spring', 284, 4464.48, 15.72, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(120, '2024-11-28', 'Thursday', 'Spring', 301, 3557.82, 11.82, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(121, '2024-11-29', 'Friday', 'Spring', 296, 4135.12, 13.97, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(122, '2024-11-30', 'Saturday', 'Spring', 452, 5356.2, 11.85, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(123, '2024-12-01', 'Sunday', 'Summer', 514, 7406.74, 14.41, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(124, '2024-12-02', 'Monday', 'Summer', 265, 4057.15, 15.31, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(125, '2024-12-03', 'Tuesday', 'Summer', 232, 3306, 14.25, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(126, '2024-12-04', 'Wednesday', 'Summer', 247, 2991.17, 12.11, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(127, '2024-12-05', 'Thursday', 'Summer', 222, 2655.12, 11.96, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(128, '2024-12-06', 'Friday', 'Summer', 270, 3342.6, 12.38, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(129, '2024-12-07', 'Saturday', 'Summer', 493, 6404.07, 12.99, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(130, '2024-12-08', 'Sunday', 'Summer', 416, 6289.92, 15.12, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(131, '2024-12-09', 'Monday', 'Summer', 272, 3299.36, 12.13, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(132, '2024-12-10', 'Tuesday', 'Summer', 554, 9767.02, 17.63, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(133, '2024-12-11', 'Wednesday', 'Summer', 915, 16021.7, 17.51, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(134, '2024-12-12', 'Thursday', 'Summer', 826, 14298.1, 17.31, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(135, '2024-12-13', 'Friday', 'Summer', 727, 11842.8, 16.29, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(136, '2024-12-14', 'Saturday', 'Summer', 1135, 22768.1, 20.06, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(137, '2024-12-15', 'Sunday', 'Summer', 1182, 21039.6, 17.8, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(138, '2024-12-16', 'Monday', 'Summer', 772, 14644.8, 18.97, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(139, '2024-12-17', 'Tuesday', 'Summer', 658, 11738.7, 17.84, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(140, '2024-12-18', 'Wednesday', 'Summer', 757, 13974.2, 18.46, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(141, '2024-12-19', 'Thursday', 'Summer', 671, 11621.7, 17.32, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(142, '2024-12-20', 'Friday', 'Summer', 634, 12515.2, 19.74, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(143, '2024-12-21', 'Saturday', 'Summer', 1268, 21784.2, 17.18, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(144, '2024-12-22', 'Sunday', 'Summer', 1047, 16867.2, 16.11, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(145, '2024-12-23', 'Monday', 'Summer', 954, 18975.1, 19.89, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(146, '2024-12-24', 'Tuesday', 'Summer', 632, 11489.8, 18.18, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(147, '2024-12-25', 'Wednesday', 'Summer', 287, 4127.06, 14.38, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(148, '2024-12-26', 'Thursday', 'Summer', 506, 6107.42, 12.07, 'Cold Coffee & Smoothies', 'Boxing Day Retail Rush', 'Mild 19°C', '2026-08-29 15:16:30'),
+(149, '2024-12-27', 'Friday', 'Summer', 236, 3407.84, 14.44, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(150, '2024-12-28', 'Saturday', 'Summer', 474, 7209.54, 15.21, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(151, '2024-12-29', 'Sunday', 'Summer', 381, 4389.12, 11.52, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(152, '2024-12-30', 'Monday', 'Summer', 284, 4333.84, 15.26, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(153, '2024-12-31', 'Tuesday', 'Summer', 230, 3337.3, 14.51, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(154, '2025-01-01', 'Wednesday', 'Summer', 225, 3521.25, 15.65, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(155, '2025-01-02', 'Thursday', 'Summer', 238, 3636.64, 15.28, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(156, '2025-01-03', 'Friday', 'Summer', 254, 3167.38, 12.47, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(157, '2025-01-04', 'Saturday', 'Summer', 496, 6467.84, 13.04, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(158, '2025-01-05', 'Sunday', 'Summer', 517, 6100.6, 11.8, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(159, '2025-01-06', 'Monday', 'Summer', 240, 3117.6, 12.99, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(160, '2025-01-07', 'Tuesday', 'Summer', 279, 3811.14, 13.66, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(161, '2025-01-08', 'Wednesday', 'Summer', 300, 3915, 13.05, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(162, '2025-01-09', 'Thursday', 'Summer', 277, 3769.97, 13.61, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(163, '2025-01-10', 'Friday', 'Summer', 297, 4466.88, 15.04, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(164, '2025-01-11', 'Saturday', 'Summer', 439, 6536.71, 14.89, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(165, '2025-01-12', 'Sunday', 'Summer', 419, 6389.75, 15.25, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(166, '2025-01-13', 'Monday', 'Summer', 271, 3186.96, 11.76, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(167, '2025-01-14', 'Tuesday', 'Summer', 242, 3354.12, 13.86, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(168, '2025-01-15', 'Wednesday', 'Summer', 280, 3287.2, 11.74, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(169, '2025-01-16', 'Thursday', 'Summer', 281, 3849.7, 13.7, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(170, '2025-01-17', 'Friday', 'Summer', 276, 3496.92, 12.67, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(171, '2025-01-18', 'Saturday', 'Summer', 440, 6296.4, 14.31, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(172, '2025-01-19', 'Sunday', 'Summer', 460, 6375.6, 13.86, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(173, '2025-01-20', 'Monday', 'Summer', 478, 5855.5, 12.25, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(174, '2025-01-21', 'Tuesday', 'Summer', 451, 6652.25, 14.75, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(175, '2025-01-22', 'Wednesday', 'Summer', 455, 6001.45, 13.19, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(176, '2025-01-23', 'Thursday', 'Summer', 430, 6540.3, 15.21, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(177, '2025-01-24', 'Friday', 'Summer', 417, 5712.9, 13.7, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(178, '2025-01-25', 'Saturday', 'Summer', 694, 10604.3, 15.28, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(179, '2025-01-26', 'Sunday', 'Summer', 878, 11361.3, 12.94, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(180, '2025-01-27', 'Monday', 'Summer', 231, 2892.12, 12.52, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(181, '2025-01-28', 'Tuesday', 'Summer', 238, 3420.06, 14.37, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(182, '2025-01-29', 'Wednesday', 'Summer', 291, 4277.7, 14.7, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(183, '2025-01-30', 'Thursday', 'Summer', 278, 3461.1, 12.45, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(184, '2025-01-31', 'Friday', 'Summer', 273, 3980.34, 14.58, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(185, '2025-02-01', 'Saturday', 'Summer', 460, 6559.6, 14.26, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(186, '2025-02-02', 'Sunday', 'Summer', 519, 6793.71, 13.09, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(187, '2025-02-03', 'Monday', 'Summer', 282, 4286.4, 15.2, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(188, '2025-02-04', 'Tuesday', 'Summer', 253, 3744.4, 14.8, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(189, '2025-02-05', 'Wednesday', 'Summer', 297, 4455, 15, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(190, '2025-02-06', 'Thursday', 'Summer', 224, 3478.72, 15.53, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(191, '2025-02-07', 'Friday', 'Summer', 256, 3776, 14.75, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(192, '2025-02-08', 'Saturday', 'Summer', 403, 5299.45, 13.15, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(193, '2025-02-09', 'Sunday', 'Summer', 454, 6183.48, 13.62, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(194, '2025-02-10', 'Monday', 'Summer', 293, 3568.74, 12.18, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(195, '2025-02-11', 'Tuesday', 'Summer', 264, 3392.4, 12.85, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(196, '2025-02-12', 'Wednesday', 'Summer', 255, 3205.35, 12.57, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(197, '2025-02-13', 'Thursday', 'Summer', 263, 3726.71, 14.17, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(198, '2025-02-14', 'Friday', 'Summer', 228, 3290.04, 14.43, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(199, '2025-02-15', 'Saturday', 'Summer', 498, 7026.78, 14.11, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(200, '2025-02-16', 'Sunday', 'Summer', 468, 6158.88, 13.16, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(201, '2025-02-17', 'Monday', 'Summer', 258, 3991.26, 15.47, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(202, '2025-02-18', 'Tuesday', 'Summer', 225, 3312, 14.72, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(203, '2025-02-19', 'Wednesday', 'Summer', 302, 4445.44, 14.72, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(204, '2025-02-20', 'Thursday', 'Summer', 260, 3486.6, 13.41, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(205, '2025-02-21', 'Friday', 'Summer', 244, 3364.76, 13.79, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(206, '2025-02-22', 'Saturday', 'Summer', 483, 5670.42, 11.74, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(207, '2025-02-23', 'Sunday', 'Summer', 439, 6567.44, 14.96, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(208, '2025-02-24', 'Monday', 'Summer', 289, 3759.89, 13.01, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(209, '2025-02-25', 'Tuesday', 'Summer', 290, 4573.3, 15.77, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(210, '2025-02-26', 'Wednesday', 'Summer', 257, 3179.09, 12.37, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(211, '2025-02-27', 'Thursday', 'Summer', 295, 4109.35, 13.93, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(212, '2025-02-28', 'Friday', 'Summer', 297, 3795.66, 12.78, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(213, '2025-03-01', 'Saturday', 'Autumn', 744, 8823.84, 11.86, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(214, '2025-03-02', 'Sunday', 'Autumn', 678, 9736.08, 14.36, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(215, '2025-03-03', 'Monday', 'Autumn', 301, 4530.05, 15.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(216, '2025-03-04', 'Tuesday', 'Autumn', 251, 3913.09, 15.59, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(217, '2025-03-05', 'Wednesday', 'Autumn', 243, 2794.5, 11.5, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(218, '2025-03-06', 'Thursday', 'Autumn', 307, 3699.35, 12.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(219, '2025-03-07', 'Friday', 'Autumn', 366, 5383.86, 14.71, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(220, '2025-03-08', 'Saturday', 'Autumn', 684, 9904.32, 14.48, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(221, '2025-03-09', 'Sunday', 'Autumn', 848, 12253.6, 14.45, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(222, '2025-03-10', 'Monday', 'Autumn', 281, 3414.15, 12.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(223, '2025-03-11', 'Tuesday', 'Autumn', 251, 3714.8, 14.8, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(224, '2025-03-12', 'Wednesday', 'Autumn', 252, 3981.6, 15.8, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(225, '2025-03-13', 'Thursday', 'Autumn', 265, 3982.95, 15.03, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(226, '2025-03-14', 'Friday', 'Autumn', 465, 6296.1, 13.54, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(227, '2025-03-15', 'Saturday', 'Autumn', 825, 12498.8, 15.15, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(228, '2025-03-16', 'Sunday', 'Autumn', 806, 11388.8, 14.13, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(229, '2025-03-17', 'Monday', 'Autumn', 235, 3548.5, 15.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(230, '2025-03-18', 'Tuesday', 'Autumn', 228, 2649.36, 11.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(231, '2025-03-19', 'Wednesday', 'Autumn', 294, 4039.56, 13.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(232, '2025-03-20', 'Thursday', 'Autumn', 296, 4099.6, 13.85, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(233, '2025-03-21', 'Friday', 'Autumn', 460, 6269.8, 13.63, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(234, '2025-03-22', 'Saturday', 'Autumn', 849, 11894.5, 14.01, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(235, '2025-03-23', 'Sunday', 'Autumn', 839, 9875.03, 11.77, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(236, '2025-03-24', 'Monday', 'Autumn', 246, 3815.46, 15.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(237, '2025-03-25', 'Tuesday', 'Autumn', 269, 3488.93, 12.97, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(238, '2025-03-26', 'Wednesday', 'Autumn', 268, 3387.52, 12.64, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(239, '2025-03-27', 'Thursday', 'Autumn', 252, 3792.6, 15.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(240, '2025-03-28', 'Friday', 'Autumn', 427, 5166.7, 12.1, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(241, '2025-03-29', 'Saturday', 'Autumn', 684, 8666.28, 12.67, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(242, '2025-03-30', 'Sunday', 'Autumn', 722, 9898.62, 13.71, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:30'),
+(243, '2025-03-31', 'Monday', 'Autumn', 265, 3943.2, 14.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(244, '2025-04-01', 'Tuesday', 'Autumn', 276, 4164.84, 15.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(245, '2025-04-02', 'Wednesday', 'Autumn', 257, 3582.58, 13.94, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(246, '2025-04-03', 'Thursday', 'Autumn', 265, 4104.85, 15.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(247, '2025-04-04', 'Friday', 'Autumn', 308, 4253.48, 13.81, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(248, '2025-04-05', 'Saturday', 'Autumn', 457, 6480.26, 14.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(249, '2025-04-06', 'Sunday', 'Autumn', 499, 6691.59, 13.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(250, '2025-04-07', 'Monday', 'Autumn', 266, 4107.04, 15.44, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(251, '2025-04-08', 'Tuesday', 'Autumn', 225, 3242.25, 14.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(252, '2025-04-09', 'Wednesday', 'Autumn', 260, 3868.8, 14.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(253, '2025-04-10', 'Thursday', 'Autumn', 302, 3482.06, 11.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(254, '2025-04-11', 'Friday', 'Autumn', 283, 4420.46, 15.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(255, '2025-04-12', 'Saturday', 'Autumn', 388, 5812.24, 14.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(256, '2025-04-13', 'Sunday', 'Autumn', 444, 5572.2, 12.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(257, '2025-04-14', 'Monday', 'Autumn', 242, 2809.62, 11.61, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(258, '2025-04-15', 'Tuesday', 'Autumn', 263, 3789.83, 14.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(259, '2025-04-16', 'Wednesday', 'Autumn', 287, 3736.74, 13.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(260, '2025-04-17', 'Thursday', 'Autumn', 301, 4292.26, 14.26, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(261, '2025-04-18', 'Friday', 'Autumn', 262, 3400.76, 12.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(262, '2025-04-19', 'Saturday', 'Autumn', 399, 6216.42, 15.58, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(263, '2025-04-20', 'Sunday', 'Autumn', 451, 5506.71, 12.21, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(264, '2025-04-21', 'Monday', 'Autumn', 292, 3810.6, 13.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(265, '2025-04-22', 'Tuesday', 'Autumn', 221, 2579.07, 11.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(266, '2025-04-23', 'Wednesday', 'Autumn', 287, 4296.39, 14.97, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(267, '2025-04-24', 'Thursday', 'Autumn', 278, 3419.4, 12.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(268, '2025-04-25', 'Friday', 'Autumn', 239, 2863.22, 11.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(269, '2025-04-26', 'Saturday', 'Autumn', 424, 5647.68, 13.32, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(270, '2025-04-27', 'Sunday', 'Autumn', 464, 5419.52, 11.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(271, '2025-04-28', 'Monday', 'Autumn', 278, 3338.78, 12.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(272, '2025-04-29', 'Tuesday', 'Autumn', 224, 2972.48, 13.27, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(273, '2025-04-30', 'Wednesday', 'Autumn', 235, 3515.6, 14.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(274, '2025-05-01', 'Thursday', 'Autumn', 223, 2988.2, 13.4, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(275, '2025-05-02', 'Friday', 'Autumn', 248, 3578.64, 14.43, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(276, '2025-05-03', 'Saturday', 'Autumn', 426, 6108.84, 14.34, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(277, '2025-05-04', 'Sunday', 'Autumn', 490, 6624.8, 13.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(278, '2025-05-05', 'Monday', 'Autumn', 242, 3252.48, 13.44, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(279, '2025-05-06', 'Tuesday', 'Autumn', 269, 4013.48, 14.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(280, '2025-05-07', 'Wednesday', 'Autumn', 309, 4570.11, 14.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(281, '2025-05-08', 'Thursday', 'Autumn', 233, 3185.11, 13.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(282, '2025-05-09', 'Friday', 'Autumn', 264, 3783.12, 14.33, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(283, '2025-05-10', 'Saturday', 'Autumn', 384, 5406.72, 14.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(284, '2025-05-11', 'Sunday', 'Autumn', 422, 4928.96, 11.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(285, '2025-05-12', 'Monday', 'Autumn', 228, 3429.12, 15.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(286, '2025-05-13', 'Tuesday', 'Autumn', 230, 2762.3, 12.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(287, '2025-05-14', 'Wednesday', 'Autumn', 257, 3983.5, 15.5, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(288, '2025-05-15', 'Thursday', 'Autumn', 248, 3117.36, 12.57, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(289, '2025-05-16', 'Friday', 'Autumn', 222, 2817.18, 12.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(290, '2025-05-17', 'Saturday', 'Autumn', 481, 6099.08, 12.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(291, '2025-05-18', 'Sunday', 'Autumn', 517, 7817.04, 15.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(292, '2025-05-19', 'Monday', 'Autumn', 291, 4228.23, 14.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(293, '2025-05-20', 'Tuesday', 'Autumn', 305, 3663.05, 12.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(294, '2025-05-21', 'Wednesday', 'Autumn', 278, 4278.42, 15.39, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(295, '2025-05-22', 'Thursday', 'Autumn', 252, 3757.32, 14.91, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(296, '2025-05-23', 'Friday', 'Autumn', 249, 3117.48, 12.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(297, '2025-05-24', 'Saturday', 'Autumn', 502, 6229.82, 12.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(298, '2025-05-25', 'Sunday', 'Autumn', 504, 7363.44, 14.61, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(299, '2025-05-26', 'Monday', 'Autumn', 228, 3137.28, 13.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(300, '2025-05-27', 'Tuesday', 'Autumn', 234, 2903.94, 12.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(301, '2025-05-28', 'Wednesday', 'Autumn', 310, 4888.7, 15.77, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(302, '2025-05-29', 'Thursday', 'Autumn', 223, 2874.47, 12.89, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(303, '2025-05-30', 'Friday', 'Autumn', 274, 3890.8, 14.2, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(304, '2025-05-31', 'Saturday', 'Autumn', 451, 5245.13, 11.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(305, '2025-06-01', 'Sunday', 'Winter', 405, 5378.4, 13.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(306, '2025-06-02', 'Monday', 'Winter', 300, 3576, 11.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(307, '2025-06-03', 'Tuesday', 'Winter', 230, 2930.2, 12.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(308, '2025-06-04', 'Wednesday', 'Winter', 247, 3107.26, 12.58, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(309, '2025-06-05', 'Thursday', 'Winter', 292, 4280.72, 14.66, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(310, '2025-06-06', 'Friday', 'Winter', 258, 3805.5, 14.75, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(311, '2025-06-07', 'Saturday', 'Winter', 486, 6502.68, 13.38, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(312, '2025-06-08', 'Sunday', 'Winter', 492, 7719.48, 15.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(313, '2025-06-09', 'Monday', 'Winter', 231, 2755.83, 11.93, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(314, '2025-06-10', 'Tuesday', 'Winter', 263, 3234.9, 12.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(315, '2025-06-11', 'Wednesday', 'Winter', 269, 3766, 14, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(316, '2025-06-12', 'Thursday', 'Winter', 285, 4009.95, 14.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(317, '2025-06-13', 'Friday', 'Winter', 251, 2939.21, 11.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(318, '2025-06-14', 'Saturday', 'Winter', 384, 5356.8, 13.95, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(319, '2025-06-15', 'Sunday', 'Winter', 404, 6043.84, 14.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(320, '2025-06-16', 'Monday', 'Winter', 223, 3425.28, 15.36, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(321, '2025-06-17', 'Tuesday', 'Winter', 289, 4450.6, 15.4, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(322, '2025-06-18', 'Wednesday', 'Winter', 310, 4126.1, 13.31, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(323, '2025-06-19', 'Thursday', 'Winter', 278, 4181.12, 15.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(324, '2025-06-20', 'Friday', 'Winter', 306, 3678.12, 12.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(325, '2025-06-21', 'Saturday', 'Winter', 408, 5308.08, 13.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(326, '2025-06-22', 'Sunday', 'Winter', 512, 7029.76, 13.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(327, '2025-06-23', 'Monday', 'Winter', 244, 3140.28, 12.87, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(328, '2025-06-24', 'Tuesday', 'Winter', 238, 3758.02, 15.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(329, '2025-06-25', 'Wednesday', 'Winter', 275, 3544.75, 12.89, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(330, '2025-06-26', 'Thursday', 'Winter', 235, 3278.25, 13.95, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(331, '2025-06-27', 'Friday', 'Winter', 266, 3750.6, 14.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(332, '2025-06-28', 'Saturday', 'Winter', 495, 7474.5, 15.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(333, '2025-06-29', 'Sunday', 'Winter', 441, 5777.1, 13.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(334, '2025-06-30', 'Monday', 'Winter', 255, 3100.8, 12.16, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(335, '2025-07-01', 'Tuesday', 'Winter', 301, 4752.79, 15.79, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(336, '2025-07-02', 'Wednesday', 'Winter', 280, 4065.6, 14.52, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(337, '2025-07-03', 'Thursday', 'Winter', 226, 3039.7, 13.45, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(338, '2025-07-04', 'Friday', 'Winter', 289, 4141.37, 14.33, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(339, '2025-07-05', 'Saturday', 'Winter', 421, 6302.37, 14.97, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(340, '2025-07-06', 'Sunday', 'Winter', 443, 6596.27, 14.89, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(341, '2025-07-07', 'Monday', 'Winter', 272, 3772.64, 13.87, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(342, '2025-07-08', 'Tuesday', 'Winter', 296, 3933.84, 13.29, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(343, '2025-07-09', 'Wednesday', 'Winter', 270, 3736.8, 13.84, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(344, '2025-07-10', 'Thursday', 'Winter', 257, 3978.36, 15.48, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(345, '2025-07-11', 'Friday', 'Winter', 299, 3650.79, 12.21, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(346, '2025-07-12', 'Saturday', 'Winter', 455, 5346.25, 11.75, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(347, '2025-07-13', 'Sunday', 'Winter', 520, 7644, 14.7, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(348, '2025-07-14', 'Monday', 'Winter', 265, 4144.6, 15.64, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(349, '2025-07-15', 'Tuesday', 'Winter', 259, 4004.14, 15.46, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(350, '2025-07-16', 'Wednesday', 'Winter', 236, 2747.04, 11.64, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(351, '2025-07-17', 'Thursday', 'Winter', 290, 3958.5, 13.65, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(352, '2025-07-18', 'Friday', 'Winter', 242, 3286.36, 13.58, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(353, '2025-07-19', 'Saturday', 'Winter', 489, 6112.5, 12.5, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(354, '2025-07-20', 'Sunday', 'Winter', 459, 6237.81, 13.59, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(355, '2025-07-21', 'Monday', 'Winter', 296, 3489.84, 11.79, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(356, '2025-07-22', 'Tuesday', 'Winter', 244, 3215.92, 13.18, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(357, '2025-07-23', 'Wednesday', 'Winter', 220, 3124, 14.2, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(358, '2025-07-24', 'Thursday', 'Winter', 288, 4080.96, 14.17, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(359, '2025-07-25', 'Friday', 'Winter', 262, 3772.8, 14.4, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(360, '2025-07-26', 'Saturday', 'Winter', 487, 7119.94, 14.62, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(361, '2025-07-27', 'Sunday', 'Winter', 512, 6763.52, 13.21, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(362, '2025-07-28', 'Monday', 'Winter', 234, 3130.92, 13.38, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(363, '2025-07-29', 'Tuesday', 'Winter', 226, 3557.24, 15.74, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(364, '2025-07-30', 'Wednesday', 'Winter', 220, 3425.4, 15.57, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(365, '2025-07-31', 'Thursday', 'Winter', 304, 4535.68, 14.92, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:30'),
+(366, '2025-08-01', 'Friday', 'Winter', 231, 3506.58, 15.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(367, '2025-08-02', 'Saturday', 'Winter', 454, 6714.66, 14.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(368, '2025-08-03', 'Sunday', 'Winter', 459, 7201.71, 15.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(369, '2025-08-04', 'Monday', 'Winter', 247, 3257.93, 13.19, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(370, '2025-08-05', 'Tuesday', 'Winter', 225, 3084.75, 13.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(371, '2025-08-06', 'Wednesday', 'Winter', 261, 3849.75, 14.75, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(372, '2025-08-07', 'Thursday', 'Winter', 304, 3654.08, 12.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(373, '2025-08-08', 'Friday', 'Winter', 293, 3384.15, 11.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(374, '2025-08-09', 'Saturday', 'Winter', 515, 5984.3, 11.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(375, '2025-08-10', 'Sunday', 'Winter', 397, 5951.03, 14.99, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(376, '2025-08-11', 'Monday', 'Winter', 297, 3578.85, 12.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(377, '2025-08-12', 'Tuesday', 'Winter', 272, 3185.12, 11.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(378, '2025-08-13', 'Wednesday', 'Winter', 308, 3751.44, 12.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(379, '2025-08-14', 'Thursday', 'Winter', 288, 4158.72, 14.44, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(380, '2025-08-15', 'Friday', 'Winter', 282, 3513.72, 12.46, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(381, '2025-08-16', 'Saturday', 'Winter', 388, 5622.12, 14.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(382, '2025-08-17', 'Sunday', 'Winter', 478, 5979.78, 12.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(383, '2025-08-18', 'Monday', 'Winter', 292, 4347.88, 14.89, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(384, '2025-08-19', 'Tuesday', 'Winter', 284, 3606.8, 12.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(385, '2025-08-20', 'Wednesday', 'Winter', 241, 2916.1, 12.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(386, '2025-08-21', 'Thursday', 'Winter', 287, 3464.09, 12.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(387, '2025-08-22', 'Friday', 'Winter', 231, 3499.65, 15.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(388, '2025-08-23', 'Saturday', 'Winter', 492, 6440.28, 13.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(389, '2025-08-24', 'Sunday', 'Winter', 517, 6348.76, 12.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(390, '2025-08-25', 'Monday', 'Winter', 237, 3417.54, 14.42, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(391, '2025-08-26', 'Tuesday', 'Winter', 259, 4004.14, 15.46, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(392, '2025-08-27', 'Wednesday', 'Winter', 220, 2800.6, 12.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(393, '2025-08-28', 'Thursday', 'Winter', 232, 2962.64, 12.77, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(394, '2025-08-29', 'Friday', 'Winter', 230, 3519, 15.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(395, '2025-08-30', 'Saturday', 'Winter', 401, 5866.63, 14.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(396, '2025-08-31', 'Sunday', 'Winter', 385, 5232.15, 13.59, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(397, '2025-09-01', 'Monday', 'Spring', 252, 3185.28, 12.64, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(398, '2025-09-02', 'Tuesday', 'Spring', 239, 2980.33, 12.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(399, '2025-09-03', 'Wednesday', 'Spring', 306, 4611.42, 15.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(400, '2025-09-04', 'Thursday', 'Spring', 243, 3759.21, 15.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(401, '2025-09-05', 'Friday', 'Spring', 221, 2658.63, 12.03, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(402, '2025-09-06', 'Saturday', 'Spring', 518, 6164.2, 11.9, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(403, '2025-09-07', 'Sunday', 'Spring', 409, 5591.03, 13.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(404, '2025-09-08', 'Monday', 'Spring', 258, 3753.9, 14.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(405, '2025-09-09', 'Tuesday', 'Spring', 255, 3728.1, 14.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(406, '2025-09-10', 'Wednesday', 'Spring', 285, 3280.35, 11.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(407, '2025-09-11', 'Thursday', 'Spring', 282, 3364.26, 11.93, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(408, '2025-09-12', 'Friday', 'Spring', 251, 3534.08, 14.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(409, '2025-09-13', 'Saturday', 'Spring', 498, 7340.52, 14.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(410, '2025-09-14', 'Sunday', 'Spring', 420, 5720.4, 13.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(411, '2025-09-15', 'Monday', 'Spring', 239, 2956.43, 12.37, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(412, '2025-09-16', 'Tuesday', 'Spring', 269, 4239.44, 15.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(413, '2025-09-17', 'Wednesday', 'Spring', 235, 3463.9, 14.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(414, '2025-09-18', 'Thursday', 'Spring', 271, 3756.06, 13.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(415, '2025-09-19', 'Friday', 'Spring', 246, 3726.9, 15.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(416, '2025-09-20', 'Saturday', 'Spring', 456, 6443.28, 14.13, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(417, '2025-09-21', 'Sunday', 'Spring', 398, 4724.26, 11.87, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(418, '2025-09-22', 'Monday', 'Spring', 234, 3472.56, 14.84, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(419, '2025-09-23', 'Tuesday', 'Spring', 253, 3987.28, 15.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(420, '2025-09-24', 'Wednesday', 'Spring', 285, 3856.05, 13.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(421, '2025-09-25', 'Thursday', 'Spring', 300, 3954, 13.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(422, '2025-09-26', 'Friday', 'Spring', 239, 3408.14, 14.26, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(423, '2025-09-27', 'Saturday', 'Spring', 457, 5525.13, 12.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(424, '2025-09-28', 'Sunday', 'Spring', 492, 7050.36, 14.33, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(425, '2025-09-29', 'Monday', 'Spring', 259, 3693.34, 14.26, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(426, '2025-09-30', 'Tuesday', 'Spring', 302, 3542.46, 11.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(427, '2025-10-01', 'Wednesday', 'Spring', 273, 4089.54, 14.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(428, '2025-10-02', 'Thursday', 'Spring', 233, 3401.8, 14.6, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(429, '2025-10-03', 'Friday', 'Spring', 253, 3888.61, 15.37, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(430, '2025-10-04', 'Saturday', 'Spring', 452, 5261.28, 11.64, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(431, '2025-10-05', 'Sunday', 'Spring', 418, 5245.9, 12.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(432, '2025-10-06', 'Monday', 'Spring', 230, 2806, 12.2, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(433, '2025-10-07', 'Tuesday', 'Spring', 236, 3221.4, 13.65, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(434, '2025-10-08', 'Wednesday', 'Spring', 289, 4436.15, 15.35, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(435, '2025-10-09', 'Thursday', 'Spring', 240, 3372, 14.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(436, '2025-10-10', 'Friday', 'Spring', 298, 3888.9, 13.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(437, '2025-10-11', 'Saturday', 'Spring', 467, 7201.14, 15.42, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(438, '2025-10-12', 'Sunday', 'Spring', 512, 6144, 12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(439, '2025-10-13', 'Monday', 'Spring', 241, 3022.14, 12.54, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(440, '2025-10-14', 'Tuesday', 'Spring', 235, 3297.05, 14.03, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(441, '2025-10-15', 'Wednesday', 'Spring', 268, 3291.04, 12.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(442, '2025-10-16', 'Thursday', 'Spring', 256, 3335.68, 13.03, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(443, '2025-10-17', 'Friday', 'Spring', 293, 4236.78, 14.46, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(444, '2025-10-18', 'Saturday', 'Spring', 408, 6160.8, 15.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(445, '2025-10-19', 'Sunday', 'Spring', 516, 7218.84, 13.99, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(446, '2025-10-20', 'Monday', 'Spring', 257, 3325.58, 12.94, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(447, '2025-10-21', 'Tuesday', 'Spring', 289, 4525.74, 15.66, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(448, '2025-10-22', 'Wednesday', 'Spring', 298, 4228.62, 14.19, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(449, '2025-10-23', 'Thursday', 'Spring', 245, 2864.05, 11.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(450, '2025-10-24', 'Friday', 'Spring', 243, 3302.37, 13.59, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(451, '2025-10-25', 'Saturday', 'Spring', 384, 5452.8, 14.2, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(452, '2025-10-26', 'Sunday', 'Spring', 485, 7197.4, 14.84, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(453, '2025-10-27', 'Monday', 'Spring', 274, 3611.32, 13.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(454, '2025-10-28', 'Tuesday', 'Spring', 279, 4363.56, 15.64, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(455, '2025-10-29', 'Wednesday', 'Spring', 285, 3468.45, 12.17, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(456, '2025-10-30', 'Thursday', 'Spring', 257, 3202.22, 12.46, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(457, '2025-10-31', 'Friday', 'Spring', 288, 3962.88, 13.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(458, '2025-11-01', 'Saturday', 'Spring', 381, 5897.88, 15.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(459, '2025-11-02', 'Sunday', 'Spring', 507, 7143.63, 14.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(460, '2025-11-03', 'Monday', 'Spring', 268, 3746.64, 13.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(461, '2025-11-04', 'Tuesday', 'Spring', 282, 4103.1, 14.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(462, '2025-11-05', 'Wednesday', 'Spring', 264, 3693.36, 13.99, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(463, '2025-11-06', 'Thursday', 'Spring', 302, 4234.04, 14.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(464, '2025-11-07', 'Friday', 'Spring', 308, 4687.76, 15.22, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(465, '2025-11-08', 'Saturday', 'Spring', 510, 6752.4, 13.24, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(466, '2025-11-09', 'Sunday', 'Spring', 494, 5987.28, 12.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(467, '2025-11-10', 'Monday', 'Spring', 296, 4138.08, 13.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(468, '2025-11-11', 'Tuesday', 'Spring', 306, 4813.38, 15.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(469, '2025-11-12', 'Wednesday', 'Spring', 303, 4581.36, 15.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(470, '2025-11-13', 'Thursday', 'Spring', 285, 4200.9, 14.74, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(471, '2025-11-14', 'Friday', 'Spring', 290, 3900.5, 13.45, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(472, '2025-11-15', 'Saturday', 'Spring', 388, 5897.6, 15.2, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(473, '2025-11-16', 'Sunday', 'Spring', 434, 5633.32, 12.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(474, '2025-11-17', 'Monday', 'Spring', 229, 3396.07, 14.83, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(475, '2025-11-18', 'Tuesday', 'Spring', 309, 4465.05, 14.45, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(476, '2025-11-19', 'Wednesday', 'Spring', 235, 3188.95, 13.57, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(477, '2025-11-20', 'Thursday', 'Spring', 227, 3044.07, 13.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(478, '2025-11-21', 'Friday', 'Spring', 261, 3348.63, 12.83, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(479, '2025-11-22', 'Saturday', 'Spring', 496, 7097.76, 14.31, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(480, '2025-11-23', 'Sunday', 'Spring', 519, 6897.51, 13.29, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(481, '2025-11-24', 'Monday', 'Spring', 255, 3105.9, 12.18, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(482, '2025-11-25', 'Tuesday', 'Spring', 249, 3431.22, 13.78, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(483, '2025-11-26', 'Wednesday', 'Spring', 252, 3442.32, 13.66, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(484, '2025-11-27', 'Thursday', 'Spring', 276, 3869.52, 14.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(485, '2025-11-28', 'Friday', 'Spring', 277, 4196.55, 15.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(486, '2025-11-29', 'Saturday', 'Spring', 496, 6487.68, 13.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(487, '2025-11-30', 'Sunday', 'Spring', 444, 5301.36, 11.94, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(488, '2025-12-01', 'Monday', 'Summer', 247, 3408.6, 13.8, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(489, '2025-12-02', 'Tuesday', 'Summer', 278, 3811.38, 13.71, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(490, '2025-12-03', 'Wednesday', 'Summer', 227, 2826.15, 12.45, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(491, '2025-12-04', 'Thursday', 'Summer', 262, 3712.54, 14.17, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(492, '2025-12-05', 'Friday', 'Summer', 268, 3567.08, 13.31, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(493, '2025-12-06', 'Saturday', 'Summer', 435, 5015.55, 11.53, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(494, '2025-12-07', 'Sunday', 'Summer', 499, 7345.28, 14.72, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(495, '2025-12-08', 'Monday', 'Summer', 249, 3092.58, 12.42, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(496, '2025-12-09', 'Tuesday', 'Summer', 310, 3689, 11.9, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(497, '2025-12-10', 'Wednesday', 'Summer', 597, 11241.5, 18.83, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(498, '2025-12-11', 'Thursday', 'Summer', 848, 15509.9, 18.29, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(499, '2025-12-12', 'Friday', 'Summer', 717, 13723.4, 19.14, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(500, '2025-12-13', 'Saturday', 'Summer', 1648, 27109.6, 16.45, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(501, '2025-12-14', 'Sunday', 'Summer', 1290, 24393.9, 18.91, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(502, '2025-12-15', 'Monday', 'Summer', 619, 11519.6, 18.61, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(503, '2025-12-16', 'Tuesday', 'Summer', 795, 14779, 18.59, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(504, '2025-12-17', 'Wednesday', 'Summer', 757, 14118, 18.65, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(505, '2025-12-18', 'Thursday', 'Summer', 554, 9196.4, 16.6, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(506, '2025-12-19', 'Friday', 'Summer', 691, 12265.2, 17.75, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(507, '2025-12-20', 'Saturday', 'Summer', 1179, 19783.6, 16.78, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(508, '2025-12-21', 'Sunday', 'Summer', 1050, 18417, 17.54, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(509, '2025-12-22', 'Monday', 'Summer', 896, 15348.5, 17.13, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(510, '2025-12-23', 'Tuesday', 'Summer', 692, 12262.2, 17.72, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(511, '2025-12-24', 'Wednesday', 'Summer', 619, 10690.1, 17.27, 'Cold Coffee & Smoothies', 'Christmas Holiday Surge', 'Sunny 28°C', '2026-08-29 15:16:30'),
+(512, '2025-12-25', 'Thursday', 'Summer', 299, 3549.13, 11.87, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(513, '2025-12-26', 'Friday', 'Summer', 651, 8736.42, 13.42, 'Cold Coffee & Smoothies', 'Boxing Day Retail Rush', 'Mild 19°C', '2026-08-29 15:16:30'),
+(514, '2025-12-27', 'Saturday', 'Summer', 498, 7380.36, 14.82, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(515, '2025-12-28', 'Sunday', 'Summer', 480, 5980.8, 12.46, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(516, '2025-12-29', 'Monday', 'Summer', 281, 3905.9, 13.9, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(517, '2025-12-30', 'Tuesday', 'Summer', 257, 3867.85, 15.05, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(518, '2025-12-31', 'Wednesday', 'Summer', 223, 3113.08, 13.96, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(519, '2026-01-01', 'Thursday', 'Summer', 261, 3518.28, 13.48, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(520, '2026-01-02', 'Friday', 'Summer', 264, 3408.24, 12.91, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(521, '2026-01-03', 'Saturday', 'Summer', 499, 7125.72, 14.28, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(522, '2026-01-04', 'Sunday', 'Summer', 398, 4935.2, 12.4, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(523, '2026-01-05', 'Monday', 'Summer', 224, 3160.64, 14.11, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(524, '2026-01-06', 'Tuesday', 'Summer', 264, 3326.4, 12.6, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(525, '2026-01-07', 'Wednesday', 'Summer', 284, 3365.4, 11.85, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(526, '2026-01-08', 'Thursday', 'Summer', 300, 3957, 13.19, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(527, '2026-01-09', 'Friday', 'Summer', 235, 2742.45, 11.67, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(528, '2026-01-10', 'Saturday', 'Summer', 513, 6032.88, 11.76, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(529, '2026-01-11', 'Sunday', 'Summer', 511, 7905.17, 15.47, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(530, '2026-01-12', 'Monday', 'Summer', 300, 4362, 14.54, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(531, '2026-01-13', 'Tuesday', 'Summer', 275, 4303.75, 15.65, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(532, '2026-01-14', 'Wednesday', 'Summer', 238, 2917.88, 12.26, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(533, '2026-01-15', 'Thursday', 'Summer', 284, 4152.08, 14.62, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(534, '2026-01-16', 'Friday', 'Summer', 222, 3165.72, 14.26, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(535, '2026-01-17', 'Saturday', 'Summer', 465, 6616.95, 14.23, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(536, '2026-01-18', 'Sunday', 'Summer', 488, 6319.6, 12.95, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(537, '2026-01-19', 'Monday', 'Summer', 264, 3236.64, 12.26, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(538, '2026-01-20', 'Tuesday', 'Summer', 478, 5826.82, 12.19, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(539, '2026-01-21', 'Wednesday', 'Summer', 516, 6222.96, 12.06, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(540, '2026-01-22', 'Thursday', 'Summer', 437, 5191.56, 11.88, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(541, '2026-01-23', 'Friday', 'Summer', 450, 6808.5, 15.13, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(542, '2026-01-24', 'Saturday', 'Summer', 766, 10417.6, 13.6, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(543, '2026-01-25', 'Sunday', 'Summer', 892, 11810.1, 13.24, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(544, '2026-01-26', 'Monday', 'Summer', 417, 5316.75, 12.75, 'Cold Coffee & Smoothies', 'Aus Open Summer Festival', 'Hot Heatwave 36°C', '2026-08-29 15:16:30'),
+(545, '2026-01-27', 'Tuesday', 'Summer', 238, 2989.28, 12.56, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(546, '2026-01-28', 'Wednesday', 'Summer', 306, 4635.9, 15.15, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(547, '2026-01-29', 'Thursday', 'Summer', 272, 3908.64, 14.37, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(548, '2026-01-30', 'Friday', 'Summer', 223, 3454.27, 15.49, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(549, '2026-01-31', 'Saturday', 'Summer', 467, 5776.79, 12.37, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(550, '2026-02-01', 'Sunday', 'Summer', 486, 6847.74, 14.09, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(551, '2026-02-02', 'Monday', 'Summer', 237, 3372.51, 14.23, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(552, '2026-02-03', 'Tuesday', 'Summer', 275, 3368.75, 12.25, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(553, '2026-02-04', 'Wednesday', 'Summer', 250, 3150, 12.6, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(554, '2026-02-05', 'Thursday', 'Summer', 252, 3223.08, 12.79, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(555, '2026-02-06', 'Friday', 'Summer', 287, 4368.14, 15.22, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(556, '2026-02-07', 'Saturday', 'Summer', 443, 6640.57, 14.99, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(557, '2026-02-08', 'Sunday', 'Summer', 408, 5797.68, 14.21, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(558, '2026-02-09', 'Monday', 'Summer', 266, 3689.42, 13.87, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(559, '2026-02-10', 'Tuesday', 'Summer', 277, 4174.39, 15.07, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(560, '2026-02-11', 'Wednesday', 'Summer', 256, 3287.04, 12.84, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(561, '2026-02-12', 'Thursday', 'Summer', 280, 4127.2, 14.74, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(562, '2026-02-13', 'Friday', 'Summer', 237, 3408.06, 14.38, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(563, '2026-02-14', 'Saturday', 'Summer', 501, 6047.07, 12.07, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(564, '2026-02-15', 'Sunday', 'Summer', 446, 6444.7, 14.45, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(565, '2026-02-16', 'Monday', 'Summer', 232, 3259.6, 14.05, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(566, '2026-02-17', 'Tuesday', 'Summer', 231, 3388.77, 14.67, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(567, '2026-02-18', 'Wednesday', 'Summer', 226, 3487.18, 15.43, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(568, '2026-02-19', 'Thursday', 'Summer', 268, 3859.2, 14.4, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(569, '2026-02-20', 'Friday', 'Summer', 229, 3512.86, 15.34, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(570, '2026-02-21', 'Saturday', 'Summer', 461, 6467.83, 14.03, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:30'),
+(571, '2026-02-22', 'Sunday', 'Summer', 486, 7450.38, 15.33, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(572, '2026-02-23', 'Monday', 'Summer', 235, 3254.75, 13.85, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(573, '2026-02-24', 'Tuesday', 'Summer', 299, 4114.24, 13.76, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(574, '2026-02-25', 'Wednesday', 'Summer', 265, 3206.5, 12.1, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(575, '2026-02-26', 'Thursday', 'Summer', 300, 3675, 12.25, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(576, '2026-02-27', 'Friday', 'Summer', 252, 3270.96, 12.98, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(577, '2026-02-28', 'Saturday', 'Summer', 423, 5862.78, 13.86, 'Cold Coffee & Smoothies', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(578, '2026-03-01', 'Sunday', 'Autumn', 719, 9771.21, 13.59, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(579, '2026-03-02', 'Monday', 'Autumn', 222, 2837.16, 12.78, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(580, '2026-03-03', 'Tuesday', 'Autumn', 302, 4656.84, 15.42, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(581, '2026-03-04', 'Wednesday', 'Autumn', 258, 3372.06, 13.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(582, '2026-03-05', 'Thursday', 'Autumn', 268, 3746.64, 13.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(583, '2026-03-06', 'Friday', 'Autumn', 394, 6217.32, 15.78, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(584, '2026-03-07', 'Saturday', 'Autumn', 813, 12487.7, 15.36, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(585, '2026-03-08', 'Sunday', 'Autumn', 631, 9881.46, 15.66, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(586, '2026-03-09', 'Monday', 'Autumn', 252, 3671.64, 14.57, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(587, '2026-03-10', 'Tuesday', 'Autumn', 304, 4240.8, 13.95, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(588, '2026-03-11', 'Wednesday', 'Autumn', 242, 2979.02, 12.31, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(589, '2026-03-12', 'Thursday', 'Autumn', 292, 3536.12, 12.11, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(590, '2026-03-13', 'Friday', 'Autumn', 374, 5344.46, 14.29, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(591, '2026-03-14', 'Saturday', 'Autumn', 848, 10142.1, 11.96, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(592, '2026-03-15', 'Sunday', 'Autumn', 671, 7951.35, 11.85, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(593, '2026-03-16', 'Monday', 'Autumn', 305, 4132.75, 13.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(594, '2026-03-17', 'Tuesday', 'Autumn', 284, 3711.88, 13.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(595, '2026-03-18', 'Wednesday', 'Autumn', 243, 3083.67, 12.69, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(596, '2026-03-19', 'Thursday', 'Autumn', 227, 3246.1, 14.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(597, '2026-03-20', 'Friday', 'Autumn', 400, 5108, 12.77, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(598, '2026-03-21', 'Saturday', 'Autumn', 673, 10431.5, 15.5, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(599, '2026-03-22', 'Sunday', 'Autumn', 851, 11216.2, 13.18, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(600, '2026-03-23', 'Monday', 'Autumn', 229, 3526.6, 15.4, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(601, '2026-03-24', 'Tuesday', 'Autumn', 259, 3242.68, 12.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(602, '2026-03-25', 'Wednesday', 'Autumn', 260, 4024.8, 15.48, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(603, '2026-03-26', 'Thursday', 'Autumn', 243, 2918.43, 12.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(604, '2026-03-27', 'Friday', 'Autumn', 501, 6728.43, 13.43, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(605, '2026-03-28', 'Saturday', 'Autumn', 858, 10338.9, 12.05, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(606, '2026-03-29', 'Sunday', 'Autumn', 704, 9757.44, 13.86, 'Specialty Espresso Coffee', 'Melbourne Coffee & Food Fest', 'Mild 19°C', '2026-08-29 15:16:31'),
+(607, '2026-03-30', 'Monday', 'Autumn', 221, 3452.02, 15.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(608, '2026-03-31', 'Tuesday', 'Autumn', 279, 4012.02, 14.38, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(609, '2026-04-01', 'Wednesday', 'Autumn', 234, 3481.92, 14.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(610, '2026-04-02', 'Thursday', 'Autumn', 251, 3581.77, 14.27, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(611, '2026-04-03', 'Friday', 'Autumn', 232, 3489.28, 15.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(612, '2026-04-04', 'Saturday', 'Autumn', 407, 5588.11, 13.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(613, '2026-04-05', 'Sunday', 'Autumn', 503, 5844.86, 11.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(614, '2026-04-06', 'Monday', 'Autumn', 309, 3859.41, 12.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(615, '2026-04-07', 'Tuesday', 'Autumn', 264, 3569.28, 13.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(616, '2026-04-08', 'Wednesday', 'Autumn', 293, 3457.4, 11.8, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(617, '2026-04-09', 'Thursday', 'Autumn', 290, 4422.5, 15.25, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(618, '2026-04-10', 'Friday', 'Autumn', 241, 3075.16, 12.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(619, '2026-04-11', 'Saturday', 'Autumn', 415, 5303.7, 12.78, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(620, '2026-04-12', 'Sunday', 'Autumn', 385, 4516.05, 11.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(621, '2026-04-13', 'Monday', 'Autumn', 296, 3993.04, 13.49, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(622, '2026-04-14', 'Tuesday', 'Autumn', 225, 3489.75, 15.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(623, '2026-04-15', 'Wednesday', 'Autumn', 277, 4329.51, 15.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(624, '2026-04-16', 'Thursday', 'Autumn', 263, 3902.92, 14.84, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(625, '2026-04-17', 'Friday', 'Autumn', 262, 3385.04, 12.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(626, '2026-04-18', 'Saturday', 'Autumn', 382, 5302.16, 13.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(627, '2026-04-19', 'Sunday', 'Autumn', 419, 6201.2, 14.8, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(628, '2026-04-20', 'Monday', 'Autumn', 255, 2968.2, 11.64, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(629, '2026-04-21', 'Tuesday', 'Autumn', 266, 3801.14, 14.29, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(630, '2026-04-22', 'Wednesday', 'Autumn', 288, 4155.84, 14.43, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(631, '2026-04-23', 'Thursday', 'Autumn', 260, 4035.2, 15.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(632, '2026-04-24', 'Friday', 'Autumn', 296, 4466.64, 15.09, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(633, '2026-04-25', 'Saturday', 'Autumn', 469, 7011.55, 14.95, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(634, '2026-04-26', 'Sunday', 'Autumn', 427, 5875.52, 13.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(635, '2026-04-27', 'Monday', 'Autumn', 246, 3581.76, 14.56, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(636, '2026-04-28', 'Tuesday', 'Autumn', 302, 4113.24, 13.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(637, '2026-04-29', 'Wednesday', 'Autumn', 288, 3965.76, 13.77, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(638, '2026-04-30', 'Thursday', 'Autumn', 289, 4092.24, 14.16, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(639, '2026-05-01', 'Friday', 'Autumn', 283, 4468.57, 15.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(640, '2026-05-02', 'Saturday', 'Autumn', 457, 6653.92, 14.56, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(641, '2026-05-03', 'Sunday', 'Autumn', 383, 4515.57, 11.79, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(642, '2026-05-04', 'Monday', 'Autumn', 224, 2656.64, 11.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(643, '2026-05-05', 'Tuesday', 'Autumn', 275, 3767.5, 13.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(644, '2026-05-06', 'Wednesday', 'Autumn', 308, 3619, 11.75, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(645, '2026-05-07', 'Thursday', 'Autumn', 241, 3455.94, 14.34, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(646, '2026-05-08', 'Friday', 'Autumn', 303, 4154.13, 13.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(647, '2026-05-09', 'Saturday', 'Autumn', 403, 4948.84, 12.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(648, '2026-05-10', 'Sunday', 'Autumn', 512, 7372.8, 14.4, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(649, '2026-05-11', 'Monday', 'Autumn', 268, 3478.64, 12.98, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(650, '2026-05-12', 'Tuesday', 'Autumn', 253, 2922.15, 11.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(651, '2026-05-13', 'Wednesday', 'Autumn', 271, 3298.07, 12.17, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(652, '2026-05-14', 'Thursday', 'Autumn', 291, 4158.39, 14.29, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(653, '2026-05-15', 'Friday', 'Autumn', 229, 3187.68, 13.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(654, '2026-05-16', 'Saturday', 'Autumn', 400, 5880, 14.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(655, '2026-05-17', 'Sunday', 'Autumn', 462, 6796.02, 14.71, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(656, '2026-05-18', 'Monday', 'Autumn', 283, 4281.79, 15.13, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(657, '2026-05-19', 'Tuesday', 'Autumn', 307, 4758.5, 15.5, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(658, '2026-05-20', 'Wednesday', 'Autumn', 283, 4046.9, 14.3, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(659, '2026-05-21', 'Thursday', 'Autumn', 284, 3978.84, 14.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(660, '2026-05-22', 'Friday', 'Autumn', 282, 4275.12, 15.16, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(661, '2026-05-23', 'Saturday', 'Autumn', 381, 5623.56, 14.76, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(662, '2026-05-24', 'Sunday', 'Autumn', 447, 6928.5, 15.5, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(663, '2026-05-25', 'Monday', 'Autumn', 295, 3413.15, 11.57, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(664, '2026-05-26', 'Tuesday', 'Autumn', 300, 4704, 15.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(665, '2026-05-27', 'Wednesday', 'Autumn', 268, 3307.12, 12.34, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(666, '2026-05-28', 'Thursday', 'Autumn', 233, 3131.52, 13.44, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(667, '2026-05-29', 'Friday', 'Autumn', 286, 3838.12, 13.42, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(668, '2026-05-30', 'Saturday', 'Autumn', 519, 8174.25, 15.75, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(669, '2026-05-31', 'Sunday', 'Autumn', 495, 5776.65, 11.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(670, '2026-06-01', 'Monday', 'Winter', 225, 3384, 15.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(671, '2026-06-02', 'Tuesday', 'Winter', 244, 2986.56, 12.24, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(672, '2026-06-03', 'Wednesday', 'Winter', 309, 3562.77, 11.53, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(673, '2026-06-04', 'Thursday', 'Winter', 256, 3366.4, 13.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(674, '2026-06-05', 'Friday', 'Winter', 251, 3167.62, 12.62, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(675, '2026-06-06', 'Saturday', 'Winter', 462, 6934.62, 15.01, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(676, '2026-06-07', 'Sunday', 'Winter', 481, 7412.21, 15.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(677, '2026-06-08', 'Monday', 'Winter', 254, 3152.14, 12.41, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(678, '2026-06-09', 'Tuesday', 'Winter', 303, 4663.17, 15.39, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(679, '2026-06-10', 'Wednesday', 'Winter', 244, 3635.6, 14.9, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(680, '2026-06-11', 'Thursday', 'Winter', 238, 2884.56, 12.12, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(681, '2026-06-12', 'Friday', 'Winter', 237, 3299.04, 13.92, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(682, '2026-06-13', 'Saturday', 'Winter', 388, 5579.44, 14.38, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(683, '2026-06-14', 'Sunday', 'Winter', 423, 6019.29, 14.23, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(684, '2026-06-15', 'Monday', 'Winter', 253, 3309.24, 13.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(685, '2026-06-16', 'Tuesday', 'Winter', 277, 3689.64, 13.32, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(686, '2026-06-17', 'Wednesday', 'Winter', 225, 2733.75, 12.15, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(687, '2026-06-18', 'Thursday', 'Winter', 274, 4115.48, 15.02, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(688, '2026-06-19', 'Friday', 'Winter', 305, 3864.35, 12.67, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(689, '2026-06-20', 'Saturday', 'Winter', 408, 5728.32, 14.04, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(690, '2026-06-21', 'Sunday', 'Winter', 392, 5597.76, 14.28, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(691, '2026-06-22', 'Monday', 'Winter', 235, 3515.6, 14.96, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(692, '2026-06-23', 'Tuesday', 'Winter', 244, 3525.8, 14.45, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(693, '2026-06-24', 'Wednesday', 'Winter', 271, 3747.93, 13.83, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(694, '2026-06-25', 'Thursday', 'Winter', 247, 3507.4, 14.2, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(695, '2026-06-26', 'Friday', 'Winter', 253, 3208.04, 12.68, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(696, '2026-06-27', 'Saturday', 'Winter', 404, 4876.28, 12.07, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(697, '2026-06-28', 'Sunday', 'Winter', 446, 5971.94, 13.39, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(698, '2026-06-29', 'Monday', 'Winter', 239, 3599.34, 15.06, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(699, '2026-06-30', 'Tuesday', 'Winter', 302, 4460.54, 14.77, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(700, '2026-07-01', 'Wednesday', 'Winter', 222, 2557.44, 11.52, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(701, '2026-07-02', 'Thursday', 'Winter', 270, 3661.2, 13.56, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(702, '2026-07-03', 'Friday', 'Winter', 266, 4144.28, 15.58, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(703, '2026-07-04', 'Saturday', 'Winter', 415, 5378.4, 12.96, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(704, '2026-07-05', 'Sunday', 'Winter', 497, 6659.8, 13.4, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(705, '2026-07-06', 'Monday', 'Winter', 221, 2879.63, 13.03, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(706, '2026-07-07', 'Tuesday', 'Winter', 292, 4584.4, 15.7, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(707, '2026-07-08', 'Wednesday', 'Winter', 296, 3599.36, 12.16, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(708, '2026-07-09', 'Thursday', 'Winter', 305, 4007.7, 13.14, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(709, '2026-07-10', 'Friday', 'Winter', 235, 3527.35, 15.01, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(710, '2026-07-11', 'Saturday', 'Winter', 410, 5289, 12.9, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(711, '2026-07-12', 'Sunday', 'Winter', 386, 4913.78, 12.73, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(712, '2026-07-13', 'Monday', 'Winter', 235, 3501.5, 14.9, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(713, '2026-07-14', 'Tuesday', 'Winter', 298, 3665.4, 12.3, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(714, '2026-07-15', 'Wednesday', 'Winter', 276, 4333.2, 15.7, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(715, '2026-07-16', 'Thursday', 'Winter', 254, 3177.54, 12.51, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(716, '2026-07-17', 'Friday', 'Winter', 258, 3748.74, 14.53, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(717, '2026-07-18', 'Saturday', 'Winter', 400, 5016, 12.54, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(718, '2026-07-19', 'Sunday', 'Winter', 397, 5490.51, 13.83, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(719, '2026-07-20', 'Monday', 'Winter', 239, 3264.74, 13.66, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(720, '2026-07-21', 'Tuesday', 'Winter', 297, 3451.14, 11.62, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(721, '2026-07-22', 'Wednesday', 'Winter', 233, 2719.11, 11.67, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(722, '2026-07-23', 'Thursday', 'Winter', 298, 3915.72, 13.14, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(723, '2026-07-24', 'Friday', 'Winter', 237, 2979.09, 12.57, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(724, '2026-07-25', 'Saturday', 'Winter', 500, 6710, 13.42, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(725, '2026-07-26', 'Sunday', 'Winter', 462, 6800.64, 14.72, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(726, '2026-07-27', 'Monday', 'Winter', 253, 2929.74, 11.58, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(727, '2026-07-28', 'Tuesday', 'Winter', 270, 3699, 13.7, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(728, '2026-07-29', 'Wednesday', 'Winter', 249, 3749.94, 15.06, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(729, '2026-07-30', 'Thursday', 'Winter', 289, 4392.8, 15.2, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(730, '2026-07-31', 'Friday', 'Winter', 250, 3137.5, 12.55, 'Specialty Espresso Coffee', NULL, 'Chilly Rain 11°C', '2026-08-29 15:16:31'),
+(731, '2026-08-01', 'Saturday', 'Winter', 406, 5980.38, 14.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(732, '2026-08-02', 'Sunday', 'Winter', 393, 4688.49, 11.93, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(733, '2026-08-03', 'Monday', 'Winter', 256, 3896.32, 15.22, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(734, '2026-08-04', 'Tuesday', 'Winter', 292, 4362.48, 14.94, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(735, '2026-08-05', 'Wednesday', 'Winter', 286, 3740.88, 13.08, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(736, '2026-08-06', 'Thursday', 'Winter', 286, 3383.38, 11.83, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(737, '2026-08-07', 'Friday', 'Winter', 251, 2891.52, 11.52, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(738, '2026-08-08', 'Saturday', 'Winter', 495, 7276.5, 14.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(739, '2026-08-09', 'Sunday', 'Winter', 434, 6592.46, 15.19, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(740, '2026-08-10', 'Monday', 'Winter', 226, 3412.6, 15.1, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(741, '2026-08-11', 'Tuesday', 'Winter', 276, 4106.88, 14.88, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(742, '2026-08-12', 'Wednesday', 'Winter', 275, 3797.75, 13.81, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(743, '2026-08-13', 'Thursday', 'Winter', 231, 3573.57, 15.47, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(744, '2026-08-14', 'Friday', 'Winter', 221, 2744.82, 12.42, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(745, '2026-08-15', 'Saturday', 'Winter', 512, 7905.28, 15.44, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(746, '2026-08-16', 'Sunday', 'Winter', 418, 6370.32, 15.24, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(747, '2026-08-17', 'Monday', 'Winter', 283, 3727.11, 13.17, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(748, '2026-08-18', 'Tuesday', 'Winter', 282, 3299.4, 11.7, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(749, '2026-08-19', 'Wednesday', 'Winter', 232, 3210.88, 13.84, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(750, '2026-08-20', 'Thursday', 'Winter', 220, 3201, 14.55, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31');
+INSERT INTO `RAG_SalesHistory` (`history_id`, `sales_date`, `day_of_week`, `season`, `total_orders`, `total_revenue_aud`, `avg_ticket_aud`, `top_category`, `event_flag`, `weather_summary`, `created_at`) VALUES
+(751, '2026-08-21', 'Friday', 'Winter', 227, 3116.71, 13.73, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(752, '2026-08-22', 'Saturday', 'Winter', 492, 6204.12, 12.61, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(753, '2026-08-23', 'Sunday', 'Winter', 460, 5543, 12.05, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(754, '2026-08-24', 'Monday', 'Winter', 277, 4052.51, 14.63, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(755, '2026-08-25', 'Tuesday', 'Winter', 252, 3152.52, 12.51, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(756, '2026-08-26', 'Wednesday', 'Winter', 291, 4536.69, 15.59, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(757, '2026-08-27', 'Thursday', 'Winter', 249, 3553.23, 14.27, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31'),
+(758, '2026-08-28', 'Friday', 'Winter', 282, 4190.52, 14.86, 'Specialty Espresso Coffee', NULL, 'Mild 19°C', '2026-08-29 15:16:31');
+
+-- --------------------------------------------------------
+-- Table structure for table `RAG_Sync`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `RAG_Sync`;
+CREATE TABLE `RAG_Sync` (
+  `sync_id` int(11) NOT NULL AUTO_INCREMENT,
+  `event_type` varchar(50) NOT NULL,
+  `payload_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`payload_json`)),
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`sync_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `RAG_Sync`
+INSERT INTO `RAG_Sync` (`sync_id`, `event_type`, `payload_json`, `created_at`) VALUES
+(1, 'order_created', '{"order_id":8,"total_amount":12,"items_count":1,"order_type":"dine_in"}', '2026-08-29 15:18:04'),
+(2, 'order_created', '{"order_id":9,"total_amount":4,"items_count":1,"order_type":"dine-in"}', '2026-08-29 15:34:33'),
+(3, 'order_created', '{"order_id":10,"total_amount":63.5,"items_count":5,"order_type":"dine-in"}', '2026-08-29 15:54:51'),
+(4, 'order_created', '{"order_id":11,"total_amount":19,"items_count":1,"order_type":"dine-in"}', '2026-08-29 16:05:32'),
+(5, 'order_created', '{"order_id":12,"total_amount":17.3,"items_count":2,"order_type":"dine-in"}', '2026-08-29 16:20:59'),
+(6, 'order_created', '{"order_id":13,"total_amount":13.2,"items_count":2,"order_type":"dine-in"}', '2026-08-29 20:38:03'),
+(7, 'order_created', '{"order_id":14,"total_amount":4,"items_count":1,"order_type":"dine-in"}', '2026-08-29 20:43:47'),
+(8, 'order_created', '{"order_id":15,"total_amount":13.2,"items_count":2,"order_type":"dine-in"}', '2026-09-02 10:19:42'),
+(9, 'order_created', '{"order_id":16,"total_amount":490.8,"items_count":3,"order_type":"dine-in"}', '2026-09-02 11:25:00'),
+(10, 'order_created', '{"order_id":17,"total_amount":30.1,"items_count":3,"order_type":"dine-in"}', '2026-09-05 09:44:10'),
+(11, 'order_created', '{"order_id":18,"total_amount":28,"items_count":1,"order_type":"dine-in"}', '2026-09-05 09:45:12'),
+(12, 'order_created', '{"order_id":19,"total_amount":34.3,"items_count":2,"order_type":"dine-in"}', '2026-09-05 09:48:39'),
+(13, 'order_created', '{"order_id":20,"total_amount":55.4,"items_count":3,"order_type":"dine-in"}', '2026-09-05 09:50:02');
+
+-- --------------------------------------------------------
+-- Table structure for table `Recipes`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Recipes`;
+CREATE TABLE `Recipes` (
+  `recipe_id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `inventory_id` int(11) NOT NULL,
+  `quantity_required` float NOT NULL,
+  `unit` varchar(50) DEFAULT 'g',
+  `prep_instructions` text DEFAULT NULL,
+  PRIMARY KEY (`recipe_id`),
+  KEY `product_id` (`product_id`),
+  KEY `inventory_id` (`inventory_id`),
+  CONSTRAINT `Recipes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `Products` (`product_id`) ON DELETE CASCADE,
+  CONSTRAINT `Recipes_ibfk_2` FOREIGN KEY (`inventory_id`) REFERENCES `Inventory` (`inventory_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `Recipes`
+INSERT INTO `Recipes` (`recipe_id`, `product_id`, `inventory_id`, `quantity_required`, `unit`, `prep_instructions`) VALUES
+(1, 1, 1, 0.018, 'kg', 'Dose 18g espresso blend through double portafilter at 9 bar pressure'),
+(2, 3, 1, 0.018, 'kg', 'Dose 18g espresso beans'),
+(3, 3, 4, 0.22, 'litres', 'Steam 220ml fresh milk to silky 65°C microfoam'),
+(4, 3, 14, 1, 'units', 'Serve in 8oz cup'),
+(5, 4, 1, 0.018, 'kg', 'Dose 18g espresso beans'),
+(6, 4, 4, 0.22, 'litres', 'Steam 220ml fresh milk'),
+(7, 4, 14, 1, 'units', 'Serve in 8oz cup'),
+(8, 2, 2, 0.022, 'kg', 'Grind 22g Ethiopian Yirgacheffe medium-coarse, pour 330g water at 93°C'),
+(9, 6, 1, 0.03, 'kg', '200ml 18hr immersion cold brew concentrate over clear ice'),
+(10, 6, 15, 1, 'units', '12oz cup'),
+(11, 9, 10, 0.025, 'kg', 'Melt 25g Belgian chocolate drops with steamed whole milk'),
+(12, 9, 4, 0.22, 'litres', 'Steam 220ml milk'),
+(13, 13, 11, 0.02, 'kg', 'Infuse 20g Prana Sticky Chai in 220ml warm milk with honey'),
+(14, 13, 4, 0.22, 'litres', 'Steam 220ml milk'),
+(15, 15, 12, 3, 'grams', 'Whisk 3g Uji ceremonial matcha with 40ml 80°C water, top with milk'),
+(16, 15, 4, 0.2, 'litres', 'Steam 200ml milk'),
+(17, 40, 18, 1, 'units', 'Bake fresh all-butter croissant at 190°C for 16 mins');
+
+-- --------------------------------------------------------
+-- Table structure for table `Reservations`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Reservations`;
+CREATE TABLE `Reservations` (
+  `reservation_id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) DEFAULT NULL,
+  `table_id` int(11) DEFAULT NULL,
+  `reservation_date` date NOT NULL,
+  `reservation_time` time NOT NULL,
+  `number_of_guests` int(11) NOT NULL DEFAULT 2,
+  `status` varchar(50) DEFAULT 'confirmed',
+  `special_requests` text DEFAULT NULL,
+  `guest_name` varchar(100) DEFAULT NULL,
+  `guest_phone` varchar(50) DEFAULT NULL,
+  `guest_email` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`reservation_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `table_id` (`table_id`),
+  CONSTRAINT `Reservations_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `Customers` (`customer_id`) ON DELETE SET NULL,
+  CONSTRAINT `Reservations_ibfk_2` FOREIGN KEY (`table_id`) REFERENCES `DiningTables` (`table_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `Reservations`
+INSERT INTO `Reservations` (`reservation_id`, `customer_id`, `table_id`, `reservation_date`, `reservation_time`, `number_of_guests`, `status`, `special_requests`, `guest_name`, `guest_phone`, `guest_email`, `created_at`) VALUES
+(1, 1, 5, '2026-08-29', '11:30:00', 6, 'confirmed', 'Window seating preferred for birthday brunch', 'David Kim', '0412 889 201', 'david.kim@gmail.com', '2026-08-29 03:56:28'),
+(2, 2, 8, '2026-08-29', '12:30:00', 4, 'confirmed', 'High chair needed for toddler', 'Alex Mercer', '0400 998 123', 'alex.mercer@outlook.com', '2026-08-29 03:56:28'),
+(3, 3, 10, '2026-08-30', '13:15:00', 4, 'pending', 'Business lunch meeting', 'Chloe Lin', '0488 442 109', 'chloe.lin@techcorp.au', '2026-08-29 03:56:28');
+
+-- --------------------------------------------------------
+-- Table structure for table `Roles`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Roles`;
+CREATE TABLE `Roles` (
+  `role_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_name` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `role_name` (`role_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `Roles`
+INSERT INTO `Roles` (`role_id`, `role_name`, `description`) VALUES
 (1, 'Admin', 'Full administrative access across all modules and settings'),
 (2, 'Manager', 'Store operations, inventory management, staff scheduling, and reporting'),
 (3, 'Cashier', 'Front-of-house point of sale, order taking, table booking, and customer management'),
 (4, 'Barista', 'Beverage preparation and order status management via KDS'),
 (5, 'Kitchen', 'Kitchen display system and food preparation management'),
-(6, 'Customer', 'Customer ordering portal and loyalty management');
+(6, 'Customer', 'Customer ordering portal and loyalty management'),
+(7, 'Waitstaff', 'Floor map, table seating management, and waitstaff orders');
 
--- 3.2 Users (Passwords: admin123, manager123, cashier123, barista123)
--- Password hashes generated with PASSWORD_BCRYPT
-INSERT INTO Users (user_id, username, password_hash, role_id, status) VALUES
-(1, 'admin', '$2y$10$QO2sZ7kXq2N9fN9aP8pI2u6U/6gqU0wU5Vw5I0X2M7L9m5A4vO2uK', 1, 'active'),
-(2, 'slin', '$2y$10$QO2sZ7kXq2N9fN9aP8pI2u6U/6gqU0wU5Vw5I0X2M7L9m5A4vO2uK', 3, 'active'),
-(3, 'loconnor', '$2y$10$QO2sZ7kXq2N9fN9aP8pI2u6U/6gqU0wU5Vw5I0X2M7L9m5A4vO2uK', 4, 'active'),
-(4, 'hwright', '$2y$10$QO2sZ7kXq2N9fN9aP8pI2u6U/6gqU0wU5Vw5I0X2M7L9m5A4vO2uK', 4, 'active');
+-- --------------------------------------------------------
+-- Table structure for table `SalesPredictions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `SalesPredictions`;
+CREATE TABLE `SalesPredictions` (
+  `prediction_id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `prediction_date` date NOT NULL,
+  `predicted_sales` float NOT NULL,
+  `confidence_score` float NOT NULL,
+  `model_version` varchar(50) DEFAULT 'v1.0',
+  `generated_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`prediction_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `SalesPredictions_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `Products` (`product_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.3 Employees (Note: O''Connor escaped properly with double single-quote)
-INSERT INTO Employees (employee_id, user_id, first_name, last_name, phone, email, position, hire_date, hourly_rate, pin, status) VALUES
-(1, 1, 'System', 'Administrator', '0400 000 000', 'admin@ravenhill.au', 'General Manager', '2023-01-15', 45.00, '0000', 'active'),
-(2, 2, 'Sarah', 'Lin', '0412 345 678', 'sarah.lin@ravenhill.au', 'Lead Cashier', '2023-03-01', 29.50, '1234', 'active'),
-(3, 3, 'Liam', 'O''Connor', '0423 456 789', 'liam.oc@ravenhill.au', 'Head Barista', '2023-02-10', 32.00, '5678', 'active'),
-(4, 4, 'Hannah', 'Wright', '0434 567 890', 'hannah.w@ravenhill.au', 'Barista / Floor', '2023-06-20', 28.50, '9900', 'active');
+-- --------------------------------------------------------
+-- Table structure for table `Schedules`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Schedules`;
+CREATE TABLE `Schedules` (
+  `schedule_id` int(11) NOT NULL AUTO_INCREMENT,
+  `employee_id` int(11) NOT NULL,
+  `shift_date` date NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `role_station` varchar(100) DEFAULT 'Barista',
+  `notes` text DEFAULT NULL,
+  PRIMARY KEY (`schedule_id`),
+  KEY `employee_id` (`employee_id`),
+  CONSTRAINT `Schedules_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `Employees` (`employee_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.4 DiningTables (12 tables)
-INSERT INTO DiningTables (table_id, table_number, capacity, status, location) VALUES
-(1, 1, 2, 'available', 'Window Side'),
-(2, 2, 2, 'available', 'Window Side'),
-(3, 3, 4, 'occupied', 'Main Dining Hall'),
-(4, 4, 4, 'available', 'Main Dining Hall'),
-(5, 5, 6, 'reserved', 'Main Dining Hall'),
-(6, 6, 2, 'available', 'Courtyard Patio'),
-(7, 7, 4, 'available', 'Courtyard Patio'),
-(8, 8, 4, 'reserved', 'Courtyard Patio'),
-(9, 9, 2, 'available', 'Bar Counter'),
-(10, 10, 6, 'reserved', 'Private Mezzanine'),
-(11, 11, 8, 'available', 'Private Mezzanine'),
-(12, 12, 4, 'available', 'Main Dining Hall');
+-- --------------------------------------------------------
+-- Table structure for table `StationTickets`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `StationTickets`;
+CREATE TABLE `StationTickets` (
+  `ticket_id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `station` enum('kitchen','barista') NOT NULL,
+  `status` enum('pending','preparing','ready','collected','cancelled') DEFAULT 'pending',
+  `target_prep_minutes` int(11) DEFAULT 5,
+  `started_at` datetime DEFAULT NULL,
+  `ready_at` datetime DEFAULT NULL,
+  `collected_at` datetime DEFAULT NULL,
+  `bumped_by_employee_id` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`ticket_id`),
+  KEY `order_id` (`order_id`),
+  KEY `bumped_by_employee_id` (`bumped_by_employee_id`),
+  KEY `idx_station_status` (`station`,`status`),
+  CONSTRAINT `StationTickets_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`) ON DELETE CASCADE,
+  CONSTRAINT `StationTickets_ibfk_2` FOREIGN KEY (`bumped_by_employee_id`) REFERENCES `Employees` (`employee_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.5 Suppliers
-INSERT INTO Suppliers (supplier_id, supplier_name, contact_person, phone, email, address, payment_terms, notes) VALUES
+-- Dumping data for table `StationTickets`
+INSERT INTO `StationTickets` (`ticket_id`, `order_id`, `station`, `status`, `target_prep_minutes`, `started_at`, `ready_at`, `collected_at`, `bumped_by_employee_id`, `created_at`) VALUES
+(1, 2, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:35:56', NULL, '2026-08-15 05:51:41'),
+(2, 3, 'kitchen', 'collected', 5, '2026-08-22 22:12:18', '2026-08-22 23:34:30', '2026-08-22 23:35:58', NULL, '2026-08-15 05:59:41'),
+(3, 3, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:35:58', NULL, '2026-08-15 05:59:41'),
+(4, 4, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:00', NULL, '2026-08-15 21:58:50'),
+(5, 5, 'barista', 'collected', 5, '2026-08-24 03:32:23', '2026-08-24 03:33:39', '2026-08-24 03:33:42', NULL, '2026-08-15 22:00:47'),
+(6, 6, 'kitchen', 'collected', 5, '2026-08-22 22:12:23', '2026-08-22 23:34:22', '2026-08-22 23:35:52', NULL, '2026-08-15 22:01:20'),
+(7, 7, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:21', NULL, '2026-08-16 00:02:34'),
+(8, 8, 'kitchen', 'collected', 5, NULL, '2026-08-22 23:34:09', '2026-08-22 23:35:47', NULL, '2026-08-16 00:03:27'),
+(9, 9, 'kitchen', 'collected', 5, NULL, '2026-08-22 23:34:12', '2026-08-22 23:35:49', NULL, '2026-08-19 14:00:36'),
+(10, 10, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:02', NULL, '2026-08-19 14:01:17'),
+(11, 11, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:03', NULL, '2026-08-19 14:04:24'),
+(12, 12, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:23', NULL, '2026-08-22 09:37:52'),
+(13, 13, 'barista', 'collected', 5, NULL, NULL, '2026-08-22 23:36:24', NULL, '2026-08-22 09:38:23'),
+(14, 14, 'kitchen', 'collected', 5, NULL, '2026-08-22 23:34:15', '2026-08-22 23:35:51', NULL, '2026-08-22 11:48:59'),
+(15, 15, 'barista', 'collected', 5, NULL, '2026-08-24 03:32:26', '2026-08-24 03:33:50', NULL, '2026-08-22 13:54:29'),
+(16, 16, 'barista', 'collected', 5, NULL, '2026-08-24 03:33:40', '2026-08-24 03:33:43', NULL, '2026-08-22 13:56:01'),
+(17, 17, 'barista', 'collected', 5, NULL, '2026-08-24 03:33:37', '2026-08-24 03:33:44', NULL, '2026-08-22 13:56:47'),
+(18, 18, 'barista', 'collected', 5, NULL, '2026-08-24 03:32:28', '2026-08-24 03:33:45', NULL, '2026-08-22 14:56:38'),
+(19, 19, 'kitchen', 'collected', 5, NULL, '2026-08-22 23:34:10', '2026-08-22 23:35:54', NULL, '2026-08-22 15:04:24'),
+(20, 21, 'barista', 'collected', 5, '2026-08-24 03:33:05', '2026-08-24 03:33:36', '2026-08-24 03:33:47', NULL, '2026-08-22 15:06:22'),
+(21, 22, 'barista', 'collected', 4, '2026-08-24 03:32:39', '2026-08-24 03:33:35', '2026-08-24 03:33:47', NULL, '2026-08-22 15:22:27'),
+(22, 23, 'barista', 'collected', 4, '2026-08-24 03:33:08', '2026-08-24 03:33:15', '2026-08-24 03:33:48', NULL, '2026-08-22 15:24:22'),
+(23, 24, 'kitchen', 'collected', 12, NULL, '2026-08-22 23:34:07', '2026-08-22 23:35:54', NULL, '2026-08-22 15:25:23'),
+(24, 25, 'barista', 'preparing', 4, '2026-08-26 14:32:31', '2026-08-26 14:32:40', NULL, NULL, '2026-08-26 14:25:10'),
+(25, 26, 'barista', 'preparing', 4, '2026-08-26 14:32:33', '2026-08-26 14:32:39', NULL, NULL, '2026-08-26 14:30:42'),
+(26, 26, 'kitchen', 'preparing', 12, '2026-08-26 14:31:07', NULL, NULL, NULL, '2026-08-26 14:30:42'),
+(28, 8, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:21', '2026-09-05 09:48:38', NULL, '2026-08-29 15:18:04'),
+(29, 9, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:22', '2026-09-05 09:48:38', NULL, '2026-08-29 15:34:33'),
+(30, 10, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:23', '2026-09-05 09:48:38', NULL, '2026-08-29 15:54:51'),
+(31, 10, 'kitchen', 'collected', 12, '2026-08-29 16:05:46', '2026-09-05 09:46:51', '2026-09-05 09:47:14', NULL, '2026-08-29 15:54:51'),
+(32, 11, 'kitchen', 'collected', 12, '2026-08-29 16:06:16', '2026-09-05 09:46:52', '2026-09-05 09:47:16', NULL, '2026-08-29 16:05:32'),
+(33, 12, 'barista', 'collected', 4, '2026-08-29 16:21:27', '2026-09-05 09:46:03', '2026-09-05 09:48:39', NULL, '2026-08-29 16:20:59'),
+(34, 12, 'kitchen', 'collected', 12, '2026-08-29 16:22:08', '2026-09-05 09:46:54', '2026-09-05 09:47:17', NULL, '2026-08-29 16:20:59'),
+(35, 13, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:06', '2026-09-05 09:48:41', NULL, '2026-08-29 20:38:03'),
+(36, 13, 'kitchen', 'collected', 12, NULL, '2026-09-05 09:43:01', '2026-09-05 09:46:12', NULL, '2026-08-29 20:38:03'),
+(37, 14, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:07', '2026-09-05 09:48:42', NULL, '2026-08-29 20:43:47'),
+(38, 15, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:26', '2026-09-05 09:48:42', NULL, '2026-09-02 10:19:42'),
+(39, 15, 'kitchen', 'collected', 12, NULL, '2026-09-05 09:45:37', '2026-09-05 09:45:49', NULL, '2026-09-02 10:19:42'),
+(40, 16, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:08', '2026-09-05 09:48:34', NULL, '2026-09-02 11:25:00'),
+(41, 16, 'kitchen', 'collected', 12, NULL, '2026-09-05 09:45:36', '2026-09-05 09:45:46', NULL, '2026-09-02 11:25:00'),
+(42, 17, 'barista', 'collected', 4, NULL, '2026-09-05 09:46:09', '2026-09-05 09:48:34', NULL, '2026-09-05 09:44:10'),
+(43, 17, 'kitchen', 'collected', 12, NULL, '2026-09-05 09:46:48', '2026-09-05 09:47:18', NULL, '2026-09-05 09:44:10'),
+(44, 18, 'kitchen', 'collected', 12, NULL, '2026-09-05 09:46:50', '2026-09-05 09:47:19', NULL, '2026-09-05 09:45:12'),
+(45, 19, 'barista', 'collected', 4, NULL, NULL, '2026-09-05 09:48:41', NULL, '2026-09-05 09:48:39'),
+(46, 19, 'kitchen', 'preparing', 12, '2026-09-05 09:48:50', NULL, NULL, NULL, '2026-09-05 09:48:39'),
+(47, 20, 'barista', 'pending', 4, NULL, NULL, NULL, NULL, '2026-09-05 09:50:02'),
+(48, 20, 'kitchen', 'preparing', 12, '2026-09-05 09:50:32', NULL, NULL, NULL, '2026-09-05 09:50:02');
+
+-- --------------------------------------------------------
+-- Table structure for table `Suppliers`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Suppliers`;
+CREATE TABLE `Suppliers` (
+  `supplier_id` int(11) NOT NULL AUTO_INCREMENT,
+  `supplier_name` varchar(255) NOT NULL,
+  `contact_person` varchar(255) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `payment_terms` varchar(100) DEFAULT 'Net 30',
+  `notes` text DEFAULT NULL,
+  PRIMARY KEY (`supplier_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Dumping data for table `Suppliers`
+INSERT INTO `Suppliers` (`supplier_id`, `supplier_name`, `contact_person`, `phone`, `email`, `address`, `payment_terms`, `notes`) VALUES
 (1, 'Melbourne Coffee Exporters', 'Sam Harris', '(03) 9882 1100', 'orders@melbcoffee.au', '14 Victoria Docks, Melbourne VIC 3000', 'Net 14', 'Specialty Grade 1 Single Origin and House Blend roasted coffee beans'),
 (2, 'St David Dairy Victoria', 'Anna Schmidt', '(03) 9419 8820', 'supply@stdavid.com.au', '16 St David St, Fitzroy VIC 3065', 'Net 7', 'Fresh local unhomogenised whole milk, skim milk, and cultured butter'),
 (3, 'MilkLab Plant Milks', 'Liam Vance', '1300 645 522', 'orders@milklab.com.au', '88 Southbank Blvd, Southbank VIC 3006', 'Net 30', 'Almond, Oat, Soy, and Lactose-Free specialty barista series milks'),
 (4, 'BioPak Sustainable Solutions', 'Support Team', '1300 246 725', 'orders@biopak.com.au', '55 Clarence St, Sydney NSW 2000', 'Net 30', 'FSC-certified plant-based compostable cups, lids, carry trays and straws'),
 (5, 'Noisette Bakery Artisans', 'Chef Pierre', '(03) 9555 4321', 'pierre@noisette.com.au', '84 Turner St, Port Melbourne VIC 3207', 'Net 7', 'Daily deliveries of artisan sourdough loaves, plain croissants, and pastries');
 
--- 3.6 Discounts & Promotions
-INSERT INTO Discounts (discount_id, code, description, type, discount_percentage, fixed_amount, min_spend, start_date, end_date, usage_limit, usage_count, is_active) VALUES
-(1, 'WELCOME10', '10% off first order for new customer loyalty signups', 'percentage', 10.0, 0.0, 10.0, '2026-01-01', '2026-12-31', 5000, 142, 1),
-(2, 'RAVENHILL15', '15% discount promotional code for regulars', 'percentage', 15.0, 0.0, 20.0, '2026-01-01', '2026-12-31', 1000, 68, 1),
-(3, 'FLINDERS5', '$5.00 off orders over $25.00', 'fixed', 0.0, 5.0, 25.0, '2026-01-01', '2026-12-31', 1000, 39, 1),
-(4, 'STAFF50', '50% staff dining discount', 'percentage', 50.0, 0.0, 0.0, '2026-01-01', '2026-12-31', 9999, 512, 1);
+-- --------------------------------------------------------
+-- Table structure for table `Timesheets`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Timesheets`;
+CREATE TABLE `Timesheets` (
+  `timesheet_id` int(11) NOT NULL AUTO_INCREMENT,
+  `employee_id` int(11) NOT NULL,
+  `clock_in` datetime NOT NULL,
+  `clock_out` datetime DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'clocked_in',
+  `hourly_rate` float DEFAULT 28.5,
+  PRIMARY KEY (`timesheet_id`),
+  KEY `employee_id` (`employee_id`),
+  CONSTRAINT `Timesheets_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `Employees` (`employee_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.7 Customers (Loyalty Members)
-INSERT INTO Customers (customer_id, first_name, last_name, phone, email, loyalty_points, loyalty_tier, joined_loyalty_at) VALUES
-(1, 'David', 'Kim', '0412 889 201', 'david.kim@gmail.com', 240, 'Gold', '2025-10-12 08:30:00'),
-(2, 'Alex', 'Mercer', '0400 998 123', 'alex.mercer@outlook.com', 110, 'Silver', '2025-11-04 14:15:00'),
-(3, 'Chloe', 'Lin', '0488 442 109', 'chloe.lin@techcorp.au', 75, 'Bronze', '2026-01-09 09:40:00'),
-(4, 'Marcus', 'Vance', '0411 223 344', 'marcus.vance@melbourne.edu.au', 315, 'Platinum', '2025-08-19 11:20:00'),
-(5, 'Elena', 'Rostova', '0422 334 455', 'elena.r@designhub.com', 90, 'Silver', '2026-02-01 16:05:00');
+-- --------------------------------------------------------
+-- Table structure for table `Users`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `Users`;
+CREATE TABLE `Users` (
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role_id` int(11) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'active',
+  `last_login` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `Users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `Roles` (`role_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- 3.8 Categories (14 Core Menu Categories)
-INSERT INTO Categories (category_id, category_name, description) VALUES
-(1, 'Coffee', 'Artisan espresso-based coffees brewed with precision roasted beans'),
-(2, 'Hot Drinks', 'Comforting spiced chais, rich chocolates, and soothing specialty lattes'),
-(3, 'Tea', 'Premium loose-leaf and organic herbal whole-leaf infusions'),
-(4, 'Cold Coffee', 'Chilled iced espresso favorites, single origin iced lattes, and nitro cold brews'),
-(5, 'Cold Drinks', 'Refreshing iced teas, rich cold milkshakes, artisan sodas, and sparkling waters'),
-(6, 'Smoothies', 'Thick blended natural fruit smoothies made with real yogurt and superfoods'),
-(7, 'Juices', 'Freshly pressed fruit and vegetable cold juices packed with vibrant vitamins'),
-(8, 'Breakfast', 'Hearty morning classics, farm fresh eggs, sourdough toasts, and breakfast wraps'),
-(9, 'Toasties', 'Golden grilled sourdough toasties melted with premium artisan cheeses and fillings'),
-(10, 'Sandwiches', 'Fresh daily deli sandwiches, crispy BLTs, and gourmet sourdough baguettes'),
-(11, 'Pastries', 'Flaky handmade French butter croissants and sweet seasonal fruit danishes'),
-(12, 'Bakery', 'Freshly baked muffins, gourmet banana breads, and traditional scones'),
-(13, 'Lunch', 'Fresh seasonal lunchtime salads and gourmet protein bowls'),
-(14, 'Sides', 'Crunchy golden potato chips, sweet potato fries, and appetizing snack sides');
-
--- 3.9 Products (42 Baseline Menu Items in AUD)
-INSERT INTO Products (product_id, category_id, product_name, description, price, availability, image) VALUES
--- Category 1: Coffee
-(1, 1, 'Espresso / Short Black', 'Intense, aromatic double-shot extraction of our seasonal Ravenhill Reserve espresso blend', 4.00, 1, 'double_espresso_short_black.png'),
-(2, 1, 'Long Black', 'Double shot of extraction gently poured over hot filtered water preserving delicate crema', 4.80, 1, 'long_black_coffee.png'),
-(3, 1, 'Flat White', 'Silky textured microfoam folded over a rich double shot of Ravenhill espresso blend', 5.20, 1, 'flat_white_coffee.png'),
-(4, 1, 'Latte', 'Smooth espresso balanced with velvety steamed milk and a delicate layer of froth', 5.20, 1, 'flat_white_coffee.png'),
-(5, 1, 'Cappuccino', 'Rich espresso topped with deep velvety foam and dusted with organic dark cocoa', 5.20, 1, 'cappuccino_coffee.png'),
-(6, 1, 'Piccolo Latte', 'A concentrated ristretto shot topped with warm silky milk served in a 4oz glass', 4.80, 1, 'piccolo_latte.png'),
-(7, 1, 'Short Macchiato', 'Pure espresso marked with a single dash of velvety steamed milk foam', 4.50, 1, 'double_espresso_short_black.png'),
-(8, 1, 'Long Macchiato', 'Double shot espresso over hot water stained with steamed milk foam', 5.20, 1, 'long_black_coffee.png'),
-(9, 1, 'Mocha', 'Decadent Belgian melted dark chocolate blended with espresso and silky steamed milk', 5.80, 1, 'cappuccino_coffee.png'),
-(10, 1, 'Babycino', 'Warm frothed milk dusted with sweet cocoa powder served with two marshmallows', 2.50, 1, 'cappuccino_coffee.png'),
-
--- Category 2: Hot Drinks
-(11, 2, 'Hot Chocolate', 'Rich Belgian 54% dark chocolate melted into creamy steamed milk with marshmallows', 5.50, 1, 'cappuccino_coffee.png'),
-(12, 2, 'White Hot Chocolate', 'Sweet and velvety Swiss white chocolate melted into creamy steamed milk', 5.70, 1, 'cappuccino_coffee.png'),
-(13, 2, 'Chai Latte', 'Authentic spiced black tea steeped with whole cinnamon, cardamom, and steamed milk', 5.70, 1, 'prana_sticky_chai_latte.png'),
-(14, 2, 'Dirty Chai', 'Traditional spiced chai latte infused with a bold shot of Ravenhill espresso', 6.20, 1, 'prana_sticky_chai_latte.png'),
-(15, 2, 'Matcha Latte', 'Ceremonial grade Japanese Uji green tea matcha whisked with silky steamed milk', 6.20, 1, 'flat_white_coffee.png'),
-(16, 2, 'Turmeric Latte', 'Golden spiced blend of organic ground turmeric, ginger, black pepper, and warm milk', 5.90, 1, 'flat_white_coffee.png'),
-
--- Category 3: Tea
-(17, 3, 'English Breakfast Tea', 'Full-bodied organic Ceylon and Assam black tea with a brisk, robust malt character', 4.80, 1, 'batch_brew_filter.png'),
-(18, 3, 'Earl Grey Tea', 'Fragrant black tea leaves infused with cold-pressed natural Italian bergamot oil', 4.80, 1, 'batch_brew_filter.png'),
-(19, 3, 'Green Tea', 'Delicate Japanese Sencha green tea with vibrant grassy notes and a clean finish', 4.80, 1, 'batch_brew_filter.png'),
-(20, 3, 'Peppermint Tea', 'Refreshing whole dried organic peppermint leaves offering a naturally caffeine-free lift', 4.80, 1, 'batch_brew_filter.png'),
-(21, 3, 'Chamomile Tea', 'Calming whole organic chamomile flower blossoms with subtle floral apple sweetness', 4.80, 1, 'batch_brew_filter.png'),
-(22, 3, 'Lemongrass & Ginger Tea', 'Zesty blend of uplifting cut lemongrass stalks and spicy warming organic ginger root', 4.80, 1, 'batch_brew_filter.png'),
-
--- Category 4: Cold Coffee
-(23, 4, 'Iced Latte', 'Double shot of freshly extracted espresso poured over cold milk and crystalline ice', 6.80, 1, 'iced_oat_milk_latte.png'),
-(24, 4, 'Iced Long Black', 'Double shot of rich espresso poured over chilled mineral water and ice', 6.20, 1, 'cold_brew_coffee.png'),
-(25, 4, 'Iced Coffee', 'Chilled espresso and cold milk served with artisan vanilla bean ice cream and whipped cream', 7.80, 1, 'iced_oat_milk_latte.png'),
-(26, 4, 'Iced Mocha', 'Belgian melted chocolate, espresso shot, and chilled milk with chocolate drizzle and cream', 8.20, 1, 'iced_oat_milk_latte.png'),
-
--- Category 5: Cold Drinks
-(27, 5, 'Iced Chocolate', 'Decadent cold Belgian chocolate milk topped with vanilla ice cream and whipped cream', 7.80, 1, 'iced_oat_milk_latte.png'),
-(28, 5, 'Iced Chai Latte', 'Chilled aromatic spiced chai infused with cold milk and served over ice', 7.20, 1, 'prana_sticky_chai_latte.png'),
-(29, 5, 'Iced Matcha Latte', 'Vibrant ceremonial Japanese matcha whisked with ice-cold milk over ice', 7.80, 1, 'iced_oat_milk_latte.png'),
-(30, 5, 'Milkshake', 'Classic thick milkshake churned with gourmet syrup (Chocolate, Vanilla, Strawberry, Caramel)', 8.50, 1, 'iced_oat_milk_latte.png'),
-(31, 5, 'Bottled Still Water', 'Pure premium Australian spring water in an eco-friendly recyclable bottle 600ml', 3.50, 1, 'cold_brew_coffee.png'),
-(32, 5, 'Sparkling Water', 'Crisp mineral sparkling water served with a fresh wedge of lemon 500ml', 5.00, 1, 'cold_brew_coffee.png'),
-(33, 5, 'Soft Drink', 'Assorted classic canned soft drinks (Coca-Cola, Coke Zero, Sprite, Fanta, Ginger Beer)', 4.50, 1, 'cold_brew_coffee.png'),
-
--- Category 6: Smoothies
-(34, 6, 'Smoothie with options such as Banana, Mixed Berry, Mango and Tropical', 'Rich creamy blended fruit smoothie made with Greek yogurt, honey, and chia seeds', 9.50, 1, 'iced_oat_milk_latte.png'),
-
--- Category 7: Juices
-(35, 7, 'Fresh Orange Juice', '100% freshly cold-pressed sweet Valencia oranges with no added sugar or preservatives', 8.50, 1, 'cold_brew_coffee.png'),
-(36, 7, 'Fresh Apple Juice', 'Crisp cold-pressed Australian Granny Smith and Pink Lady apples', 8.50, 1, 'cold_brew_coffee.png'),
-(37, 7, 'Green Juice', 'Revitalising cold-pressed green juice with celery, cucumber, kale, green apple, and mint', 9.50, 1, 'cold_brew_coffee.png'),
-
--- Category 8: Breakfast
-(38, 8, 'Sourdough Toast', 'Two thick toasted slices of artisan Noisette sourdough with butter and gourmet spreads', 6.50, 1, 'butter_croissant.png'),
-(39, 8, 'Eggs on Toast', 'Two free-range Victorian eggs cooked your way (Poached, Scrambled, Fried) on sourdough', 15.00, 1, 'butter_croissant.png'),
-(40, 8, 'Bacon & Egg Roll', 'Smoked streaky bacon, sunny-side fried free-range egg, and tomato relish on a brioche bun', 12.00, 1, 'butter_croissant.png'),
-(41, 8, 'Breakfast Wrap', 'Scrambled eggs, crispy bacon, baby spinach, avocado, and spicy chipotle mayo in a tortilla', 13.50, 1, 'butter_croissant.png'),
-(42, 8, 'Avocado Toast', 'Fresh smashed Hass avocado on sourdough with Persian feta, dukkah, radish, and lemon', 18.50, 1, 'butter_croissant.png'),
-(43, 8, 'Granola & Yoghurt', 'House-baked honey toasted almond granola with seasonal berries and Greek vanilla yogurt', 15.50, 1, 'butter_croissant.png'),
-(44, 8, 'Porridge', 'Creamy rolled organic oats simmered with almond milk, caramelized banana, and maple syrup', 15.00, 1, 'butter_croissant.png'),
-(45, 8, 'Eggs Benedict', 'Two poached eggs, smoked shaved ham or bacon, and rich citrus hollandaise on sourdough', 21.00, 1, 'butter_croissant.png'),
-(46, 8, 'Breakfast Burger', 'Angus beef patty, crispy bacon, fried egg, hash brown, cheddar cheese, and BBQ relish', 16.00, 1, 'butter_croissant.png'),
-
--- Category 9: Toasties
-(47, 9, 'Ham & Cheese Toastie', 'Free-range smoked leg ham and melted Gruyère & aged cheddar on toasted sourdough', 12.50, 1, 'butter_croissant.png'),
-(48, 9, 'Cheese & Tomato Toastie', 'Heirloom ripe tomatoes, aged vintage cheddar cheese, and fresh basil on sourdough', 11.50, 1, 'butter_croissant.png'),
-(49, 9, 'Three Cheese Toastie', 'Mouthwatering blend of mozzarella, aged cheddar, and Swiss Gruyère cheese on sourdough', 14.00, 1, 'butter_croissant.png'),
-(50, 9, 'Tuna Melt', 'Gourmet albacore tuna salad with dill, capers, melted provolone cheese, and jalapeño', 15.50, 1, 'butter_croissant.png'),
-
--- Category 10: Sandwiches
-(51, 10, 'BLT Toasted Sandwich', 'Crispy smoked bacon, crunchy cos lettuce, vine ripened tomato, and aioli on sourdough', 13.50, 1, 'butter_croissant.png'),
-(52, 10, 'Chicken & Avocado Sandwich', 'Poached free-range chicken breast, fresh avocado, rocket greens, and herb mayo on baguette', 16.50, 1, 'butter_croissant.png'),
-
--- Category 11: Pastries
-(53, 11, 'Plain Croissant', 'Traditional flaky artisan French butter croissant baked fresh daily by Noisette', 6.50, 1, 'butter_croissant.png'),
-(54, 11, 'Almond Croissant', 'Double-baked croissant filled with rich almond frangipane and topped with toasted flakes', 8.00, 1, 'butter_croissant.png'),
-(55, 11, 'Chocolate Croissant', 'Flaky French pastry rolled around two batons of 54% dark Belgian chocolate', 7.50, 1, 'butter_croissant.png'),
-(56, 11, 'Ham & Cheese Croissant', 'Warm butter croissant toasted with free-range leg ham, Swiss cheese, and bechamel', 9.50, 1, 'butter_croissant.png'),
-(57, 11, 'Fruit Danish', 'Crispy puff pastry rosette filled with vanilla custard and glazed seasonal fruits', 7.00, 1, 'butter_croissant.png'),
-
--- Category 12: Bakery
-(58, 12, 'Blueberry Muffin', 'Moist vanilla batter folded with wild Australian blueberries and a crumble top', 6.50, 1, 'butter_croissant.png'),
-(59, 12, 'Chocolate Muffin', 'Double chocolate chunk muffin with melted dark and milk chocolate chips', 6.50, 1, 'butter_croissant.png'),
-(60, 12, 'Banana Bread', 'Toasted spiced banana loaf served warm with whipped honey cinnamon butter', 7.00, 1, 'butter_croissant.png'),
-(61, 12, 'Blueberry Scone', 'Freshly baked traditional scone served warm with strawberry conserve and double cream', 6.50, 1, 'butter_croissant.png'),
-
--- Category 13: Lunch
-(62, 13, 'Seasonal Salad', 'Baby spinach, quinoa, roast pumpkin, pomegranate, walnuts, and balsamic citrus dressing', 18.00, 1, 'butter_croissant.png'),
-(63, 13, 'Chicken Caesar Salad', 'Grilled chicken tenderloins, crispy bacon, cos lettuce, sourdough croutons, parmesan & egg', 21.00, 1, 'butter_croissant.png'),
-
--- Category 14: Sides
-(64, 14, 'Chips', 'Bowl of crispy golden shoestring potato fries served with garlic aioli', 8.50, 1, 'butter_croissant.png'),
-(65, 14, 'Sweet Potato Chips', 'Crunchy rosemary salted sweet potato fries served with chipotle dipping mayo', 10.50, 1, 'butter_croissant.png');
-
--- 3.10 Customisations (Modifiers & Add-ons mapped to Categories)
-INSERT INTO Customisations (customisation_id, group_name, option_name, extra_price, category_id, is_default, availability) VALUES
--- Milk Options (Categories 1: Coffee, 2: Hot Drinks, 4: Cold Coffee, 5: Cold Drinks, 6: Smoothies)
-(1, 'Milk', 'Full Cream Milk', 0.00, 1, 1, 1),
-(2, 'Milk', 'Skim Milk', 0.00, 1, 0, 1),
-(3, 'Milk', 'Oat Milk', 0.80, 1, 0, 1),
-(4, 'Milk', 'Soy Milk', 0.80, 1, 0, 1),
-(5, 'Milk', 'Almond Milk', 0.80, 1, 0, 1),
-(6, 'Milk', 'Lactose Free Milk', 0.80, 1, 0, 1),
-
-(7, 'Milk', 'Full Cream Milk', 0.00, 2, 1, 1),
-(8, 'Milk', 'Skim Milk', 0.00, 2, 0, 1),
-(9, 'Milk', 'Oat Milk', 0.80, 2, 0, 1),
-(10, 'Milk', 'Soy Milk', 0.80, 2, 0, 1),
-(11, 'Milk', 'Almond Milk', 0.80, 2, 0, 1),
-(12, 'Milk', 'Lactose Free Milk', 0.80, 2, 0, 1),
-
-(13, 'Milk', 'Full Cream Milk', 0.00, 4, 1, 1),
-(14, 'Milk', 'Skim Milk', 0.00, 4, 0, 1),
-(15, 'Milk', 'Oat Milk', 0.80, 4, 0, 1),
-(16, 'Milk', 'Soy Milk', 0.80, 4, 0, 1),
-(17, 'Milk', 'Almond Milk', 0.80, 4, 0, 1),
-(18, 'Milk', 'Lactose Free Milk', 0.80, 4, 0, 1),
-
-(19, 'Milk', 'Full Cream Milk', 0.00, 5, 1, 1),
-(20, 'Milk', 'Skim Milk', 0.00, 5, 0, 1),
-(21, 'Milk', 'Oat Milk', 0.80, 5, 0, 1),
-(22, 'Milk', 'Soy Milk', 0.80, 5, 0, 1),
-(23, 'Milk', 'Almond Milk', 0.80, 5, 0, 1),
-(24, 'Milk', 'Lactose Free Milk', 0.80, 5, 0, 1),
-
-(25, 'Milk', 'Oat Milk', 0.80, 6, 0, 1),
-(26, 'Milk', 'Soy Milk', 0.80, 6, 0, 1),
-(27, 'Milk', 'Almond Milk', 0.80, 6, 0, 1),
-(28, 'Milk', 'Lactose Free Milk', 0.80, 6, 0, 1),
-
--- Coffee Shots & Roast Modifiers (Categories 1: Coffee, 4: Cold Coffee)
-(29, 'Coffee Modifiers', 'Extra Shot', 0.80, 1, 0, 1),
-(30, 'Coffee Modifiers', 'Decaf', 0.80, 1, 0, 1),
-(31, 'Coffee Modifiers', 'Extra Shot', 0.80, 4, 0, 1),
-(32, 'Coffee Modifiers', 'Decaf', 0.80, 4, 0, 1),
-
--- Cup Size Options (Categories 1: Coffee, 2: Hot Drinks, 3: Tea, 4: Cold Coffee, 5: Cold Drinks, 6: Smoothies, 7: Juices)
-(33, 'Size', 'Standard / Regular', 0.00, 1, 1, 1),
-(34, 'Size', 'Large', 0.80, 1, 0, 1),
-(35, 'Size', 'Standard / Regular', 0.00, 2, 1, 1),
-(36, 'Size', 'Large', 0.80, 2, 0, 1),
-(37, 'Size', 'Standard / Regular', 0.00, 3, 1, 1),
-(38, 'Size', 'Large', 0.80, 3, 0, 1),
-(39, 'Size', 'Standard / Regular', 0.00, 4, 1, 1),
-(40, 'Size', 'Large', 0.80, 4, 0, 1),
-(41, 'Size', 'Standard / Regular', 0.00, 5, 1, 1),
-(42, 'Size', 'Large', 0.80, 5, 0, 1),
-(43, 'Size', 'Standard / Regular', 0.00, 6, 1, 1),
-(44, 'Size', 'Large', 0.80, 6, 0, 1),
-(45, 'Size', 'Standard / Regular', 0.00, 7, 1, 1),
-(46, 'Size', 'Large', 0.80, 7, 0, 1),
-
--- Flavours & Syrups (Categories 1: Coffee, 2: Hot Drinks, 4: Cold Coffee, 5: Cold Drinks)
-(47, 'Flavours', 'Vanilla Syrup', 0.70, 1, 0, 1),
-(48, 'Flavours', 'Caramel Syrup', 0.70, 1, 0, 1),
-(49, 'Flavours', 'Hazelnut Syrup', 0.70, 1, 0, 1),
-
-(50, 'Flavours', 'Vanilla Syrup', 0.70, 2, 0, 1),
-(51, 'Flavours', 'Caramel Syrup', 0.70, 2, 0, 1),
-(52, 'Flavours', 'Hazelnut Syrup', 0.70, 2, 0, 1),
-
-(53, 'Flavours', 'Vanilla Syrup', 0.70, 4, 0, 1),
-(54, 'Flavours', 'Caramel Syrup', 0.70, 4, 0, 1),
-(55, 'Flavours', 'Hazelnut Syrup', 0.70, 4, 0, 1),
-
-(56, 'Flavours', 'Vanilla Syrup', 0.70, 5, 0, 1),
-(57, 'Flavours', 'Caramel Syrup', 0.70, 5, 0, 1),
-(58, 'Flavours', 'Hazelnut Syrup', 0.70, 5, 0, 1),
-
--- Drink Add-ons
-(59, 'Add-ons', 'Whipped Cream', 0.80, 2, 0, 1),
-(60, 'Add-ons', 'Marshmallows', 0.70, 2, 0, 1),
-(61, 'Add-ons', 'Whipped Cream', 0.80, 4, 0, 1),
-(62, 'Add-ons', 'Whipped Cream', 0.80, 5, 0, 1),
-(63, 'Add-ons', 'Marshmallows', 0.70, 5, 0, 1),
-
--- Food Add-ons & Gluten Free Bread (Categories 8: Breakfast, 9: Toasties, 10: Sandwiches, 13: Lunch, 14: Sides)
-(64, 'Food Add-ons', 'Gluten Free Bread', 2.00, 8, 0, 1),
-(65, 'Food Add-ons', 'Extra Cheese', 2.00, 8, 0, 1),
-(66, 'Food Add-ons', 'Avocado', 3.00, 8, 0, 1),
-(67, 'Food Add-ons', 'Bacon', 4.50, 8, 0, 1),
-(68, 'Food Add-ons', 'Extra Egg', 2.50, 8, 0, 1),
-(69, 'Food Add-ons', 'Hash Brown', 2.50, 8, 0, 1),
-(70, 'Food Add-ons', 'Smoked Salmon', 7.00, 8, 0, 1),
-(71, 'Food Add-ons', 'Halloumi', 4.00, 8, 0, 1),
-
-(72, 'Food Add-ons', 'Gluten Free Bread', 2.00, 9, 0, 1),
-(73, 'Food Add-ons', 'Extra Cheese', 2.00, 9, 0, 1),
-(74, 'Food Add-ons', 'Avocado', 3.00, 9, 0, 1),
-(75, 'Food Add-ons', 'Bacon', 4.50, 9, 0, 1),
-(76, 'Food Add-ons', 'Extra Egg', 2.50, 9, 0, 1),
-
-(77, 'Food Add-ons', 'Gluten Free Bread', 2.00, 10, 0, 1),
-(78, 'Food Add-ons', 'Extra Cheese', 2.00, 10, 0, 1),
-(79, 'Food Add-ons', 'Avocado', 3.00, 10, 0, 1),
-(80, 'Food Add-ons', 'Bacon', 4.50, 10, 0, 1),
-(81, 'Food Add-ons', 'Chicken', 5.00, 10, 0, 1),
-(82, 'Food Add-ons', 'Halloumi', 4.00, 10, 0, 1),
-(83, 'Food Add-ons', 'Smoked Salmon', 7.00, 10, 0, 1),
-
-(84, 'Food Add-ons', 'Extra Cheese', 2.00, 13, 0, 1),
-(85, 'Food Add-ons', 'Avocado', 3.00, 13, 0, 1),
-(86, 'Food Add-ons', 'Bacon', 4.50, 13, 0, 1),
-(87, 'Food Add-ons', 'Extra Egg', 2.50, 13, 0, 1),
-(88, 'Food Add-ons', 'Chicken', 5.00, 13, 0, 1),
-(89, 'Food Add-ons', 'Halloumi', 4.00, 13, 0, 1),
-(90, 'Food Add-ons', 'Smoked Salmon', 7.00, 13, 0, 1),
-
-(91, 'Food Add-ons', 'Hash Brown', 2.50, 14, 0, 1);
-
--- 3.11 Inventory Base Items
-INSERT INTO Inventory (inventory_id, item_name, product_id, supplier_id, quantity, reorder_level, unit, unit_cost, status) VALUES
-(1, 'Ravenhill Reserve Espresso Beans (kg)', 1, 1, 45, 15, 'kg', 24.00, 'in_stock'),
-(2, 'Single Origin Ethiopia Yirgacheffe (kg)', 2, 1, 18, 8, 'kg', 32.00, 'in_stock'),
-(3, 'Decaf Swiss Water Process Beans (kg)', 1, 1, 12, 5, 'kg', 28.00, 'in_stock'),
-(4, 'St David Dairy Full Cream Milk 2L', 3, 2, 60, 20, 'bottles', 3.20, 'in_stock'),
-(5, 'St David Dairy Skim Milk 2L', 3, 2, 30, 10, 'bottles', 3.20, 'in_stock'),
-(6, 'MilkLab Oat Milk 1L', 3, 3, 48, 16, 'cartons', 2.80, 'in_stock'),
-(7, 'MilkLab Almond Milk 1L', 3, 3, 36, 12, 'cartons', 2.90, 'in_stock'),
-(8, 'MilkLab Soy Milk 1L', 3, 3, 30, 10, 'cartons', 2.70, 'in_stock'),
-(9, 'MilkLab Lactose Free Milk 1L', 3, 3, 24, 8, 'cartons', 2.90, 'in_stock'),
-(10, 'Belgian Dark Chocolate Drops 54% (kg)', 9, 1, 15, 5, 'kg', 16.50, 'in_stock'),
-(11, 'Prana Sticky Chai Blend (kg)', 13, 1, 10, 4, 'kg', 26.00, 'in_stock'),
-(12, 'Ceremonial Grade Matcha Powder 500g', 15, 1, 6, 2, 'tins', 45.00, 'in_stock'),
-(13, 'Organic English Breakfast Loose Leaf (kg)', 17, 1, 8, 3, 'kg', 22.00, 'in_stock'),
-(14, 'BioPak 8oz Single-Wall Coffee Cups (500pk)', NULL, 4, 14, 5, 'boxes', 65.00, 'in_stock'),
-(15, 'BioPak 12oz Double-Wall Coffee Cups (500pk)', NULL, 4, 20, 8, 'boxes', 78.00, 'in_stock'),
-(16, 'Noisette Sourdough Loaves (Fresh)', 38, 5, 25, 8, 'loaves', 4.50, 'in_stock'),
-(17, 'Free Range Eggs (15 dozen carton)', 39, 2, 8, 3, 'cartons', 48.00, 'in_stock'),
-(18, 'Smoked Streaky Bacon (kg)', 40, 2, 18, 6, 'kg', 14.50, 'in_stock'),
-(19, 'Hass Avocados (Tray 24ct)', 42, 2, 6, 2, 'trays', 28.00, 'in_stock'),
-(20, 'Noisette Plain Butter Croissants (24pk)', 53, 5, 10, 4, 'boxes', 52.00, 'in_stock');
-
--- 3.12 Sample Active Orders
-INSERT INTO Orders (order_id, customer_id, employee_id, payment_id, total_amount, order_status, order_type, table_number, discount_code, discount_amount, notes, created_at) VALUES
-(1, 1, 2, NULL, 18.20, 'completed', 'dine-in', 3, NULL, 0.00, 'Table 3 dine-in guest', DATE_SUB(NOW(), INTERVAL 45 MINUTE)),
-(2, 4, 2, NULL, 12.00, 'preparing', 'dine-in', 5, 'WELCOME10', 1.20, 'Extra hot flat white', DATE_SUB(NOW(), INTERVAL 12 MINUTE)),
-(3, NULL, 3, NULL, 23.50, 'pending', 'takeaway', NULL, NULL, 0.00, 'Takeaway for Alex', DATE_SUB(NOW(), INTERVAL 4 MINUTE));
-
--- 3.13 Sample Order Items
-INSERT INTO OrderItems (order_item_id, order_id, product_id, quantity, unit_price, subtotal, customisations_json, item_notes) VALUES
-(1, 1, 3, 2, 6.00, 12.00, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'One regular, one oat'),
-(2, 1, 53, 1, 6.50, 6.50, NULL, 'Warmed lightly'),
-(3, 2, 3, 2, 6.00, 12.00, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'Extra hot 68C'),
-(4, 3, 40, 1, 12.00, 12.00, NULL, 'Tomato sauce on side'),
-(5, 3, 23, 1, 7.60, 7.60, '[{"group_name":"Milk","option_name":"Oat Milk","extra_price":0.80}]', 'Iced oat latte');
-
--- 3.14 Sample Feedback
-INSERT INTO Feedback (feedback_id, customer_id, order_id, rating, comments, category, guest_name, status, submitted_at) VALUES
-(1, 4, 1, 5, 'Best Flat White in Flinders Lane! Microfoam is super silky and beans taste sensational.', 'Coffee Quality', 'Marcus Vance', 'published', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(2, 5, 2, 5, 'Great morning atmosphere, love the oat milk latte and friendly cashier staff.', 'Customer Service', 'Elena R.', 'published', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(3, NULL, 3, 4, 'Quick turnaround during morning rush hour peak. Will definitely return.', 'Speed of Service', 'Walk-in Guest', 'published', DATE_SUB(NOW(), INTERVAL 3 DAY));
-
--- 3.15 Sample Reservations
-INSERT INTO Reservations (reservation_id, customer_id, table_id, reservation_date, reservation_time, number_of_guests, status, special_requests, guest_name, guest_phone, guest_email) VALUES
-(1, 1, 5, CURDATE(), '11:30:00', 6, 'confirmed', 'Window seating preferred for birthday brunch', 'David Kim', '0412 889 201', 'david.kim@gmail.com'),
-(2, 2, 8, CURDATE(), '12:30:00', 4, 'confirmed', 'High chair needed for toddler', 'Alex Mercer', '0400 998 123', 'alex.mercer@outlook.com'),
-(3, 3, 10, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '13:15:00', 4, 'pending', 'Business lunch meeting', 'Chloe Lin', '0488 442 109', 'chloe.lin@techcorp.au');
+-- Dumping data for table `Users`
+INSERT INTO `Users` (`user_id`, `username`, `password_hash`, `role_id`, `status`, `last_login`, `created_at`) VALUES
+(1, 'admin', '$2y$10$8K8nQbblluhKl4JGOypZvu3S10vol.pM8qEYWyoVqgC6KiYK8DM9i', 1, 'active', '2026-09-05 10:31:37', '2026-08-29 03:56:28'),
+(6, 'manager', '$2y$10$q06fEQe6Gg.MH8QKHcs5hO6mi.GxNyqK.fdQ0d1S..iz3KaS4aYru', 2, 'active', '2026-09-05 09:56:07', '2026-08-29 14:43:06'),
+(7, 'cashier', '$2y$10$WX6R6INJe5gBT396A7kjoutvY6I/EEBADOeO/pxoPR73igmFMCmdW', 3, 'active', '2026-09-05 09:51:27', '2026-08-29 14:43:06'),
+(8, 'barista', '$2y$10$BdS2bebwOEbV8y5g4Yn26Oz5q1XA0zrbOQVgJY8BOAHD4K51w5EvG', 4, 'active', '2026-09-05 09:55:54', '2026-08-29 14:43:06'),
+(9, 'kitchen', '$2y$10$3Iw17/BJuI84bxYt1k.mb.nc87f.pYRmbe/Kd.6m0EI6UBIkChhZW', 5, 'active', '2026-09-05 09:51:42', '2026-08-29 14:43:06'),
+(10, 'waiter', '$2y$10$V4fu0J2mNO65YXUco6PFpuHnlMAlMfuOxOMC4Jd/Nrufx.Tyl5Yk6', 7, 'active', '2026-09-05 09:39:08', '2026-08-29 14:43:06'),
+(11, 'customer', '$2y$10$2czHiFDem3xnUZU/vdWNlOhCOYkGzRf0JyiOb9Xq1XsxohTjDkgjK', 6, 'active', '2026-08-29 16:22:42', '2026-08-29 14:43:06');
 
 SET FOREIGN_KEY_CHECKS = 1;
-
--- ======================================================================
--- End of Database Seed Script
--- ======================================================================
+-- Dump completed successfully.

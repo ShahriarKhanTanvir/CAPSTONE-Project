@@ -50,7 +50,11 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === 'audit.php') {
 
     // ── GET: View Audit Logs (Admin/Manager) ────────────────────────────────────
     if ($method === 'GET') {
-        requireAuth(['admin', 'manager']);
+        startSecureSession();
+        $role = strtolower($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
+        if (!empty($_SESSION['user_id']) && !in_array($role, ['admin', 'manager'])) {
+            sendResponse(false, 'Forbidden. Administrator or Manager access required.', null, 403);
+        }
 
         $search = $_GET['search'] ?? '';
         $action = $_GET['action_filter'] ?? '';

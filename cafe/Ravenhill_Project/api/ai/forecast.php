@@ -139,7 +139,7 @@ try {
                 'HTTP-Referer: https://mehedihasan.au/kent/cpro306/g1/',
                 'X-Title: Ravenhill Coffee RAG AI'
             ],
-            CURLOPT_TIMEOUT        => 18,
+            CURLOPT_TIMEOUT        => 4,
             CURLOPT_SSL_VERIFYPEER => false
         ]);
 

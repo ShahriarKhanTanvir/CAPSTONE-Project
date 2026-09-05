@@ -41,6 +41,42 @@ if ($method === 'OPTIONS') {
     exit;
 }
 
+// Auto-sync missing StationTickets for any active orders
+try {
+    $missingStmt = $db->query("
+        SELECT o.order_id, o.order_status, o.created_at
+        FROM Orders o
+        LEFT JOIN StationTickets st ON o.order_id = st.order_id
+        WHERE o.order_status IN ('pending', 'preparing', 'ready')
+          AND st.ticket_id IS NULL
+    ");
+    $missingOrders = $missingStmt ? $missingStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    foreach ($missingOrders as $mo) {
+        $moid = (int)$mo['order_id'];
+        $mStatus = in_array($mo['order_status'], ['pending', 'preparing', 'ready']) ? $mo['order_status'] : 'pending';
+
+        $itStmt = $db->prepare("
+            SELECT DISTINCT CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END AS station
+            FROM OrderItems oi
+            JOIN Products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = ?
+        ");
+        $itStmt->execute([$moid]);
+        $stList = $itStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($stList)) {
+            $stList = ['barista'];
+        }
+
+        foreach ($stList as $st) {
+            $mins = $st === 'kitchen' ? 12 : 4;
+            $ins = $db->prepare("INSERT INTO StationTickets (order_id, station, status, target_prep_minutes, created_at) VALUES (?, ?, ?, ?, ?)");
+            $ins->execute([$moid, $st, $mStatus, $mins, $mo['created_at']]);
+        }
+    }
+} catch (Exception $e) {}
+
 // ── GET: Active KDS & Wait Staff Queue ──────────────────────────────────────
 if ($method === 'GET') {
 
@@ -104,7 +140,7 @@ if ($method === 'GET') {
             $itemsStmt = $db->prepare("
                 SELECT oi.order_item_id, oi.product_id, oi.quantity, oi.item_notes, oi.customisations_json,
                        p.product_name, cat.category_name,
-                       COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS station
+                       CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END AS station
                 FROM OrderItems oi
                 LEFT JOIN Products p ON oi.product_id = p.product_id
                 LEFT JOIN Categories cat ON p.category_id = cat.category_id
@@ -230,13 +266,13 @@ if ($method === 'GET') {
         $itemsStmt = $db->prepare("
             SELECT oi.order_item_id, oi.product_id, oi.quantity, oi.item_notes, oi.customisations_json,
                    p.product_name, cat.category_name,
-                   COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS station
+                   CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END AS station
             FROM OrderItems oi
             LEFT JOIN Products p ON oi.product_id = p.product_id
             LEFT JOIN Categories cat ON p.category_id = cat.category_id
-            WHERE (oi.ticket_id = ? OR (oi.ticket_id IS NULL AND oi.order_id = ? AND (cat.target_station = ? OR (cat.target_station IS NULL AND ? = 'barista'))))
+            WHERE (oi.ticket_id = ? OR (oi.order_id = ? AND (CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END = ?)))
         ");
-        $itemsStmt->execute([$tId, $oId, $tStation, $tStation]);
+        $itemsStmt->execute([$tId, $oId, $tStation]);
         $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($items as &$item) {

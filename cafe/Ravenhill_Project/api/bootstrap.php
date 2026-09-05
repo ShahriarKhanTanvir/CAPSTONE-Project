@@ -25,13 +25,13 @@ $db = getDB();
 
 try {
     // 1. Categories
-    $catStmt = $db->query("SELECT category_id, category_name, description, target_station, is_active FROM Categories WHERE is_active = 1 ORDER BY category_id ASC");
+    $catStmt = $db->query("SELECT category_id, category_name, description, (CASE WHEN category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS target_station, is_active FROM Categories WHERE is_active = 1 ORDER BY category_id ASC");
     $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Menu Items
     $menuStmt = $db->query("
         SELECT p.product_id, p.category_id, p.product_name, p.description, p.base_price, p.image_url, p.is_available, p.sku,
-               cat.category_name, COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS station
+               cat.category_name, (CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) AS station
         FROM Products p
         LEFT JOIN Categories cat ON p.category_id = cat.category_id
         WHERE p.is_available = 1

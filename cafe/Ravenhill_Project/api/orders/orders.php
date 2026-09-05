@@ -242,6 +242,14 @@ if ($method === 'POST' && !$action) {
         ]);
         $orderId = (int)$db->lastInsertId();
 
+        // Increment Discount usage count if discount code applied
+        if (!empty($discountCode)) {
+            try {
+                $uStmt = $db->prepare("UPDATE Discounts SET usage_count = COALESCE(usage_count, 0) + 1 WHERE UPPER(code) = ?");
+                $uStmt->execute([strtoupper(trim($discountCode))]);
+            } catch (Exception $e) {}
+        }
+
         // Insert Line Items and categorize by Station (FR26 / Multi-Station KDS)
         $stationItems = ['barista' => [], 'kitchen' => []];
 

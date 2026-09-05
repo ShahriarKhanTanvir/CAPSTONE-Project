@@ -71,11 +71,17 @@ foreach ($tickets as $t) {
     if ($t['station'] === 'kitchen') $kitchenStatus = $t['status'];
 }
 
+if ($baristaStatus === 'none' && $kitchenStatus === 'none') {
+    $masterSt = strtolower($order['order_status'] ?? 'pending');
+    $baristaStatus = $masterSt;
+    $kitchenStatus = $masterSt;
+}
+
 // Fetch Line Items with Station tagging
 $itemsStmt = $db->prepare("
     SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, oi.customisations_json, oi.item_notes,
            p.product_name, cat.category_name,
-           COALESCE(cat.target_station, CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END) as station
+           CASE WHEN p.category_id BETWEEN 1 AND 7 THEN 'barista' ELSE 'kitchen' END as station
     FROM OrderItems oi
     LEFT JOIN Products p ON oi.product_id = p.product_id
     LEFT JOIN Categories cat ON p.category_id = cat.category_id
